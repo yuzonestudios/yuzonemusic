@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
@@ -57,6 +57,22 @@ export default function SearchPage() {
             setLoading(false);
         }
     }, [query, searchType]);
+
+    // Debounced search effect
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (query.trim()) {
+                handleSearch();
+            } else if (query === "") {
+                setSongs([]);
+                setArtists([]);
+                setAlbums([]);
+                setHasSearched(false);
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [query, handleSearch]);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter") {

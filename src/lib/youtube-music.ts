@@ -174,7 +174,8 @@ export async function searchAlbums(query: string, limit = 10): Promise<YTMusicAl
 export async function getStreamUrl(videoId: string): Promise<string | null> {
     try {
         const yt = await getInnertube();
-        const info = await yt.getBasicInfo(videoId);
+        // Use 'ANDROID' client which often has fewer signature restrictions for streams
+        const info = await yt.getBasicInfo(videoId, 'ANDROID');
 
         // Get the best audio format
         const audioFormats = info.streaming_data?.adaptive_formats?.filter(
@@ -186,6 +187,12 @@ export async function getStreamUrl(videoId: string): Promise<string | null> {
             audioFormats.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
             const bestFormat = audioFormats[0];
 
+            // If URL is already present (unencrypted), return it
+            if (bestFormat.url) {
+                return bestFormat.url;
+            }
+
+            // Otherwise, decipher it
             if (bestFormat.decipher) {
                 return bestFormat.decipher(yt.session.player);
             }
@@ -196,7 +203,7 @@ export async function getStreamUrl(videoId: string): Promise<string | null> {
         return null;
     } catch (error) {
         console.error("Error getting stream URL:", error);
-        throw error;
+        return null; // Return null gracefully instead of throwing
     }
 }
 

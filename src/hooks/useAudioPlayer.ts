@@ -65,25 +65,29 @@ export function useAudioPlayer() {
     useEffect(() => {
         if (!audioRef.current || !currentSong) return;
 
-        const loadSong = async () => {
-            try {
-                const response = await fetch(`/api/stream?id=${currentSong.videoId}`);
-                const data = await response.json();
+        const audio = audioRef.current;
 
-                if (data.success && data.data?.url) {
-                    audioRef.current!.src = data.data.url;
-                    audioRef.current!.load();
-                    if (isPlaying) {
-                        audioRef.current!.play().catch(console.error);
-                    }
+        // Use the API proxy URL directly
+        const streamUrl = `/api/stream?id=${currentSong.videoId}`;
+
+        // Only update if different to avoid reloading same song
+        if (audio.src !== streamUrl) {
+            audio.src = streamUrl;
+            audio.load();
+
+            if (isPlaying) {
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        // Auto-play was prevented or play was aborted
+                        if (error.name !== 'AbortError') {
+                            console.error("Playback error:", error);
+                        }
+                    });
                 }
-            } catch (error) {
-                console.error("Failed to load song:", error);
             }
-        };
-
-        loadSong();
-    }, [currentSong?.videoId]);
+        }
+    }, [currentSong?.videoId, isPlaying]);
 
     // Play/pause control
     useEffect(() => {
