@@ -52,14 +52,20 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     return true;
-                } catch (error) {
+                } catch (error: any) {
                     console.error("CRITICAL ERROR during sign in:", error);
-                    // Check if it's a MongoDB connection error
+
+                    // Handle Race Condition: Duplicate Key Error (11000)
+                    // If the user was created by a parallel request, just allow login.
+                    if (error.code === 11000) {
+                        console.log("DEBUG: Duplicate key error (race condition) handled. Allowing login.");
+                        return true;
+                    }
+
                     if (error instanceof Error) {
                         console.error("Stack:", error.stack);
                     }
                     // IMPORTANT: Fail login if user creation/update fails.
-                    // This prevents "token without DB user" state.
                     return false;
                 }
             }
