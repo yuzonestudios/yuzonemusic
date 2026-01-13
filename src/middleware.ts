@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Check if the path is public
-    const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
+    const isPublicPath = publicPaths.some((path) => pathname.startsWith(path)) || pathname === "/";
 
     // Get the session token
     const token = await getToken({

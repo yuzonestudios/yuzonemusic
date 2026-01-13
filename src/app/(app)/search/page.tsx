@@ -137,7 +137,7 @@ export default function SearchPage() {
                                 onClick={() => setQuery("")}
                                 className={styles.clearBtn}
                             >
-                                ✕
+                                <X size={16} />
                             </button>
                         )}
                     </div>
@@ -168,7 +168,7 @@ export default function SearchPage() {
                         <ErrorState message={error} onRetry={handleSearch} />
                     ) : !hasSearched ? (
                         <div className={styles.placeholder}>
-                            <div className={styles.placeholderIcon}>🎵</div>
+                            <div className={styles.placeholderIcon}><Music size={48} /></div>
                             <h3>Search for music</h3>
                             <p>Find your favorite songs, artists, and albums</p>
                         </div>

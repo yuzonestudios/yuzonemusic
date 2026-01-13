@@ -88,9 +88,7 @@ export default function LibraryPage() {
                         onClick={() => setActiveTab("liked")}
                         className={`${styles.tab} ${activeTab === "liked" ? styles.active : ""}`}
                     >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill={activeTab === "liked" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                        </svg>
+                        <Heart size={18} fill={activeTab === "liked" ? "currentColor" : "none"} />
                         Liked Songs
                         <span className={styles.count}>{likedSongs.length}</span>
                     </button>
@@ -98,10 +96,7 @@ export default function LibraryPage() {
                         onClick={() => setActiveTab("recent")}
                         className={`${styles.tab} ${activeTab === "recent" ? styles.active : ""}`}
                     >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="12" cy="12" r="10" />
-                            <polyline points="12 6 12 12 16 14" />
-                        </svg>
+                        <Clock size={18} />
                         Recently Played
                         <span className={styles.count}>{recentSongs.length}</span>
                     </button>
@@ -128,7 +123,7 @@ export default function LibraryPage() {
                         <div className={styles.empty}>
                             {activeTab === "liked" ? (
                                 <>
-                                    <div className={styles.emptyIcon}>❤️</div>
+                                    <div className={styles.emptyIcon}><Heart size={48} fill="currentColor" /></div>
                                     <h3>No liked songs yet</h3>
                                     <p>Songs you like will appear here</p>
                                     <a href="/search" className={styles.emptyLink}>
@@ -137,7 +132,7 @@ export default function LibraryPage() {
                                 </>
                             ) : (
                                 <>
-                                    <div className={styles.emptyIcon}>🎵</div>
+                                    <div className={styles.emptyIcon}><Music size={48} /></div>
                                     <h3>No recent songs</h3>
                                     <p>Songs you play will appear here</p>
                                     <a href="/search" className={styles.emptyLink}>

@@ -5,7 +5,12 @@ export interface IUser extends Document {
     email: string;
     name: string;
     image?: string;
-    googleId: string;
+    googleId: {
+        type: String,
+        required: true,
+        unique: true,
+    };
+    theme: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -28,6 +33,10 @@ const UserSchema = new Schema<IUser>(
             type: String,
             required: true,
             unique: true,
+        },
+        theme: {
+            type: String,
+            default: "cyan",
         },
     },
     {

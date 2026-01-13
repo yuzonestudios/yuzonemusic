@@ -175,46 +175,59 @@ export async function searchAlbums(query: string, limit = 10): Promise<YTMusicAl
 export async function getTopCharts(country: string = "US"): Promise<YTMusicSong[]> {
     try {
         const yt = await getInnertube();
-        // Charts usually return sections like "Top Songs", "Top Videos", "Trending"
-        // We need to navigate specific chart or explore
-        // For simplicity, we can search for "Top 20 songs" or use explore
-        // But getCharts is better if available. 
-        // Note: Library might use different method names depending on version.
-        // We'll use getCharts() if it exists, otherwise explore.
-        // Safest is to get "Top songs" via explore or search "Top 100 songs" playlist
 
-        // Strategy 1: Search for "Top songs" which usually returns a chart shelf
-        // Strategy 2: Specific playlist ID for charts?
-        // Charts playlist Global: PL4fGSI1pRFngVi3qN-gu7A2q9Iq8c3g6a
-        // Charts playlist US: PL4fGSI1pRFngVi3qN-gu7A2q9Iq8c3g6a (This is actually Global top songs)
-        // PLw-VjHDlEOgv759Adil11j8A40bbQ_uE9 (Top 100 Songs Global)
+        // Use the specific getCharts method
+        // Note: This returns a complex object with "Top Songs", "Top Videos", "Trending" shelves.
+        // We need to parse it.
+        // Actually, in some versions it returns an Explore object or similar.
+        // Let's print keys if we were debugging, but here we assume standard structure.
 
-        // Let's us a known Top Songs playlist for reliability
-        const TOP_SONGS_PLAYLIST_ID = "PL4fGSI1pRFnqvJy8oMA7p_J8h5x7Qp9aM"; // Top 100 Songs Global
+        // Actually, let's use Explore which often contains "Top charts".
+        // Or getCharts.
+        // const charts = await yt.music.getCharts(country); 
+        // In recent youtubei.js, getCharts is not on 'music' namespace, it's 'getCharts'.
+        // Wait, documentation says: `innertube.getHomeFeed()` etc.
+        // `innertube.music.getCharts()` SHOULD exist.
 
-        const playlist = await yt.music.getPlaylist(TOP_SONGS_PLAYLIST_ID);
+        // If getCharts doesn't exist/work, we fallback to our Playlist strategy but use the CORRECT ID for Global Top 100
+        // Top 100 Songs Global: PL4fGSI1pRFnqvJy8oMA7p_J8h5x7Qp9aM
+        // Maybe the previous fetch failed due to consent screen?
+        // Let's try "Global Top Songs" via search if charts fails.
 
-        const songs: YTMusicSong[] = [];
+        // Let's try Explore first, it has "Top charts".
+        // But let's stick to the Playlist approach but maybe use a diff ID or debug why it's empty.
+        // Empty items usually means the playlist is not found or private.
+        // That ID "PL4fGSI1pRFnqvJy8oMA7p_J8h5x7Qp9aM" is correct.
 
-        if (playlist.items) {
-            for (const item of playlist.items.slice(0, 20)) { // Top 20 as requested
-                if (item.type === "MusicResponsiveListItem") {
-                    const song = item as any; // Type casting for simplified extracting
-                    if (song.id && song.title) {
-                        songs.push({
-                            videoId: song.id,
-                            title: song.title,
-                            artist: song.artists?.map((a: any) => a.name).join(", ") || "Unknown",
-                            thumbnail: extractThumbnail(song.thumbnail?.contents),
-                            duration: formatDuration(song.duration?.seconds),
-                            album: song.album?.name,
-                        });
+        // Let's try searching for "Top 100 Songs Global" playlist first, then getting it.
+        const results = await yt.music.search("Top 100 Songs Global", { type: "playlist" });
+        if (results.playlists && results.playlists.contents && results.playlists.contents.length > 0) {
+            const firstPlaylist = results.playlists.contents[0] as any;
+            if (firstPlaylist.id) {
+                const playlist = await yt.music.getPlaylist(firstPlaylist.id);
+                if (playlist.items) {
+                    const songs: YTMusicSong[] = [];
+                    for (const item of playlist.items.slice(0, 20)) {
+                        if (item.type === "MusicResponsiveListItem") {
+                            const song = item as any;
+                            if (song.id && song.title) {
+                                songs.push({
+                                    videoId: song.id,
+                                    title: song.title,
+                                    artist: song.artists?.map((a: any) => a.name).join(", ") || "Unknown",
+                                    thumbnail: extractThumbnail(song.thumbnail?.contents),
+                                    duration: formatDuration(song.duration?.seconds),
+                                    album: song.album?.name,
+                                });
+                            }
+                        }
                     }
+                    return songs;
                 }
             }
         }
 
-        return songs;
+        return [];
     } catch (error) {
         console.error("Error getting top charts:", error);
         return [];

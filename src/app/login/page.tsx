@@ -1,6 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { Music, Headphones, Heart } from "lucide-react";
 import styles from "./login.module.css";
 
 export default function LoginPage() {
@@ -58,15 +59,15 @@ export default function LoginPage() {
 
             <div className={styles.features}>
                 <div className={styles.feature}>
-                    <div className={styles.featureIcon}>🎵</div>
+                    <div className={styles.featureIcon}><Music size={32} /></div>
                     <span>Millions of Songs</span>
                 </div>
                 <div className={styles.feature}>
-                    <div className={styles.featureIcon}>🎧</div>
+                    <div className={styles.featureIcon}><Headphones size={32} /></div>
                     <span>High Quality Audio</span>
                 </div>
                 <div className={styles.feature}>
-                    <div className={styles.featureIcon}>❤️</div>
+                    <div className={styles.featureIcon}><Heart size={32} fill="currentColor" /></div>
                     <span>Save Your Favorites</span>
                 </div>
             </div>
