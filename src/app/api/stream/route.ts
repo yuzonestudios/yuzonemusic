@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAudioStream, getSongInfo } from "@/lib/youtube-music";
+import { getProxyStream } from "@/lib/youtube-music";
 
 export async function GET(request: NextRequest) {
     try {
@@ -13,38 +13,75 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Parse Range header
-        const rangeHeader = request.headers.get("range");
-        let start: number | undefined;
-        let end: number | undefined;
+        // Try External API First (as requested by user)
+        try {
+            const externalApiUrl = "https://yuzone-api.onrender.com/download";
+            // console.log(`Proxying stream for ${videoId} via ${externalApiUrl}`);
 
-        if (rangeHeader) {
-            const bytes = rangeHeader.replace(/bytes=/, "").split("-");
-            start = parseInt(bytes[0], 10);
-            end = bytes[1] ? parseInt(bytes[1], 10) : undefined;
+            const response = await fetch(externalApiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    videoId: videoId,
+                    format: "mp3",
+                }),
+            });
+
+            if (response.ok) {
+                // Forward headers primarily Content-Type and Content-Length if available
+                const headers = new Headers();
+                headers.set("Content-Type", response.headers.get("Content-Type") || "audio/mpeg");
+                headers.set("Cache-Control", "public, max-age=3600");
+
+                if (response.headers.has("Content-Length")) {
+                    headers.set("Content-Length", response.headers.get("Content-Length")!);
+                }
+
+                return new NextResponse(response.body, {
+                    status: 200,
+                    headers,
+                });
+            } else {
+                console.warn("External API failed, falling back to internal proxy. Status:", response.status);
+            }
+        } catch (extError) {
+            console.warn("External API connection error, falling back to internal proxy:", extError);
         }
 
-        // Get content length for proper streaming? 
-        // youtubei.js download doesn't easily give total size upfront unless we do getBasicInfo.
-        // But Next.js handles streaming.
+        // Fallback to Internal Proxy (Original Implementation)
+        // Forward Range header
+        const rangeHeader = request.headers.get("range");
+        const headers: Record<string, string> = {};
+        if (rangeHeader) {
+            headers["Range"] = rangeHeader;
+        }
 
-        // We can get basic info to estimate content type/size but it slows it down.
-        // We'll just stream. Browsers handle chunked encoding.
+        const proxyResponse = await getProxyStream(videoId, headers);
 
-        const stream = await getAudioStream(videoId, { start, end });
+        if (!proxyResponse || !proxyResponse.ok) {
+            console.error("Internal proxy stream failed:", proxyResponse?.status, proxyResponse?.statusText);
+            return NextResponse.json(
+                { success: false, error: "Failed to get stream from both external and internal sources" },
+                { status: proxyResponse?.status || 500 }
+            );
+        }
 
-        // Define headers
-        const headers = new Headers();
-        headers.set("Content-Type", "audio/mp4"); // Assuming m4a/mp4 usually
-        headers.set("Cache-Control", "public, max-age=3600");
+        // Forward headers from upstream
+        const responseHeaders = new Headers();
+        responseHeaders.set("Content-Type", proxyResponse.headers.get("Content-Type") || "audio/mp4");
 
-        // If range request, headers need status 206?
-        // But without knowing total size, we can't send content-range header correctly?
-        // youtubei.js creates a stream.
+        const contentLength = proxyResponse.headers.get("Content-Length");
+        if (contentLength) responseHeaders.set("Content-Length", contentLength);
 
-        return new NextResponse(stream as any, {
-            status: 200, // Or 206 if we handled it, but streaming 200 works for most players
-            headers,
+        const contentRange = proxyResponse.headers.get("Content-Range");
+        if (contentRange) responseHeaders.set("Content-Range", contentRange);
+
+        // Next.js handles the stream
+        return new NextResponse(proxyResponse.body, {
+            status: proxyResponse.status,
+            headers: responseHeaders,
         });
 
     } catch (error) {

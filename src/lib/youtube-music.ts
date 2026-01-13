@@ -171,29 +171,83 @@ export async function searchAlbums(query: string, limit = 10): Promise<YTMusicAl
     }
 }
 
-// Stream using the library's built-in downloader which handles signatures/headers
-export async function getAudioStream(videoId: string, range?: { start?: number; end?: number }): Promise<ReadableStream<Uint8Array>> {
+
+export async function getTopCharts(country: string = "US"): Promise<YTMusicSong[]> {
     try {
         const yt = await getInnertube();
-        const stream = await yt.download(videoId, {
-            type: 'audio',
-            quality: 'best',
-            format: 'any',
-            range: range ? { start: range.start || 0, end: range.end || -1 } : undefined, // -1 or undefined depending on library, using undefined if supported, or just ignoring range if incomplete
-            client: 'ANDROID',
-        });
-        return stream;
+        // Charts usually return sections like "Top Songs", "Top Videos", "Trending"
+        // We need to navigate specific chart or explore
+        // For simplicity, we can search for "Top 20 songs" or use explore
+        // But getCharts is better if available. 
+        // Note: Library might use different method names depending on version.
+        // We'll use getCharts() if it exists, otherwise explore.
+        // Safest is to get "Top songs" via explore or search "Top 100 songs" playlist
+
+        // Strategy 1: Search for "Top songs" which usually returns a chart shelf
+        // Strategy 2: Specific playlist ID for charts?
+        // Charts playlist Global: PL4fGSI1pRFngVi3qN-gu7A2q9Iq8c3g6a
+        // Charts playlist US: PL4fGSI1pRFngVi3qN-gu7A2q9Iq8c3g6a (This is actually Global top songs)
+        // PLw-VjHDlEOgv759Adil11j8A40bbQ_uE9 (Top 100 Songs Global)
+
+        // Let's us a known Top Songs playlist for reliability
+        const TOP_SONGS_PLAYLIST_ID = "PL4fGSI1pRFnqvJy8oMA7p_J8h5x7Qp9aM"; // Top 100 Songs Global
+
+        const playlist = await yt.music.getPlaylist(TOP_SONGS_PLAYLIST_ID);
+
+        const songs: YTMusicSong[] = [];
+
+        if (playlist.items) {
+            for (const item of playlist.items.slice(0, 20)) { // Top 20 as requested
+                if (item.type === "MusicResponsiveListItem") {
+                    const song = item as any; // Type casting for simplified extracting
+                    if (song.id && song.title) {
+                        songs.push({
+                            videoId: song.id,
+                            title: song.title,
+                            artist: song.artists?.map((a: any) => a.name).join(", ") || "Unknown",
+                            thumbnail: extractThumbnail(song.thumbnail?.contents),
+                            duration: formatDuration(song.duration?.seconds),
+                            album: song.album?.name,
+                        });
+                    }
+                }
+            }
+        }
+
+        return songs;
     } catch (error) {
-        console.error("Error creating audio stream:", error);
-        throw error;
+        console.error("Error getting top charts:", error);
+        return [];
+    }
+}
+
+// Stream using standard fetch but with strict Android headers
+export async function getProxyStream(videoId: string, headers?: Record<string, string>): Promise<Response | null> {
+    try {
+        const url = await getStreamUrl(videoId);
+
+        if (!url) return null;
+
+        // Use standard fetch but with headers to mimic the Android client exact behavior
+        return fetch(url, {
+            headers: {
+                ...headers,
+                "User-Agent": "com.google.android.youtube/19.29.35 (Linux; Android 14) gzip",
+                "x-youtube-client-name": "3",
+                "x-youtube-client-version": "19.29.35"
+            }
+        });
+    } catch (error) {
+        console.error("Error creating proxy stream:", error);
+        return null;
     }
 }
 
 export async function getStreamUrl(videoId: string): Promise<string | null> {
     try {
         const yt = await getInnertube();
-        // Use 'ANDROID' client which often has fewer signature restrictions for streams
-        const info = await yt.getBasicInfo(videoId, 'ANDROID');
+        // Use 'IOS' client which often has fewer signature restrictions for streams
+        const info = await yt.getBasicInfo(videoId, 'IOS');
 
         // Get the best audio format
         const audioFormats = info.streaming_data?.adaptive_formats?.filter(

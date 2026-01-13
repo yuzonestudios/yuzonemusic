@@ -39,6 +39,10 @@ export const authOptions: NextAuthOptions = {
                     return true;
                 } catch (error) {
                     console.error("Error during sign in:", error);
+                    // Check if it's a MongoDB connection error
+                    if (error instanceof Error) {
+                        console.error("Stack:", error.stack);
+                    }
                     return false;
                 }
             }
