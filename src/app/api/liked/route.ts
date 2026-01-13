@@ -17,13 +17,32 @@ export async function GET() {
             );
         }
 
+        const searchParams = request.nextUrl.searchParams;
+        const page = parseInt(searchParams.get("page") || "1");
+        const limit = parseInt(searchParams.get("limit") || "50");
+        const skip = (page - 1) * limit;
+
         await connectDB();
 
-        const likedSongs = await LikedSong.find({ userId: session.user.id })
-            .sort({ likedAt: -1 })
-            .lean();
+        const [likedSongs, total] = await Promise.all([
+            LikedSong.find({ userId: session.user.id })
+                .sort({ likedAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            LikedSong.countDocuments({ userId: session.user.id })
+        ]);
 
-        return NextResponse.json({ success: true, data: likedSongs });
+        return NextResponse.json({
+            success: true,
+            data: likedSongs,
+            pagination: {
+                page,
+                limit,
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
     } catch (error) {
         console.error("Error fetching liked songs:", error);
         return NextResponse.json(

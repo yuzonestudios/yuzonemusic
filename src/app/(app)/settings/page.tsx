@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTheme } from "@/context/ThemeContext";
+import styles from "./settings.module.css";
 
 
 export default function SettingsPage() {
@@ -19,53 +20,67 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className="p-6 max-w-2xl mx-auto">
-            <h1 className="text-3xl font-bold mb-8 text-white neon-text">Settings</h1>
+        <div className={styles.container}>
+            <h1 className={`${styles.title} neon-text`}>Settings</h1>
 
-            <div className="glass-panel p-6 rounded-xl mb-6">
-                <h2 className="text-xl font-bold mb-4 text-primary">Account</h2>
-                <div className="flex items-center gap-4 mb-4">
+            <div className={`glass-panel ${styles.section}`}>
+                <h2 className={styles.sectionHeader}>Account</h2>
+                <div className={styles.profile}>
                     <img
                         src={session.user?.image || "/placeholder-user.png"}
                         alt="Profile"
-                        className="w-16 h-16 rounded-full border-2 border-primary"
+                        className={styles.avatar}
                     />
-                    <div>
-                        <p className="text-lg font-medium text-white">{session.user?.name}</p>
-                        <p className="text-gray-400">{session.user?.email}</p>
+                    <div className={styles.profileInfo}>
+                        <p className={styles.name}>{session.user?.name}</p>
+                        <p className={styles.email}>{session.user?.email}</p>
                     </div>
                 </div>
             </div>
 
-            <div className="glass-panel p-6 rounded-xl mb-6">
-                <h2 className="text-xl font-bold mb-4 text-primary">Preferences</h2>
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                        <span className="text-gray-200">Audio Quality</span>
-                        <select className="bg-black/40 border border-white/10 rounded px-3 py-1 text-sm text-white">
+            <div className={`glass-panel ${styles.section}`}>
+                <h2 className={styles.sectionHeader}>Preferences</h2>
+                <div className={styles.preferences}>
+                    <div className={styles.preferenceItem}>
+                        <span className={styles.label}>Audio Quality</span>
+                        <select className={styles.select}>
                             <option value="high">High (AAC 128kbps)</option>
                             <option value="low">Low (Data Saver)</option>
                         </select>
                     </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-gray-200">Theme</span>
-                        <select
-                            value={theme}
-                            onChange={(e) => setTheme(e.target.value as any)}
-                            className="bg-black/40 border border-white/10 rounded px-3 py-1 text-sm text-white"
-                        >
-                            <option value="cyan">Neon Cyan</option>
-                            <option value="purple">Neon Purple</option>
-                            <option value="orange">Neon Orange</option>
-                            <option value="green">Neon Green</option>
-                        </select>
+                    <div className={styles.preferenceItem} style={{ alignItems: "flex-start" }}>
+                        <span className={styles.label}>Theme</span>
+                        <div className={styles.themeGrid}>
+                            {[
+                                { id: "cyan", label: "Neon Cyan", gradient: "linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%)" },
+                                { id: "purple", label: "Neon Purple", gradient: "linear-gradient(135deg, #a855f7 0%, #ec4899 100%)" },
+                                { id: "orange", label: "Neon Orange", gradient: "linear-gradient(135deg, #f97316 0%, #eab308 100%)" },
+                                { id: "green", label: "Neon Green", gradient: "linear-gradient(135deg, #22c55e 0%, #10b981 100%)" },
+                                { id: "blood-red", label: "Blood Red", gradient: "linear-gradient(135deg, #dc2626 0%, #7f1d1d 100%)" },
+                                { id: "toxic-green", label: "Toxic Green", gradient: "linear-gradient(135deg, #84cc16 0%, #3f6212 100%)" },
+                                { id: "cyber-blue", label: "Cyber Blue", gradient: "linear-gradient(135deg, #00f0ff 0%, #0088ff 100%)" },
+                                { id: "phonk-purple", label: "Phonk Purple", gradient: "linear-gradient(135deg, #7e22ce 0%, #2e1065 100%)" },
+                            ].map((t) => (
+                                <div
+                                    key={t.id}
+                                    className={`${styles.themeOption} ${theme === t.id ? styles.active : ""}`}
+                                    onClick={() => setTheme(t.id as any)}
+                                >
+                                    <div
+                                        className={styles.swatch}
+                                        style={{ "--gradient": t.gradient } as React.CSSProperties}
+                                    />
+                                    <span className={styles.themeName}>{t.label}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="glass-panel p-6 rounded-xl">
-                <h2 className="text-xl font-bold mb-4 text-primary">About</h2>
-                <p className="text-gray-400 text-sm">
+            <div className={`glass-panel ${styles.section}`}>
+                <h2 className={styles.sectionHeader}>About</h2>
+                <p className={styles.about}>
                     Yuzone Music<br />
                     Powered by Next.js 16.1.1 & YouTube Music
                 </p>

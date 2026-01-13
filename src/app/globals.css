@@ -51,6 +51,72 @@
   --transition-slow: 400ms ease;
 }
 
+/* Theme Overrides */
+[data-theme='cyan'] {
+  --accent-primary: #8b5cf6;
+  --accent-secondary: #06b6d4;
+  --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+  --accent-glow: rgba(139, 92, 246, 0.3);
+}
+
+[data-theme='purple'] {
+  --accent-primary: #a855f7;
+  --accent-secondary: #ec4899;
+  --accent-gradient: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  --accent-glow: rgba(168, 85, 247, 0.3);
+}
+
+[data-theme='orange'] {
+  --accent-primary: #f97316;
+  --accent-secondary: #eab308;
+  --accent-gradient: linear-gradient(135deg, #f97316 0%, #eab308 100%);
+  --accent-glow: rgba(249, 115, 22, 0.3);
+}
+
+[data-theme='green'] {
+  --accent-primary: #22c55e;
+  --accent-secondary: #10b981;
+  --accent-gradient: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+  --accent-glow: rgba(34, 197, 94, 0.3);
+}
+
+/* New User Requested Themes */
+[data-theme='blood-red'] {
+  --accent-primary: #dc2626;
+  /* Red-600 */
+  --accent-secondary: #991b1b;
+  /* Red-800 */
+  --accent-gradient: linear-gradient(135deg, #dc2626 0%, #7f1d1d 100%);
+  --accent-glow: rgba(220, 38, 38, 0.4);
+}
+
+[data-theme='toxic-green'] {
+  --accent-primary: #84cc16;
+  /* Lime-500 */
+  --accent-secondary: #3f6212;
+  /* Lime-800 */
+  --accent-gradient: linear-gradient(135deg, #84cc16 0%, #3f6212 100%);
+  --accent-glow: rgba(132, 204, 22, 0.4);
+}
+
+[data-theme='cyber-blue'] {
+  --accent-primary: #00f0ff;
+  /* Electric Cyan */
+  --accent-secondary: #0088ff;
+  /* Deep Sky Blue */
+  --accent-gradient: linear-gradient(135deg, #00f0ff 0%, #0088ff 100%);
+  --accent-glow: rgba(0, 240, 255, 0.4);
+}
+
+[data-theme='phonk-purple'] {
+  --accent-primary: #7e22ce;
+  /* Purple-700 */
+  --accent-secondary: #4c1d95;
+  /* Violet-900 */
+  --accent-gradient: linear-gradient(135deg, #7e22ce 0%, #2e1065 100%);
+  --accent-glow: rgba(126, 34, 206, 0.4);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -148,6 +214,15 @@ button:focus {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.neon-text {
+  color: #fff;
+  text-shadow:
+    0 0 5px var(--accent-primary),
+    0 0 10px var(--accent-primary),
+    0 0 20px var(--accent-primary),
+    0 0 40px var(--accent-secondary);
 }
 
 .glow {
