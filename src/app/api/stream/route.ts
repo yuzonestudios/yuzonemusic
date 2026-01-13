@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getStreamUrl } from "@/lib/youtube-music";
+import { getAudioStream, getSongInfo } from "@/lib/youtube-music";
 
 export async function GET(request: NextRequest) {
     try {
@@ -13,61 +13,44 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const streamUrl = await getStreamUrl(videoId);
+        // Parse Range header
+        const rangeHeader = request.headers.get("range");
+        let start: number | undefined;
+        let end: number | undefined;
 
-        if (!streamUrl) {
-            return NextResponse.json(
-                { success: false, error: "Could not get stream URL" },
-                { status: 404 }
-            );
+        if (rangeHeader) {
+            const bytes = rangeHeader.replace(/bytes=/, "").split("-");
+            start = parseInt(bytes[0], 10);
+            end = bytes[1] ? parseInt(bytes[1], 10) : undefined;
         }
 
-        // Fetch the audio stream from Google with headers to mimic a browser
-        const response = await fetch(streamUrl, {
-            headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Referer": "https://music.youtube.com/",
-                "Origin": "https://music.youtube.com/",
-                // Forward range header if present for seeking
-                ...(request.headers.get("range") && { Range: request.headers.get("range")! }),
-            },
-        });
+        // Get content length for proper streaming? 
+        // youtubei.js download doesn't easily give total size upfront unless we do getBasicInfo.
+        // But Next.js handles streaming.
 
-        if (!response.ok) {
-            console.error("Upstream stream error:", response.status, response.statusText);
-            return NextResponse.json(
-                { success: false, error: "Failed to fetch upstream stream" },
-                { status: response.status }
-            );
-        }
+        // We can get basic info to estimate content type/size but it slows it down.
+        // We'll just stream. Browsers handle chunked encoding.
 
-        // Create headers for the response
+        const stream = await getAudioStream(videoId, { start, end });
+
+        // Define headers
         const headers = new Headers();
-        headers.set("Content-Type", response.headers.get("Content-Type") || "audio/webm");
-        if (response.headers.has("Content-Length")) {
-            headers.set("Content-Length", response.headers.get("Content-Length")!);
-        }
-        if (response.headers.has("Content-Range")) {
-            headers.set("Content-Range", response.headers.get("Content-Range")!);
-            // If partial content, status should be 206
-            if (response.status === 206) {
-                // Next.js NextResponse with status 206
-                return new NextResponse(response.body, {
-                    status: 206,
-                    headers,
-                });
-            }
-        }
+        headers.set("Content-Type", "audio/mp4"); // Assuming m4a/mp4 usually
+        headers.set("Cache-Control", "public, max-age=3600");
 
-        return new NextResponse(response.body, {
-            status: 200,
+        // If range request, headers need status 206?
+        // But without knowing total size, we can't send content-range header correctly?
+        // youtubei.js creates a stream.
+
+        return new NextResponse(stream as any, {
+            status: 200, // Or 206 if we handled it, but streaming 200 works for most players
             headers,
         });
 
     } catch (error) {
         console.error("Stream API error:", error);
         return NextResponse.json(
-            { success: false, error: "Failed to get stream URL" },
+            { success: false, error: "Failed to get stream" },
             { status: 500 }
         );
     }

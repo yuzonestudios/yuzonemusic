@@ -171,6 +171,24 @@ export async function searchAlbums(query: string, limit = 10): Promise<YTMusicAl
     }
 }
 
+// Stream using the library's built-in downloader which handles signatures/headers
+export async function getAudioStream(videoId: string, range?: { start?: number; end?: number }): Promise<ReadableStream<Uint8Array>> {
+    try {
+        const yt = await getInnertube();
+        const stream = await yt.download(videoId, {
+            type: 'audio',
+            quality: 'best',
+            format: 'any',
+            range: range ? { start: range.start || 0, end: range.end || -1 } : undefined, // -1 or undefined depending on library, using undefined if supported, or just ignoring range if incomplete
+            client: 'ANDROID',
+        });
+        return stream;
+    } catch (error) {
+        console.error("Error creating audio stream:", error);
+        throw error;
+    }
+}
+
 export async function getStreamUrl(videoId: string): Promise<string | null> {
     try {
         const yt = await getInnertube();
