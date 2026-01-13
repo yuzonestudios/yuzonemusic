@@ -4,7 +4,6 @@ import { useSession } from "next-auth/react";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTheme } from "@/context/ThemeContext";
-import styles from "./settings.module.css";
 
 
 export default function SettingsPage() {
@@ -67,7 +66,7 @@ export default function SettingsPage() {
             <div className="glass-panel p-6 rounded-xl">
                 <h2 className="text-xl font-bold mb-4 text-primary">About</h2>
                 <p className="text-gray-400 text-sm">
-                    Yuzone Music v1.0.0<br />
+                    Yuzone Music<br />
                     Powered by Next.js 16.1.1 & YouTube Music
                 </p>
             </div>

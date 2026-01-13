@@ -211,10 +211,25 @@ export async function getTopCharts(country: string = "US"): Promise<YTMusicSong[
                         if (item.type === "MusicResponsiveListItem") {
                             const song = item as any;
                             if (song.id && song.title) {
+                                // Extract artist from flex columns if 'artists' property is missing
+                                // Usually flex_columns[1] contains the artist
+                                let artistName = "Unknown Artist";
+                                if (song.artists && Array.isArray(song.artists) && song.artists.length > 0) {
+                                    artistName = song.artists.map((a: any) => a.name).join(", ");
+                                } else if (song.flex_columns && song.flex_columns.length > 1) {
+                                    const artistColumn = song.flex_columns[1];
+                                    if (artistColumn.title?.runs?.length > 0) {
+                                        artistName = artistColumn.title.runs.map((r: any) => r.text).join("");
+                                    } else if (artistColumn.title && typeof artistColumn.title === 'object' && 'text' in artistColumn.title) {
+                                        // @ts-ignore
+                                        artistName = artistColumn.title.text;
+                                    }
+                                }
+
                                 songs.push({
                                     videoId: song.id,
-                                    title: song.title,
-                                    artist: song.artists?.map((a: any) => a.name).join(", ") || "Unknown",
+                                    title: song.title.text || song.title, // Handle title object if needed
+                                    artist: artistName,
                                     thumbnail: extractThumbnail(song.thumbnail?.contents),
                                     duration: formatDuration(song.duration?.seconds),
                                     album: song.album?.name,

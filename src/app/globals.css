@@ -135,7 +135,8 @@ button:focus {
 }
 
 /* Utility classes */
-.glass {
+.glass,
+.glass-panel {
   background: var(--bg-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);

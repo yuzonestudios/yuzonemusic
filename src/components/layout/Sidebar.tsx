@@ -78,7 +78,7 @@ export default function Sidebar() {
 
             <div className={styles.footer}>
                 <div className={styles.footerText}>
-                    <span className={styles.version}>Yuzone Music v1.0</span>
+                    <span className={styles.version}>Yuzone Music</span>
                 </div>
             </div>
         </aside>
