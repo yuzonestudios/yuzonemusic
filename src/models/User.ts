@@ -36,7 +36,7 @@ const UserSchema = new Schema<IUser>(
         },
         theme: {
             type: String,
-            default: "cyan",
+            default: "cyber-blue",
         },
     },
     {

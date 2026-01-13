@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
-type Theme = "cyan" | "purple" | "orange" | "green" | "blood-red" | "toxic-green" | "cyber-blue" | "phonk-purple";
+type Theme = "blood-red" | "toxic-green" | "cyber-blue" | "phonk-purple";
 
 interface ThemeContextType {
     theme: Theme;
@@ -14,7 +14,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const { data: session } = useSession();
-    const [theme, setThemeState] = useState<Theme>("cyan");
+    const [theme, setThemeState] = useState<Theme>("cyber-blue");
     const [mounted, setMounted] = useState(false);
 
     // Load initial theme from server setting
