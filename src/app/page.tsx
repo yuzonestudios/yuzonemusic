@@ -50,7 +50,7 @@ function Scene() {
                     color="white"
                     anchorX="center"
                     anchorY="middle"
-                    font="/fonts/Inter-Bold.ttf" // Fallback font usage
+                // font="/fonts/Inter-Bold.ttf" // Removed to prevent loading errors
                 >
                     YUZONE
                 </Text>

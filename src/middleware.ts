@@ -17,8 +17,8 @@ export async function middleware(request: NextRequest) {
         secret: process.env.NEXTAUTH_SECRET,
     });
 
-    // If user is authenticated and trying to access login page, redirect to dashboard
-    if (token && pathname === "/login") {
+    // If user is authenticated and trying to access login page or landing page, redirect to dashboard
+    if (token && (pathname === "/login" || pathname === "/")) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 

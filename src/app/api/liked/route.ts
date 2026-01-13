@@ -6,7 +6,7 @@ import LikedSong from "@/models/LikedSong";
 import User from "@/models/User";
 
 // Get liked songs
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
 
