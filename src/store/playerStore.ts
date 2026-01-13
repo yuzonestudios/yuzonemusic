@@ -1,0 +1,165 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import type { Song } from "@/types";
+
+interface PlayerState {
+    currentSong: Song | null;
+    queue: Song[];
+    queueIndex: number;
+    isPlaying: boolean;
+    volume: number;
+    currentTime: number;
+    duration: number;
+    repeat: "off" | "all" | "one";
+    shuffle: boolean;
+
+    // Actions
+    setCurrentSong: (song: Song) => void;
+    play: () => void;
+    pause: () => void;
+    togglePlay: () => void;
+    setVolume: (volume: number) => void;
+    setCurrentTime: (time: number) => void;
+    setDuration: (duration: number) => void;
+    nextSong: () => void;
+    previousSong: () => void;
+    setQueue: (songs: Song[], startIndex?: number) => void;
+    addToQueue: (song: Song) => void;
+    clearQueue: () => void;
+    toggleRepeat: () => void;
+    toggleShuffle: () => void;
+}
+
+export const usePlayerStore = create<PlayerState>()(
+    persist(
+        (set, get) => ({
+            currentSong: null,
+            queue: [],
+            queueIndex: 0,
+            isPlaying: false,
+            volume: 0.7,
+            currentTime: 0,
+            duration: 0,
+            repeat: "off",
+            shuffle: false,
+
+            setCurrentSong: (song: Song) => {
+                const { queue } = get();
+                const index = queue.findIndex((s) => s.videoId === song.videoId);
+                set({
+                    currentSong: song,
+                    queueIndex: index >= 0 ? index : 0,
+                    currentTime: 0,
+                    isPlaying: true,
+                });
+            },
+
+            play: () => set({ isPlaying: true }),
+            pause: () => set({ isPlaying: false }),
+            togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
+
+            setVolume: (volume: number) => set({ volume }),
+            setCurrentTime: (time: number) => set({ currentTime: time }),
+            setDuration: (duration: number) => set({ duration }),
+
+            nextSong: () => {
+                const { queue, queueIndex, repeat, shuffle } = get();
+                if (queue.length === 0) return;
+
+                let nextIndex: number;
+
+                if (shuffle) {
+                    nextIndex = Math.floor(Math.random() * queue.length);
+                } else {
+                    nextIndex = queueIndex + 1;
+                    if (nextIndex >= queue.length) {
+                        if (repeat === "all") {
+                            nextIndex = 0;
+                        } else {
+                            set({ isPlaying: false });
+                            return;
+                        }
+                    }
+                }
+
+                set({
+                    queueIndex: nextIndex,
+                    currentSong: queue[nextIndex],
+                    currentTime: 0,
+                    isPlaying: true,
+                });
+            },
+
+            previousSong: () => {
+                const { queue, queueIndex, currentTime } = get();
+                if (queue.length === 0) return;
+
+                // If more than 3 seconds into song, restart it
+                if (currentTime > 3) {
+                    set({ currentTime: 0 });
+                    return;
+                }
+
+                const prevIndex = queueIndex - 1;
+                if (prevIndex < 0) {
+                    set({ currentTime: 0 });
+                    return;
+                }
+
+                set({
+                    queueIndex: prevIndex,
+                    currentSong: queue[prevIndex],
+                    currentTime: 0,
+                    isPlaying: true,
+                });
+            },
+
+            setQueue: (songs: Song[], startIndex = 0) => {
+                set({
+                    queue: songs,
+                    queueIndex: startIndex,
+                    currentSong: songs[startIndex] || null,
+                    isPlaying: songs.length > 0,
+                    currentTime: 0,
+                });
+            },
+
+            addToQueue: (song: Song) => {
+                set((state) => ({
+                    queue: [...state.queue, song],
+                }));
+            },
+
+            clearQueue: () => {
+                set({
+                    queue: [],
+                    queueIndex: 0,
+                    currentSong: null,
+                    isPlaying: false,
+                    currentTime: 0,
+                });
+            },
+
+            toggleRepeat: () => {
+                set((state) => {
+                    const modes: ("off" | "all" | "one")[] = ["off", "all", "one"];
+                    const currentIndex = modes.indexOf(state.repeat);
+                    return { repeat: modes[(currentIndex + 1) % modes.length] };
+                });
+            },
+
+            toggleShuffle: () => set((state) => ({ shuffle: !state.shuffle })),
+        }),
+        {
+            name: "yuzone-player",
+            partialize: (state) => ({
+                currentSong: state.currentSong,
+                queue: state.queue,
+                queueIndex: state.queueIndex,
+                volume: state.volume,
+                repeat: state.repeat,
+                shuffle: state.shuffle,
+            }),
+        }
+    )
+);

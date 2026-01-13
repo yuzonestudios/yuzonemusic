@@ -1,0 +1,42 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 48px 32px;
+    text-align: center;
+}
+
+.icon {
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+.title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.message {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    max-width: 400px;
+}
+
+.retryBtn {
+    margin-top: 8px;
+    padding: 12px 24px;
+    background: var(--accent-gradient);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+    transition: all var(--transition-fast);
+}
+
+.retryBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+}

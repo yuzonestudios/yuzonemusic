@@ -1,0 +1,71 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 32px;
+}
+
+.spinner {
+    animation: rotate 1.5s linear infinite;
+}
+
+.spinner.small {
+    width: 24px;
+    height: 24px;
+}
+
+.spinner.medium {
+    width: 40px;
+    height: 40px;
+}
+
+.spinner.large {
+    width: 56px;
+    height: 56px;
+}
+
+.svg {
+    width: 100%;
+    height: 100%;
+}
+
+.circle {
+    stroke: url(#spinnerGradient);
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes dash {
+    0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+    }
+
+    50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+    }
+
+    100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+    }
+}
+
+.text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* Fallback gradient for spinner */
+.circle {
+    stroke: var(--accent-primary);
+}

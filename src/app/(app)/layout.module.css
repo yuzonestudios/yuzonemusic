@@ -1,0 +1,19 @@
+.appLayout {
+    min-height: 100vh;
+    display: flex;
+}
+
+.main {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    margin-bottom: var(--player-height);
+    overflow-y: auto;
+    min-height: calc(100vh - var(--player-height));
+}
+
+@media (max-width: 768px) {
+    .main {
+        margin-left: 0;
+        padding-bottom: 60px;
+    }
+}

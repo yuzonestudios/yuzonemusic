@@ -1,0 +1,115 @@
+.page {
+    min-height: 100%;
+}
+
+.content {
+    padding: 24px 32px;
+    padding-bottom: 48px;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
+}
+
+.tab:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.tab.active {
+    background: rgba(139, 92, 246, 0.15);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.count {
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.tab.active .count {
+    background: rgba(139, 92, 246, 0.2);
+}
+
+/* Content */
+.libraryContent {
+    min-height: 300px;
+}
+
+.songList {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Empty State */
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 32px;
+    text-align: center;
+}
+
+.emptyIcon {
+    font-size: 4rem;
+    margin-bottom: 24px;
+    opacity: 0.6;
+}
+
+.empty h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.empty p {
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+}
+
+.emptyLink {
+    padding: 12px 24px;
+    background: var(--accent-gradient);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    color: white;
+    transition: all var(--transition-fast);
+}
+
+.emptyLink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+}
+
+@media (max-width: 768px) {
+    .content {
+        padding: 16px;
+    }
+
+    .tabs {
+        flex-direction: column;
+    }
+}
