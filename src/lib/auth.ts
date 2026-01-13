@@ -43,7 +43,9 @@ export const authOptions: NextAuthOptions = {
                     if (error instanceof Error) {
                         console.error("Stack:", error.stack);
                     }
-                    return false;
+                    // IMPORTANT: If DB fails, we still want to allow login so the user isn't locked out in production
+                    // NextAuth will handle the session without the extended DB data
+                    return true;
                 }
             }
             return true;

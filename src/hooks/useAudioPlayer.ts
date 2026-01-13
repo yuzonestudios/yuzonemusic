@@ -44,7 +44,14 @@ export function useAudioPlayer() {
         };
 
         const handleError = (e: Event) => {
-            console.error("Audio error:", e);
+            const error = audioRef.current?.error;
+            console.error("Audio error details:", {
+                code: error?.code,
+                message: error?.message,
+                networkState: audioRef.current?.networkState,
+                src: audioRef.current?.src,
+                eventType: e.type
+            });
             pause();
         };
 

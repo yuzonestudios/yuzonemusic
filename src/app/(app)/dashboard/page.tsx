@@ -10,11 +10,37 @@ import styles from "./dashboard.module.css";
 
 export default function DashboardPage() {
     const [recentlyPlayed, setRecentlyPlayed] = useState<Song[]>([]);
-    // ... (keep state)
+    const [loading, setLoading] = useState(true);
     const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
-        // ... (keep structure)
+        const fetchData = async () => {
+            try {
+                // Fetch recently played
+                const historyRes = await fetch("/api/history?limit=10");
+                if (historyRes.ok) {
+                    const historyData = await historyRes.json();
+                    if (historyData.success) {
+                        setRecentlyPlayed(historyData.data || []);
+                    }
+                }
+
+                // Fetch liked songs for heart icons
+                const likedRes = await fetch("/api/liked");
+                if (likedRes.ok) {
+                    const likedData = await likedRes.json();
+                    if (likedData.success) {
+                        const ids = new Set(likedData.data.map((s: Song) => s.videoId));
+                        setLikedSongIds(ids as Set<string>);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchData();
     }, []);
 

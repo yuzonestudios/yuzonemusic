@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Home, Search, Library, Trophy, Settings } from "lucide-react";
 import styles from "./Sidebar.module.css";
 
 interface NavItem {
@@ -9,38 +10,31 @@ interface NavItem {
     label: string;
     icon: React.ReactNode;
 }
-
 const navItems: NavItem[] = [
     {
         href: "/dashboard",
         label: "Home",
-        icon: (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9,22 9,12 15,12 15,22" />
-            </svg>
-        ),
+        icon: <Home size={24} />,
     },
     {
         href: "/search",
         label: "Search",
-        icon: (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
-            </svg>
-        ),
+        icon: <Search size={24} />,
+    },
+    {
+        href: "/top",
+        label: "Top Songs",
+        icon: <Trophy size={24} />,
     },
     {
         href: "/library",
         label: "Library",
-        icon: (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 18V5l12-2v13" />
-                <circle cx="6" cy="18" r="3" />
-                <circle cx="18" cy="16" r="3" />
-            </svg>
-        ),
+        icon: <Library size={24} />,
+    },
+    {
+        href: "/settings",
+        label: "Settings",
+        icon: <Settings size={24} />,
     },
 ];
 

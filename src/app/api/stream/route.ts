@@ -30,22 +30,41 @@ export async function GET(request: NextRequest) {
             });
 
             if (response.ok) {
-                // Forward headers primarily Content-Type and Content-Length if available
-                const headers = new Headers();
-                headers.set("Content-Type", response.headers.get("Content-Type") || "audio/mpeg");
-                headers.set("Cache-Control", "public, max-age=3600");
+                const contentType = response.headers.get("Content-Type") || "audio/mpeg";
+                const contentLength = response.headers.get("Content-Length");
 
-                if (response.headers.has("Content-Length")) {
-                    headers.set("Content-Length", response.headers.get("Content-Length")!);
-                }
+                console.log(`[StreamAPI] External API success: ${contentType}, ${contentLength} bytes`);
+
+                const headers = new Headers();
+                headers.set("Content-Type", contentType);
+                if (contentLength) headers.set("Content-Length", contentLength);
+                headers.set("Cache-Control", "public, max-age=31536000");
 
                 return new NextResponse(response.body, {
                     status: 200,
                     headers,
                 });
-            } else {
-                console.warn("External API failed, falling back to internal proxy. Status:", response.status);
             }
+
+            console.warn(`[StreamAPI] External API failed with status ${response.status}. Falling back to internal proxy.`);
+
+            // Fallback to internal proxy
+            const internalResponse = await getProxyStream(videoId);
+
+            if (!internalResponse || !internalResponse.body) {
+                console.error("[StreamAPI] Internal fallback failed to return a body");
+                return NextResponse.json({ error: "Failed to get stream" }, { status: 500 });
+            }
+
+            console.log("[StreamAPI] Internal fallback success");
+
+            return new NextResponse(internalResponse.body, {
+                status: 200,
+                headers: {
+                    "Content-Type": "audio/mpeg",
+                    "Cache-Control": "no-cache",
+                },
+            });
         } catch (extError) {
             console.warn("External API connection error, falling back to internal proxy:", extError);
         }

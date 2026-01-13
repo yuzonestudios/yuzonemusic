@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header";
 import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ErrorState from "@/components/ui/ErrorState";
+import { Music, X } from "lucide-react";
 import type { Song, Artist, Album } from "@/types";
 import styles from "./search.module.css";
 

@@ -241,13 +241,11 @@ export async function getProxyStream(videoId: string, headers?: Record<string, s
 
         if (!url) return null;
 
-        // Use standard fetch but with headers to mimic the Android client exact behavior
+        // Use standard fetch without specific mobile client headers to see if it bypasses 403
         return fetch(url, {
             headers: {
                 ...headers,
-                "User-Agent": "com.google.android.youtube/19.29.35 (Linux; Android 14) gzip",
-                "x-youtube-client-name": "3",
-                "x-youtube-client-version": "19.29.35"
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             }
         });
     } catch (error) {
@@ -259,8 +257,8 @@ export async function getProxyStream(videoId: string, headers?: Record<string, s
 export async function getStreamUrl(videoId: string): Promise<string | null> {
     try {
         const yt = await getInnertube();
-        // Use 'IOS' client which often has fewer signature restrictions for streams
-        const info = await yt.getBasicInfo(videoId, 'IOS');
+        // Use default 'WEB' client which is often more stable for signature extraction
+        const info = await yt.getBasicInfo(videoId);
 
         // Get the best audio format
         const audioFormats = info.streaming_data?.adaptive_formats?.filter(

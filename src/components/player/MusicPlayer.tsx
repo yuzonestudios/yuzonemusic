@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Image from "next/image";
+import { Download } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
@@ -168,6 +169,22 @@ export default function MusicPlayer() {
                             </svg>
                         )}
                     </button>
+
+                    <a
+                        href={currentSong ? `/api/stream?id=${currentSong.videoId}` : "#"}
+                        download={currentSong ? `${currentSong.title}.mp3` : undefined}
+                        className={`${styles.controlBtn} ${styles.secondary}`}
+                        title="Download"
+                        style={{
+                            pointerEvents: currentSong ? 'auto' : 'none',
+                            opacity: currentSong ? 1 : 0.5,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <Download size={18} />
+                    </a>
                 </div>
 
                 {/* Progress Bar */}

@@ -1,10 +1,15 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { useTheme } from "@/context/ThemeContext";
+import styles from "./settings.module.css";
+
 
 export default function SettingsPage() {
     const { data: session, status } = useSession();
+    const { theme, setTheme } = useTheme();
 
     if (status === "loading") {
         return <div className="flex justify-center p-12"><LoadingSpinner size="large" /></div>;
@@ -45,9 +50,15 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-gray-200">Theme</span>
-                        <select className="bg-black/40 border border-white/10 rounded px-3 py-1 text-sm text-white">
-                            <option value="neon">Neon Dark</option>
-                            <option value="oled">OLED Black</option>
+                        <select
+                            value={theme}
+                            onChange={(e) => setTheme(e.target.value as any)}
+                            className="bg-black/40 border border-white/10 rounded px-3 py-1 text-sm text-white"
+                        >
+                            <option value="cyan">Neon Cyan</option>
+                            <option value="purple">Neon Purple</option>
+                            <option value="orange">Neon Orange</option>
+                            <option value="green">Neon Green</option>
                         </select>
                     </div>
                 </div>
