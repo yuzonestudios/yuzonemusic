@@ -17,23 +17,35 @@ export default function LibraryPage() {
     const [loading, setLoading] = useState(true);
     const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
 
+    // Pagination state
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchInitialData = async () => {
             setLoading(true);
             try {
-                // Fetch liked songs
-                const likedRes = await fetch("/api/liked");
+                // Fetch both concurrently
+                const [likedRes, historyRes] = await Promise.all([
+                    fetch("/api/liked?limit=50&page=1"),
+                    fetch("/api/history?limit=50")
+                ]);
+
                 if (likedRes.ok) {
                     const likedData = await likedRes.json();
                     if (likedData.success) {
                         setLikedSongs(likedData.data || []);
-                        const ids = new Set(likedData.data.map((s: Song) => s.videoId));
-                        setLikedSongIds(ids as Set<string>);
+                        setLikedSongIds(new Set(likedData.data.map((s: Song) => s.videoId)));
+                        // Check pagination
+                        if (likedData.pagination) {
+                            setHasMore(likedData.pagination.page < likedData.pagination.pages);
+                        } else {
+                            setHasMore(false);
+                        }
                     }
                 }
 
-                // Fetch recently played
-                const historyRes = await fetch("/api/history?limit=50");
                 if (historyRes.ok) {
                     const historyData = await historyRes.json();
                     if (historyData.success) {
@@ -47,8 +59,38 @@ export default function LibraryPage() {
             }
         };
 
-        fetchData();
+        fetchInitialData();
     }, []);
+
+    const loadMoreLiked = async () => {
+        if (loadingMore || !hasMore) return;
+        setLoadingMore(true);
+        try {
+            const nextPage = page + 1;
+            const res = await fetch(`/api/liked?limit=50&page=${nextPage}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    setLikedSongs(prev => [...prev, ...data.data]);
+                    setLikedSongIds(prev => {
+                        const next = new Set(prev);
+                        data.data.forEach((s: Song) => next.add(s.videoId));
+                        return next;
+                    });
+                    setPage(nextPage);
+                    if (data.pagination) {
+                        setHasMore(data.pagination.page < data.pagination.pages);
+                    } else {
+                        setHasMore(false);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Failed to load more liked songs:", error);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
 
     const handleLike = async (song: Song) => {
         const isLiked = likedSongIds.has(song.videoId);
@@ -108,18 +150,32 @@ export default function LibraryPage() {
                     {loading ? (
                         <LoadingSpinner text="Loading library..." />
                     ) : currentSongs.length > 0 ? (
-                        <div className={styles.songList}>
-                            {currentSongs.map((song, index) => (
-                                <SongCard
-                                    key={`${song.videoId}-${index}`}
-                                    song={song}
-                                    songs={currentSongs}
-                                    index={index}
-                                    onLike={handleLike}
-                                    isLiked={likedSongIds.has(song.videoId)}
-                                />
-                            ))}
-                        </div>
+                        <>
+                            <div className={styles.songList}>
+                                {currentSongs.map((song, index) => (
+                                    <SongCard
+                                        key={`${song.videoId}-${index}`}
+                                        song={song}
+                                        songs={currentSongs}
+                                        index={index}
+                                        onLike={handleLike}
+                                        isLiked={likedSongIds.has(song.videoId)}
+                                    />
+                                ))}
+                            </div>
+
+                            {activeTab === "liked" && hasMore && (
+                                <div className="flex justify-center mt-6 mb-4">
+                                    <button
+                                        onClick={loadMoreLiked}
+                                        disabled={loadingMore}
+                                        className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm font-medium transition-colors disabled:opacity-50"
+                                    >
+                                        {loadingMore ? "Loading..." : "Load More"}
+                                    </button>
+                                </div>
+                            )}
+                        </>
                     ) : (
                         <div className={styles.empty}>
                             {activeTab === "liked" ? (
