@@ -43,18 +43,7 @@ function Scene() {
             <FloatingNote position={[4, -1, -4]} rotation={[0.5, 0.2, 0]} scale={0.7} color="#8b5cf6" />
             <FloatingNote position={[-4, -3, -6]} rotation={[0.2, 0.5, 0]} scale={0.4} color="#f43f5e" />
 
-            <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
-                <Text
-                    position={[0, 0, -2]}
-                    fontSize={3} // Reduced size for better fit
-                    color="white"
-                    anchorX="center"
-                    anchorY="middle"
-                // font="/fonts/Inter-Bold.ttf" // Removed to prevent loading errors
-                >
-                    YUZONE
-                </Text>
-            </Float>
+
         </>
     );
 }
