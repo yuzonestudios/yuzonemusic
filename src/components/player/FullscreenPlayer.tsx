@@ -56,13 +56,20 @@ export default function FullscreenPlayer() {
 
     const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!duration) return;
+        
         const audio = getAudioElement();
-        if (!audio) return;
+        if (!audio) {
+            console.warn("Audio element not found for seeking");
+            return;
+        }
         
         const rect = e.currentTarget.getBoundingClientRect();
         const percent = (e.clientX - rect.left) / rect.width;
-        const newTime = percent * duration;
+        const newTime = Math.max(0, Math.min(percent * duration, duration));
+        
+        // Directly set the currentTime - don't wait for events
         audio.currentTime = newTime;
+        console.log("Fullscreen seek to:", newTime);
     };
 
     const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {

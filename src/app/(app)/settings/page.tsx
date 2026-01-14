@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 
+import Header from "@/components/layout/Header";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTheme } from "@/context/ThemeContext";
 import styles from "./settings.module.css";
@@ -20,8 +21,10 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className={styles.container}>
-            <h1 className={`${styles.title} neon-text`}>Settings</h1>
+        <div>
+            <Header title="Settings" />
+            <div className={styles.container}>
+                <h1 className={`${styles.title} neon-text`}>Settings</h1>
 
             <div className={`glass-panel ${styles.section}`}>
                 <h2 className={styles.sectionHeader}>Account</h2>
@@ -68,6 +71,7 @@ export default function SettingsPage() {
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     );

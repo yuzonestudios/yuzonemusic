@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Header from "@/components/layout/Header";
 import { YTMusicSong } from "@/lib/youtube-music";
 import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
@@ -41,7 +42,9 @@ export default function TopSongsPage() {
     if (error) return <div className="p-8 text-red-500">{error}</div>;
 
     return (
-        <div className="p-6 pb-24">
+        <div>
+            <Header title="Top Songs" />
+            <div className="p-6 pb-24">
             <h1 className="text-3xl font-bold mb-6 text-white neon-text">Top 20 Songs Today</h1>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -50,5 +53,6 @@ export default function TopSongsPage() {
                 ))}
             </div>
         </div>
-    );
+        </div>
+        );
 }
