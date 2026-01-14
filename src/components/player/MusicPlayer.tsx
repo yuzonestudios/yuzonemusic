@@ -40,6 +40,8 @@ export default function MusicPlayer() {
     // Track song play in history & Check Like Status
     useEffect(() => {
         if (currentSong) {
+            console.log("Tracking song:", currentSong);
+            
             // 1. Check if liked
             const checkLike = async () => {
                 try {
@@ -50,7 +52,8 @@ export default function MusicPlayer() {
                             setIsLiked(data.isLiked);
                         }
                     } else {
-                        console.error("Failed to check like status:", res.status, res.statusText);
+                        const error = await res.json();
+                        console.error("Failed to check like status:", res.status, error);
                     }
                 } catch (e) {
                     console.error("Error checking like status:", e);
@@ -70,6 +73,9 @@ export default function MusicPlayer() {
                     if (!res.ok) {
                         const error = await res.json();
                         console.error("Failed to track history:", res.status, error);
+                        console.error("Song data sent:", currentSong);
+                    } else {
+                        console.log("Successfully tracked history for:", currentSong.title);
                     }
                 } catch (e) {
                     console.error("Error tracking history:", e);

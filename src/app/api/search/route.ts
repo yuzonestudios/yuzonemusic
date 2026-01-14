@@ -19,23 +19,38 @@ export async function GET(request: NextRequest) {
         const response = await fetch(externalApiUrl);
 
         if (!response.ok) {
+            console.error(`External API error: ${response.status} ${response.statusText}`);
+            const errorText = await response.text();
+            console.error("Error response:", errorText);
             throw new Error(`External API error: ${response.status}`);
         }
 
         const data = await response.json();
+        console.log("External API response sample:", data.slice(0, 2));
+
+        // Ensure all songs have required fields
+        const songs = data.map((song: any) => ({
+            videoId: song.videoId || song.id || "",
+            title: song.title || "Unknown Title",
+            artist: song.artist || song.artists || "Unknown Artist",
+            thumbnail: song.thumbnail || song.thumbnails?.[0]?.url || "/placeholder-album.png",
+            duration: song.duration || "0:00",
+            album: song.album
+        }));
 
         // The external API returns an array directly, wrap it in our expected format
         return NextResponse.json({
             success: true,
             data: {
-                songs: data
+                songs: songs
             }
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Search API error:", error);
+        console.error("Error stack:", error.stack);
         return NextResponse.json(
-            { success: false, error: "Failed to perform search" },
+            { success: false, error: "Failed to perform search", details: error.message },
             { status: 500 }
         );
     }

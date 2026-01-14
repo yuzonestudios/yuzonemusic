@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { X, SkipBack, Play, Pause, SkipForward, Volume2, Repeat, Shuffle } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import styles from "./FullscreenPlayer.module.css";
 
 function formatTime(seconds: number): string {
@@ -29,17 +30,10 @@ export default function FullscreenPlayer() {
         setVolume,
         toggleRepeat,
         toggleShuffle,
-        setCurrentTime,
         closeFullscreen,
     } = usePlayerStore();
 
-    const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
-
-    useEffect(() => {
-        // Get the audio element from the DOM (created by useAudioPlayer)
-        const audio = document.querySelector("audio");
-        setAudioElement(audio);
-    }, []);
+    const { seek } = useAudioPlayer();
 
     useEffect(() => {
         if (!isFullscreenOpen) return;
@@ -56,20 +50,15 @@ export default function FullscreenPlayer() {
     const progress = duration ? (currentTime / duration) * 100 : 0;
 
     const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (!duration || !audioElement) return;
+        if (!duration) return;
         const rect = e.currentTarget.getBoundingClientRect();
         const percent = (e.clientX - rect.left) / rect.width;
         const newTime = percent * duration;
-        setCurrentTime(newTime);
-        audioElement.currentTime = newTime;
+        seek(newTime);
     };
 
     const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newVolume = parseFloat(e.target.value);
-        setVolume(newVolume);
-        if (audioElement) {
-            audioElement.volume = newVolume;
-        }
+        setVolume(parseFloat(e.target.value));
     };
 
     return (

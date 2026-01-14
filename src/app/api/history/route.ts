@@ -53,8 +53,9 @@ export async function POST(request: NextRequest) {
         const { videoId, title, artist, thumbnail, duration, listenDuration } = body;
 
         if (!videoId || !title || !artist) {
+            console.error("Missing required fields:", { videoId, title, artist, body });
             return NextResponse.json(
-                { success: false, error: "Missing required fields" },
+                { success: false, error: `Missing required fields. videoId: ${!!videoId}, title: ${!!title}, artist: ${!!artist}` },
                 { status: 400 }
             );
         }
@@ -86,10 +87,11 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json({ success: true });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error adding to history:", error);
+        console.error("Error details:", error.message, error.stack);
         return NextResponse.json(
-            { success: false, error: "Failed to add to history" },
+            { success: false, error: "Failed to add to history", details: error.message },
             { status: 500 }
         );
     }

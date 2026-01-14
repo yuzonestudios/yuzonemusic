@@ -80,8 +80,9 @@ export async function POST(request: NextRequest) {
         const { videoId, title, artist, thumbnail, duration } = body;
 
         if (!videoId || !title || !artist) {
+            console.error("Missing required fields:", { videoId, title, artist, body });
             return NextResponse.json(
-                { success: false, error: "Missing required fields" },
+                { success: false, error: `Missing required fields. videoId: ${!!videoId}, title: ${!!title}, artist: ${!!artist}` },
                 { status: 400 }
             );
         }
@@ -106,15 +107,16 @@ export async function POST(request: NextRequest) {
             videoId,
             title,
             artist,
-            thumbnail,
-            duration,
+            thumbnail: thumbnail || "/placeholder-album.png",
+            duration: duration || "0:00",
         });
 
         return NextResponse.json({ success: true, data: likedSong });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error adding liked song:", error);
+        console.error("Error details:", error.message, error.stack);
         return NextResponse.json(
-            { success: false, error: "Failed to add liked song" },
+            { success: false, error: "Failed to add liked song", details: error.message },
             { status: 500 }
         );
     }
