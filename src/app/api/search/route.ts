@@ -5,8 +5,6 @@ export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams;
         const query = searchParams.get("q");
-        const type = searchParams.get("type") || "song"; // song, artist, album, all
-        const limit = parseInt(searchParams.get("limit") || "20");
 
         if (!query) {
             return NextResponse.json(
@@ -15,34 +13,25 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        let results;
+        // Use the user's external API
+        const externalApiUrl = `https://api.yuzone.me/search?q=${encodeURIComponent(query)}`;
 
-        switch (type) {
-            case "song":
-                results = { songs: await searchSongs(query, limit) };
-                break;
-            case "artist":
-                results = { artists: await searchArtists(query, limit) };
-                break;
-            case "album":
-                results = { albums: await searchAlbums(query, limit) };
-                break;
-            case "all":
-                const [songs, artists, albums] = await Promise.all([
-                    searchSongs(query, limit),
-                    searchArtists(query, Math.min(limit, 10)),
-                    searchAlbums(query, Math.min(limit, 10)),
-                ]);
-                results = { songs, artists, albums };
-                break;
-            default:
-                return NextResponse.json(
-                    { success: false, error: "Invalid type. Use: song, artist, album, or all" },
-                    { status: 400 }
-                );
+        const response = await fetch(externalApiUrl);
+
+        if (!response.ok) {
+            throw new Error(`External API error: ${response.status}`);
         }
 
-        return NextResponse.json({ success: true, data: results });
+        const data = await response.json();
+
+        // The external API returns an array directly, wrap it in our expected format
+        return NextResponse.json({
+            success: true,
+            data: {
+                songs: data
+            }
+        });
+
     } catch (error) {
         console.error("Search API error:", error);
         return NextResponse.json(

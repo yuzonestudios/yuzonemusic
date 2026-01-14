@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
-type Theme = "blood-red" | "toxic-green" | "cyber-blue" | "phonk-purple";
+type Theme = "blood-red" | "toxic-green" | "cyber-blue" | "phonk-purple" | "ambient";
 
 interface ThemeContextType {
     theme: Theme;

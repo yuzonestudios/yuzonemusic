@@ -52,38 +52,55 @@
 }
 
 /* New User Requested Themes */
+/* New User Requested Themes */
 [data-theme='blood-red'] {
+  --bg-primary: #1a0505;
+  /* Dark Red Background */
+  --bg-secondary: #2f0a0a;
+  --bg-tertiary: #450f0f;
+  --bg-card: rgba(69, 15, 15, 0.8);
+  --bg-glass: rgba(69, 15, 15, 0.6);
   --accent-primary: #dc2626;
-  /* Red-600 */
   --accent-secondary: #991b1b;
-  /* Red-800 */
   --accent-gradient: linear-gradient(135deg, #dc2626 0%, #7f1d1d 100%);
   --accent-glow: rgba(220, 38, 38, 0.4);
 }
 
 [data-theme='toxic-green'] {
+  --bg-primary: #051a05;
+  /* Dark Green Background */
+  --bg-secondary: #0a2f0a;
+  --bg-tertiary: #0f450f;
+  --bg-card: rgba(15, 69, 15, 0.8);
+  --bg-glass: rgba(15, 69, 15, 0.6);
   --accent-primary: #84cc16;
-  /* Lime-500 */
   --accent-secondary: #3f6212;
-  /* Lime-800 */
   --accent-gradient: linear-gradient(135deg, #84cc16 0%, #3f6212 100%);
   --accent-glow: rgba(132, 204, 22, 0.4);
 }
 
 [data-theme='cyber-blue'] {
+  --bg-primary: #050a1a;
+  /* Dark Blue Background */
+  --bg-secondary: #0a122f;
+  --bg-tertiary: #0f1a45;
+  --bg-card: rgba(15, 26, 69, 0.8);
+  --bg-glass: rgba(15, 26, 69, 0.6);
   --accent-primary: #00f0ff;
-  /* Electric Cyan */
   --accent-secondary: #0088ff;
-  /* Deep Sky Blue */
   --accent-gradient: linear-gradient(135deg, #00f0ff 0%, #0088ff 100%);
   --accent-glow: rgba(0, 240, 255, 0.4);
 }
 
 [data-theme='phonk-purple'] {
+  --bg-primary: #10051a;
+  /* Dark Purple Background */
+  --bg-secondary: #1d0a2f;
+  --bg-tertiary: #2a0f45;
+  --bg-card: rgba(42, 15, 69, 0.8);
+  --bg-glass: rgba(42, 15, 69, 0.6);
   --accent-primary: #7e22ce;
-  /* Purple-700 */
   --accent-secondary: #4c1d95;
-  /* Violet-900 */
   --accent-gradient: linear-gradient(135deg, #7e22ce 0%, #2e1065 100%);
   --accent-glow: rgba(126, 34, 206, 0.4);
 }
@@ -117,12 +134,54 @@ body::before {
   left: 0;
   right: 0;
   bottom: 0;
+  /* Richer, multi-layered gradient based on theme variables */
   background:
-    radial-gradient(ellipse at 20% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(6, 182, 212, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.03) 0%, transparent 70%);
-  pointer-events: none;
+    radial-gradient(circle at 15% 50%, var(--accent-glow) 0%, transparent 25%),
+    radial-gradient(circle at 85% 30%, var(--accent-glow) 0%, transparent 25%),
+    radial-gradient(circle at 50% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+  opacity: 0.6;
   z-index: -1;
+  pointer-events: none;
+  animation: bgPulse 10s ease-in-out infinite alternate;
+}
+
+/* Second layer for depth */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 80% 80%, var(--accent-glow) 0%, transparent 20%),
+    radial-gradient(circle at 20% 20%, var(--accent-glow) 0%, transparent 20%);
+  opacity: 0.4;
+  z-index: -1;
+  pointer-events: none;
+  animation: bgFloat 15s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes bgPulse {
+  0% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes bgFloat {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  100% {
+    transform: translate(-20px, 20px);
+  }
 }
 
 a {

@@ -68,56 +68,93 @@ export function useAudioPlayer() {
         };
     }, [setCurrentTime, setDuration, nextSong, pause, repeat]);
 
-    // Load new song
+    // Load new song with race condition handling
     useEffect(() => {
         if (!audioRef.current || !currentSong) return;
 
         const audio = audioRef.current;
-
-        // Use the API proxy URL directly
         const streamUrl = `/api/stream?id=${currentSong.videoId}`;
 
-        // Only update if different to avoid reloading same song
-        if (audio.src !== streamUrl) {
-            audio.src = streamUrl;
-            audio.load();
+        // Reset state for new song
+        // Don't reload if it's the same URL
+        if (audio.src === streamUrl) {
+            // Just ensure it's playing if meant to be
+            if (isPlaying && audio.paused) {
+                audio.play().catch(e => {
+                    if (e.name !== 'AbortError') console.error("Resume play failed:", e);
+                });
+            }
+            return;
+        }
 
-            if (isPlaying) {
-                const playPromise = audio.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch(error => {
-                        // Auto-play was prevented or play was aborted
-                        if (error.name !== 'AbortError') {
-                            console.error("Playback error:", error);
-                        }
-                    });
+        const loadAndPlay = async () => {
+            try {
+                audio.src = streamUrl;
+                audio.load();
+
+                if (isPlaying) {
+                    await audio.play();
+                }
+            } catch (error: any) {
+                // Ignore AbortError which happens when song is skipped quickly
+                if (error.name !== 'AbortError') {
+                    console.error("Audio playback error:", error);
                 }
             }
-        }
-    }, [currentSong?.videoId, isPlaying]);
+        };
 
-    // Play/pause control
+        loadAndPlay();
+
+    }, [currentSong?.videoId, isPlaying]); // Only depend on videoId ref, not full object
+
+    // Play/Pause toggle effect
     useEffect(() => {
-        if (!audioRef.current) return;
+        if (!audioRef.current || !currentSong) return;
+        const audio = audioRef.current;
 
-        if (isPlaying) {
-            audioRef.current.play().catch(console.error);
-        } else {
-            audioRef.current.pause();
+        if (isPlaying && audio.paused) {
+            audio.play().catch(e => {
+                if (e.name !== 'AbortError') console.error("Play toggle error:", e);
+            });
+        } else if (!isPlaying && !audio.paused) {
+            audio.pause();
         }
-    }, [isPlaying]);
+    }, [isPlaying, currentSong]);
 
     // Volume control
     useEffect(() => {
         if (audioRef.current) {
-            audioRef.current.volume = volume;
+            audioRef.current.volume = Math.max(0, Math.min(1, volume)); // Clamp volume
         }
     }, [volume]);
 
+    // Enhanced Seek Function
     const seek = useCallback((time: number) => {
         if (audioRef.current) {
-            audioRef.current.currentTime = time;
-            setCurrentTime(time);
+            const audio = audioRef.current;
+
+            // 1. Valid range check
+            const duration = isFinite(audio.duration) ? audio.duration : 0;
+            if (duration === 0) {
+                console.warn("Seek ignored: Audio duration not ready");
+                return;
+            }
+
+            const safeTime = Math.min(Math.max(0, time), duration);
+
+            // 2. Check seekable ranges
+            // Some browsers/proxies report empty seekable ranges for streamed content initially
+            const ranges = audio.seekable;
+            if (ranges.length > 0) {
+                audio.currentTime = safeTime;
+            } else {
+                // Try anyway - mostly for development/legacy compatibility
+                console.warn("Stream might not support seeking yet. Attempting strict seek to", safeTime);
+                audio.currentTime = safeTime;
+            }
+
+            // 3. Update UI immediately
+            setCurrentTime(safeTime);
         }
     }, [setCurrentTime]);
 

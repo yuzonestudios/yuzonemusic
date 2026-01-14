@@ -41,13 +41,8 @@ export default function SettingsPage() {
             <div className={`glass-panel ${styles.section}`}>
                 <h2 className={styles.sectionHeader}>Preferences</h2>
                 <div className={styles.preferences}>
-                    <div className={styles.preferenceItem}>
-                        <span className={styles.label}>Audio Quality</span>
-                        <select className={styles.select}>
-                            <option value="high">High (AAC 128kbps)</option>
-                            <option value="low">Low (Data Saver)</option>
-                        </select>
-                    </div>
+                    {/* Audio Quality Removed as per request */}
+
                     <div className={styles.preferenceItem} style={{ flexDirection: "column", alignItems: "flex-start", gap: "1rem" }}>
                         <span className={styles.label}>Theme</span>
                         <div className={styles.themeGrid}>
@@ -56,6 +51,7 @@ export default function SettingsPage() {
                                 { id: "toxic-green", label: "Toxic Green", gradient: "linear-gradient(135deg, #84cc16 0%, #3f6212 100%)" },
                                 { id: "cyber-blue", label: "Cyber Blue", gradient: "linear-gradient(135deg, #00f0ff 0%, #0088ff 100%)" },
                                 { id: "phonk-purple", label: "Phonk Purple", gradient: "linear-gradient(135deg, #7e22ce 0%, #2e1065 100%)" },
+                                { id: "ambient", label: "Ambient (Dynamic)", gradient: "linear-gradient(135deg, #eee 0%, #333 100%)" },
                             ].map((t) => (
                                 <div
                                     key={t.id}

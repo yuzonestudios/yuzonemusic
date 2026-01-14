@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Sidebar from "@/components/layout/Sidebar";
 import MusicPlayer from "@/components/player/MusicPlayer";
+import AmbientBackground from "@/components/ui/AmbientBackground";
 import styles from "./layout.module.css";
 
 export default async function AppLayout({
@@ -19,6 +20,7 @@ export default async function AppLayout({
 
     return (
         <div className={styles.appLayout}>
+            <AmbientBackground />
             <Sidebar />
             <main className={styles.main}>{children}</main>
             <MusicPlayer />

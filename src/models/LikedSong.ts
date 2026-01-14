@@ -50,6 +50,8 @@ const LikedSongSchema = new Schema<ILikedSong>(
 
 // Compound index for efficient queries
 LikedSongSchema.index({ userId: 1, videoId: 1 }, { unique: true });
+// Optimization for "Recently Liked" sort
+LikedSongSchema.index({ userId: 1, likedAt: -1 });
 
 const LikedSong: Model<ILikedSong> =
     mongoose.models.LikedSong || mongoose.model<ILikedSong>("LikedSong", LikedSongSchema);

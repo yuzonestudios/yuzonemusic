@@ -4,13 +4,18 @@
     left: 0;
     right: 0;
     height: var(--player-height);
-    background: var(--bg-secondary);
+    background: var(--bg-card);
+    /* Use themed card background */
     border-top: 1px solid var(--border-color);
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
     align-items: center;
-    padding: 0 24px;
-    z-index: 200;
+    justify-content: space-between;
+    padding: 0 2rem;
+    z-index: 50;
+    transition: background 0.3s ease;
+    /* Smooth transition when theme changes */
 }
 
 /* Song Info */

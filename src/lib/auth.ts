@@ -21,13 +21,7 @@ export const authOptions: NextAuthOptions = {
         async signIn({ user, account }) {
             if (account?.provider === "google") {
                 try {
-                    const conn = await connectDB();
-
-                    // If connection failed (Offline Mode check)
-                    if (!conn) {
-                        console.warn("OFFLINE MODE: Database connection failed. Allowing login without saving user.");
-                        return true;
-                    }
+                    await connectDB();
 
                     // ATOMIC UPSERT: Handles both "Create" and "Update" in one optimized DB call.
                     // This creates the user if they don't exist, or updates them if they do.
@@ -64,13 +58,15 @@ export const authOptions: NextAuthOptions = {
 
                     if (error instanceof Error) {
                         console.error("Stack:", error.stack);
-                        // Original error check kept just in case
+
+                        // Strict check: if connection fails, user cannot login.
                         if (error.name === "MongooseServerSelectionError") {
-                            return true;
+                            console.error("\n\n!!! MONGODB CONNECTION FAILED !!!");
+                            console.error("Your IP address is likely not whitelisted in MongoDB Atlas.");
+                            console.error("Please go to Network Access -> Add IP Address -> Add Current IP.\n\n");
                         }
                     }
 
-                    // If it's a transient connection error, we might want to return false to force retry
                     return false;
                 }
             }
@@ -79,45 +75,28 @@ export const authOptions: NextAuthOptions = {
         async session({ session, token }) {
             if (session.user && token.sub) {
                 try {
-                    // console.log("DEBUG: Session callback for sub:", token.sub);
-                    const conn = await connectDB();
+                    await connectDB();
+                    const dbUser = await User.findOne({ googleId: token.sub });
 
-                    // OFFLINE MODE / CONNECTION FAILED
-                    if (!conn) {
-                        console.warn("OFFLINE MODE: Using Google ID as session ID.");
-                        session.user.id = token.sub;
-                        return session;
+                    // Strict verification: User MUST be in DB
+                    if (!dbUser) {
+                        console.error("CRITICAL: User not found in DB during session check!", token.sub);
+                        return {
+                            ...session,
+                            user: undefined as any // Force invalid user
+                        };
                     }
 
-                    const dbUser = await User.findOne({ googleId: token.sub });
-                    // console.log("DEBUG: DB User found for session:", !!dbUser);
-
-                    // NORMAL FLOW: User found in DB
                     if (dbUser) {
                         session.user.id = dbUser._id.toString();
-                        return session;
                     }
-
-                    // ERROR FLOW: User not found in DB
-                    // If DB connection failed previously (Offline Mode), or user just missing.
-                    // We check if DB is actually connected? No easy way here without overhead.
-                    // For now, if we are here and DB user is missing, it's either:
-                    // 1. Attack (token exists but user deleted)
-                    // 2. Offline Mode (DB unreachable)
-
-                    // To be safe but resilient: If we just allowed them in signIn via Offline Mode,
-                    // we should probably allow them here too.
-                    // We'll use the GoogleID as a fallback "id" so the app doesn't crash.
-                    console.warn("User not found in DB. Using Google ID as fallback.");
-                    session.user.id = token.sub; // Fallback ID
-                    return session;
-
                 } catch (error) {
                     console.error("Error fetching user in session:", error);
-                    // OFFLINE MODE FALLBACK
-                    // If DB errors out here, we still return the session so the user remains logged in.
-                    session.user.id = token.sub as string;
-                    return session;
+                    // Fail securely
+                    return {
+                        ...session,
+                        user: undefined as any
+                    };
                 }
             }
             return session;
