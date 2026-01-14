@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { YTMusicSong } from "@/lib/youtube-music";
 import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import MusicPlayer from "@/components/player/MusicPlayer";
 
 export default function TopSongsPage() {
     const [songs, setSongs] = useState<YTMusicSong[]>([]);

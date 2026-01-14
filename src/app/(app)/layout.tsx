@@ -1,12 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import Sidebar from "@/components/layout/Sidebar";
-import MusicPlayer from "@/components/player/MusicPlayer";
-import AmbientBackground from "@/components/ui/AmbientBackground";
-import FullscreenPlayer from "@/components/player/FullscreenPlayer";
-import LoadingOverlay from "@/components/ui/LoadingOverlay";
-import styles from "./layout.module.css";
+import AppLayoutClient from "./AppLayoutClient";
 
 export default async function AppLayout({
     children,
@@ -20,14 +15,5 @@ export default async function AppLayout({
         redirect("/api/auth/signout?callbackUrl=/login");
     }
 
-    return (
-        <div className={styles.appLayout}>
-            <AmbientBackground />
-            <Sidebar />
-            <main className={styles.main}>{children}</main>
-            <MusicPlayer />
-            <FullscreenPlayer />
-            <LoadingOverlay />
-        </div>
-    );
+    return <AppLayoutClient>{children}</AppLayoutClient>;
 }
