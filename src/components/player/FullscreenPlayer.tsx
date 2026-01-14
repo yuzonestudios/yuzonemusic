@@ -35,6 +35,7 @@ export default function FullscreenPlayer() {
         nextSong,
         previousSong,
         setVolume,
+        setCurrentTime,
         toggleRepeat,
         toggleShuffle,
         closeFullscreen,
@@ -67,8 +68,9 @@ export default function FullscreenPlayer() {
         const percent = (e.clientX - rect.left) / rect.width;
         const newTime = Math.max(0, Math.min(percent * duration, duration));
         
-        // Directly set the currentTime - don't wait for events
+        // Directly set the currentTime and update store so UI reflects immediately
         audio.currentTime = newTime;
+        setCurrentTime(newTime);
         console.log("Fullscreen seek to:", newTime);
     };
 
