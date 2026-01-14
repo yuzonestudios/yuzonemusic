@@ -1,10 +1,17 @@
 .card {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 12px;
+    gap: clamp(0.75rem, 2vw, 1rem);
+    padding: clamp(0.75rem, 2vw, 0.875rem);
     border-radius: var(--radius-md);
     transition: all var(--transition-fast);
+}
+
+@media (max-width: 480px) {
+    .card {
+        gap: 0.75rem;
+        padding: 0.75rem;
+    }
 }
 
 .card:hover {
@@ -22,11 +29,18 @@
 .thumbnail {
     position: relative;
     flex-shrink: 0;
-    width: 56px;
-    height: 56px;
+    width: clamp(44px, 8vw, 56px);
+    height: clamp(44px, 8vw, 56px);
     border-radius: var(--radius-sm);
     overflow: hidden;
     cursor: pointer;
+}
+
+@media (max-width: 480px) {
+    .thumbnail {
+        width: 44px;
+        height: 44px;
+    }
 }
 
 .thumbnailImg {
@@ -105,7 +119,7 @@
 }
 
 .title {
-    font-size: 0.95rem;
+    font-size: clamp(0.8rem, 2.5vw, 0.95rem);
     font-weight: 500;
     color: var(--text-primary);
     white-space: nowrap;
@@ -113,41 +127,70 @@
     text-overflow: ellipsis;
 }
 
+@media (max-width: 480px) {
+    .title {
+        font-size: 0.75rem;
+    }
+}
+
 .artist {
-    font-size: 0.85rem;
+    font-size: clamp(0.7rem, 2vw, 0.85rem);
     color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
+@media (max-width: 480px) {
+    .artist {
+        font-size: 0.65rem;
+    }
+}
+
 .duration {
-    font-size: 0.85rem;
+    font-size: clamp(0.7rem, 2vw, 0.85rem);
     color: var(--text-muted);
-    min-width: 45px;
+    min-width: auto;
     text-align: right;
+    white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+    .duration {
+        font-size: 0.65rem;
+    }
 }
 
 .actions {
     display: flex;
     align-items: center;
-    gap: 8px;
-    /* opacity: 0; removed to make always visible */
+    gap: clamp(0.5rem, 1vw, 0.5rem);
     transition: opacity var(--transition-fast);
 }
 
-/* .card:hover .actions { opacity: 1; } removed */
+@media (max-width: 480px) {
+    .actions {
+        gap: 4px;
+    }
+}
 
 .actionBtn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: clamp(32px, 6vw, 36px);
+    height: clamp(32px, 6vw, 36px);
     border-radius: var(--radius-full);
     color: var(--text-secondary);
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    /* Bouncy transition */
+}
+
+@media (max-width: 480px) {
+    .actionBtn {
+        width: 28px;
+        height: 28px;
+    }
+}
 }
 
 .actionBtn:hover {

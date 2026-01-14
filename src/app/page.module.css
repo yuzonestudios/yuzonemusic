@@ -28,8 +28,20 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 2rem 4rem;
+    padding: 1.5rem 2rem;
     backdrop-filter: blur(5px);
+}
+
+@media (max-width: 768px) {
+    .nav {
+        padding: 1rem 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav {
+        padding: 0.75rem 1rem;
+    }
 }
 
 .logo {
@@ -47,6 +59,14 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 9999px;
     transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+@media (max-width: 480px) {
+    .loginBtn {
+        padding: 0.4rem 1rem;
+        font-size: 0.85rem;
+    }
 }
 
 .loginBtn:hover {
@@ -61,18 +81,31 @@
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 0 1rem;
-    margin-top: -4rem;
-    /* Optical balance */
+    padding: 0 1.5rem;
+    margin-top: -2rem;
+}
+
+@media (max-width: 768px) {
+    .hero {
+        padding: 0 1rem;
+        margin-top: -1rem;
+    }
 }
 
 .title {
-    font-size: 5rem;
+    font-size: clamp(2.5rem, 8vw, 5rem);
     font-weight: 800;
     line-height: 1.1;
     letter-spacing: -0.02em;
-    margin-bottom: 2rem;
+    margin-bottom: clamp(1rem, 4vw, 2rem);
     color: white;
+}
+
+@media (max-width: 480px) {
+    .title {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
 }
 
 .gradientText {
@@ -84,11 +117,19 @@
 }
 
 .subtitle {
-    font-size: 1.25rem;
+    font-size: clamp(1rem, 3vw, 1.25rem);
     color: rgba(255, 255, 255, 0.7);
     max-width: 600px;
-    margin-bottom: 3rem;
+    margin-bottom: clamp(1.5rem, 4vw, 3rem);
     line-height: 1.6;
+    padding: 0 0.5rem;
+}
+
+@media (max-width: 480px) {
+    .subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
 }
 
 .ctaBtn {
@@ -111,24 +152,37 @@
 
 .features {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-    padding: 4rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: clamp(1.5rem, 4vw, 2rem);
+    padding: clamp(2rem, 5vw, 4rem);
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(10px);
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+@media (max-width: 768px) {
+    .features {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
 .featureCard {
-    padding: 2rem;
+    padding: clamp(1.5rem, 4vw, 2rem);
     border-radius: 1rem;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.05);
     text-align: center;
+    transition: all 0.3s ease;
+}
+
+.featureCard:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-4px);
 }
 
 .featureCard h3 {
-    font-size: 1.5rem;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
     font-weight: 700;
     margin-bottom: 1rem;
     color: white;
@@ -136,16 +190,22 @@
 
 .featureCard p {
     color: rgba(255, 255, 255, 0.6);
+    font-size: 0.95rem;
+}
+
+@media (max-width: 480px) {
+    .featureCard h3 {
+        font-size: 1.1rem;
+    }
+
+    .featureCard p {
+        font-size: 0.85rem;
+    }
 }
 
 @media (max-width: 768px) {
     .title {
         font-size: 3rem;
-    }
-
-    .features {
-        grid-template-columns: 1fr;
-        padding: 2rem;
     }
 
     .nav {

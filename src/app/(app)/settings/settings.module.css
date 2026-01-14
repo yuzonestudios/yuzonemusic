@@ -1,18 +1,38 @@
 .container {
-    padding: 1.5rem;
+    padding: clamp(1rem, 4vw, 1.5rem);
     max-width: 42rem;
     margin-left: auto;
     margin-right: auto;
     padding-bottom: 6rem;
-    /* Space for player */
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0.75rem;
+        padding-bottom: 5rem;
+    }
 }
 
 .title {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
+    font-size: clamp(1.5rem, 4vw, 1.875rem);
+    line-height: 1.2;
     font-weight: 700;
-    margin-bottom: 2rem;
+    margin-bottom: clamp(1rem, 4vw, 2rem);
     color: var(--text-primary);
+}
+
+@media (max-width: 480px) {
+    .title {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
 }
 
 .section {
@@ -67,9 +87,15 @@
 .themeGrid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: clamp(0.75rem, 3vw, 1rem);
     margin-top: 1rem;
     width: 100%;
+}
+
+@media (min-width: 640px) {
+    .themeGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 @media (min-width: 768px) {
@@ -78,19 +104,31 @@
     }
 }
 
+@media (max-width: 480px) {
+    .themeGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .themeOption {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: clamp(0.75rem, 2vw, 1rem);
     cursor: pointer;
     border-radius: 1rem;
-    padding: 1.5rem;
+    padding: clamp(1rem, 3vw, 1.5rem);
     border: 2px solid rgba(255, 255, 255, 0.05);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     background: rgba(255, 255, 255, 0.03);
     position: relative;
     overflow: hidden;
+}
+
+@media (max-width: 480px) {
+    .themeOption {
+        padding: 1rem;
+    }
 }
 
 .themeOption:hover {
@@ -105,13 +143,20 @@
 }
 
 .swatch {
-    width: 4rem;
-    height: 4rem;
+    width: clamp(3rem, 8vw, 4rem);
+    height: clamp(3rem, 8vw, 4rem);
     border-radius: 50%;
     background: var(--gradient);
     border: 3px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     transition: transform 0.3s ease;
+}
+
+@media (max-width: 480px) {
+    .swatch {
+        width: 3rem;
+        height: 3rem;
+    }
 }
 
 .themeOption:hover .swatch {
@@ -124,10 +169,16 @@
 }
 
 .themeName {
-    font-size: 0.9rem;
+    font-size: clamp(0.7rem, 2.5vw, 0.9rem);
     color: var(--text-secondary);
     font-weight: 600;
     text-align: center;
+}
+
+@media (max-width: 480px) {
+    .themeName {
+        font-size: 0.75rem;
+    }
 }
 
 .themeOption.active .themeName {

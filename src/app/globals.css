@@ -33,6 +33,13 @@
   --header-height: 70px;
   --mobile-nav-height: 60px;
 
+  /* Responsive Breakpoints */
+  --sm: 640px;
+  --md: 768px;
+  --lg: 1024px;
+  --xl: 1280px;
+  --2xl: 1536px;
+
   /* Border Radius */
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -115,6 +122,12 @@
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+}
+
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
 }
 
 body {

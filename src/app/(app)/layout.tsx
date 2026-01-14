@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import Sidebar from "@/components/layout/Sidebar";
 import MusicPlayer from "@/components/player/MusicPlayer";
 import AmbientBackground from "@/components/ui/AmbientBackground";
+import FullscreenPlayer from "@/components/player/FullscreenPlayer";
+import LoadingOverlay from "@/components/ui/LoadingOverlay";
 import styles from "./layout.module.css";
 
 export default async function AppLayout({
@@ -24,6 +26,8 @@ export default async function AppLayout({
             <Sidebar />
             <main className={styles.main}>{children}</main>
             <MusicPlayer />
+            <FullscreenPlayer />
+            <LoadingOverlay />
         </div>
     );
 }

@@ -6,12 +6,14 @@ import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ErrorState from "@/components/ui/ErrorState";
 import { Music, X } from "lucide-react";
+import { usePlayerStore } from "@/store/playerStore";
 import type { Song, Artist, Album } from "@/types";
 import styles from "./search.module.css";
 
 type SearchType = "all" | "song" | "artist" | "album";
 
 export default function SearchPage() {
+    const { setLoading: setGlobalLoading } = usePlayerStore();
     const [query, setQuery] = useState("");
     const [searchType, setSearchType] = useState<SearchType>("all");
     const [songs, setSongs] = useState<Song[]>([]);
@@ -26,6 +28,7 @@ export default function SearchPage() {
         if (!query.trim()) return;
 
         setLoading(true);
+        setGlobalLoading(true, "Searching...");
         setError(null);
         setHasSearched(true);
 
@@ -56,8 +59,9 @@ export default function SearchPage() {
             setError("Failed to perform search. Please try again.");
         } finally {
             setLoading(false);
+            setGlobalLoading(false);
         }
-    }, [query, searchType]);
+    }, [query, searchType, setGlobalLoading]);
 
     // Debounced search effect
     useEffect(() => {
@@ -137,6 +141,8 @@ export default function SearchPage() {
                             <button
                                 onClick={() => setQuery("")}
                                 className={styles.clearBtn}
+                                title="Clear search"
+                                aria-label="Clear search"
                             >
                                 <X size={16} />
                             </button>

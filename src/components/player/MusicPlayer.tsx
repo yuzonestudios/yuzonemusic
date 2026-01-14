@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Download, Heart } from "lucide-react";
+import { Download, Heart, Maximize } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
@@ -23,11 +23,14 @@ export default function MusicPlayer() {
         currentTime,
         duration,
         repeat,
+        shuffle,
         togglePlay,
         nextSong,
         previousSong,
         setVolume,
         toggleRepeat,
+        toggleShuffle,
+        openFullscreen,
     } = usePlayerStore();
 
     const { seek } = useAudioPlayer();
@@ -46,53 +49,52 @@ export default function MusicPlayer() {
                         if (data.success) setIsLiked(data.isLiked);
                     }
                 } catch (e) {
-                    console.error("Failed to check like status:", e);
+                    console.error("Error checking like status:", e);
                 }
             };
             checkLike();
 
-            // 2. Track history if playing
-            if (isPlaying) {
-                const trackPlay = async () => {
-                    try {
-                        await fetch("/api/history", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(currentSong),
-                        });
-                    } catch (error) {
-                        console.error("Failed to track play:", error);
-                    }
-                };
-                trackPlay();
-            }
+            // 2. Track in history
+            const trackHistory = async () => {
+                try {
+                    await fetch("/api/history", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(currentSong),
+                    });
+                } catch (e) {
+                    console.error("Error tracking history:", e);
+                }
+            };
+            trackHistory();
         }
-    }, [currentSong?.videoId, isPlaying]);
+    }, [currentSong?.videoId]);
 
     const toggleLike = async () => {
         if (!currentSong) return;
 
-        // Optimistic update
-        setIsLiked(!isLiked);
+        const newLiked = !isLiked;
+        setIsLiked(newLiked);
 
         try {
-            if (isLiked) {
-                await fetch(`/api/liked?videoId=${currentSong.videoId}`, { method: "DELETE" });
-            } else {
+            if (newLiked) {
                 await fetch("/api/liked", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(currentSong),
                 });
+            } else {
+                await fetch(`/api/liked?videoId=${currentSong.videoId}`, {
+                    method: "DELETE",
+                });
             }
         } catch (error) {
             console.error("Failed to toggle like:", error);
-            setIsLiked(prev => !prev); // Revert on error
+            setIsLiked(!newLiked); // Revert on error
         }
     };
 
     const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (!duration) return;
         const rect = e.currentTarget.getBoundingClientRect();
         const percent = (e.clientX - rect.left) / rect.width;
         seek(percent * duration);
@@ -176,7 +178,20 @@ export default function MusicPlayer() {
                         title="Next"
                     >
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z" />
+                            <path d="M16 18h2V6h-2zM2 12l8.5-6v12z" />
+                        </svg>
+                    </button>
+
+                    <button
+                        onClick={toggleShuffle}
+                        className={`${styles.controlBtn} ${styles.secondary} ${shuffle ? styles.active : ""}`}
+                        disabled={!currentSong}
+                        title={shuffle ? "Shuffle: On" : "Shuffle: Off"}
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="23 1 23 7 17 7" />
+                            <polyline points="1 23 1 17 7 17" />
+                            <path d="M20.49 9a9 9 0 0 0-12.12-5.36L9 10M3.51 15a9 9 0 0 0 15.85 3.36L15 14" />
                         </svg>
                     </button>
 
@@ -204,18 +219,20 @@ export default function MusicPlayer() {
                         )}
                     </button>
 
+                    <button
+                        onClick={openFullscreen}
+                        className={`${styles.controlBtn} ${styles.secondary}`}
+                        disabled={!currentSong}
+                        title="Fullscreen Player"
+                    >
+                        <Maximize size={18} />
+                    </button>
+
                     <a
                         href={currentSong ? `/api/stream?id=${currentSong.videoId}` : "#"}
                         download={currentSong ? `${currentSong.title}.mp3` : undefined}
                         className={`${styles.controlBtn} ${styles.secondary}`}
                         title="Download"
-                        style={{
-                            pointerEvents: currentSong ? 'auto' : 'none',
-                            opacity: currentSong ? 1 : 0.5,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
                     >
                         <Download size={18} />
                     </a>

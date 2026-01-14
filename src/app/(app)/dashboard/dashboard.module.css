@@ -3,8 +3,22 @@
 }
 
 .content {
-    padding: 24px 32px;
-    padding-bottom: 48px;
+    padding: clamp(1rem, 4vw, 2rem) clamp(1rem, 4vw, 2rem);
+    padding-bottom: 3rem;
+}
+
+@media (max-width: 768px) {
+    .content {
+        padding: 1.5rem;
+        padding-bottom: 2.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .content {
+        padding: 1rem;
+        padding-bottom: 2rem;
+    }
 }
 
 /* Welcome Section */
@@ -13,23 +27,42 @@
 }
 
 .welcomeTitle {
-    font-size: 2rem;
+    font-size: clamp(1.5rem, 4vw, 2rem);
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 8px;
 }
 
+@media (max-width: 480px) {
+    .welcomeTitle {
+        font-size: 1.3rem;
+    }
+}
+
 .welcomeText {
-    font-size: 1rem;
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
     color: var(--text-secondary);
 }
 
 /* Quick Actions */
 .quickActions {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 40px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: clamp(1rem, 3vw, 1.5rem);
+    margin-bottom: clamp(2rem, 5vw, 2.5rem);
+}
+
+@media (max-width: 480px) {
+    .quickActions {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .quickActions {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 .actionCard {
@@ -63,10 +96,16 @@
 }
 
 .sectionTitle {
-    font-size: 1.25rem;
+    font-size: clamp(1rem, 3vw, 1.25rem);
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 20px;
+    margin-bottom: clamp(1rem, 3vw, 1.25rem);
+}
+
+@media (max-width: 480px) {
+    .sectionTitle {
+        font-size: 1rem;
+    }
 }
 
 .songList {
@@ -100,14 +139,4 @@
 
 .emptyLink:hover {
     opacity: 0.8;
-}
-
-@media (max-width: 768px) {
-    .content {
-        padding: 16px;
-    }
-
-    .welcomeTitle {
-        font-size: 1.5rem;
-    }
 }

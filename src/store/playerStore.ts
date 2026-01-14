@@ -12,6 +12,9 @@ interface PlayerState {
     duration: number;
     repeat: "off" | "all" | "one";
     shuffle: boolean;
+    isFullscreenOpen: boolean;
+    isLoading: boolean;
+    loadingMessage: string;
 
     // Actions
     setCurrentSong: (song: Song) => void;
@@ -28,6 +31,9 @@ interface PlayerState {
     clearQueue: () => void;
     toggleRepeat: () => void;
     toggleShuffle: () => void;
+    openFullscreen: () => void;
+    closeFullscreen: () => void;
+    setLoading: (isLoading: boolean, message?: string) => void;
 }
 
 export const usePlayerStore = create<PlayerState>()(
@@ -42,6 +48,9 @@ export const usePlayerStore = create<PlayerState>()(
             duration: 0,
             repeat: "off",
             shuffle: false,
+            isFullscreenOpen: false,
+            isLoading: false,
+            loadingMessage: "Loading...",
 
             setCurrentSong: (song: Song) => {
                 const { queue } = get();
@@ -162,6 +171,11 @@ export const usePlayerStore = create<PlayerState>()(
             },
 
             toggleShuffle: () => set((state) => ({ shuffle: !state.shuffle })),
+
+            openFullscreen: () => set({ isFullscreenOpen: true }),
+            closeFullscreen: () => set({ isFullscreenOpen: false }),
+            setLoading: (isLoading: boolean, message = "Loading...") =>
+                set({ isLoading, loadingMessage: message }),
         }),
         {
             name: "yuzone-player",

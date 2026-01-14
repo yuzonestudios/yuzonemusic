@@ -17,6 +17,8 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"],
     "plugins": [
       {
         "name": "next"

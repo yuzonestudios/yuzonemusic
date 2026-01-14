@@ -11,9 +11,23 @@
     min-height: calc(100vh - var(--player-height));
 }
 
+@media (max-width: 1024px) {
+    .main {
+        margin-left: 0;
+        margin-bottom: calc(var(--mobile-nav-height) + var(--player-height));
+    }
+}
+
 @media (max-width: 768px) {
     .main {
         margin-left: 0;
-        padding-bottom: 60px;
+        margin-bottom: calc(var(--mobile-nav-height) + var(--player-height));
+    }
+}
+
+@media (max-width: 480px) {
+    .main {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 }

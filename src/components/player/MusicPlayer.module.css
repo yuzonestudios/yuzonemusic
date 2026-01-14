@@ -238,48 +238,116 @@
     border: none;
 }
 
+@media (max-width: 1024px) {
+    .player {
+        padding: 0 1rem;
+    }
+
+    .progressWrapper {
+        max-width: 400px;
+    }
+}
+
 @media (max-width: 768px) {
     .player {
         bottom: var(--mobile-nav-height);
-        /* Sit above bottom nav */
         padding: 0 12px;
         height: 70px;
-        /* Smaller height on mobile */
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .songInfo {
+        gap: 12px;
+        min-width: auto;
+    }
+
+    .thumbnail {
+        width: 48px;
+        height: 48px;
     }
 
     .volumeControl {
         display: none;
-        /* Hide volume on mobile */
     }
 
     .songDetails {
-        display: flex;
-        /* Keep song info visible but maybe smaller */
         flex: 1;
-        max-width: 140px;
+        max-width: 120px;
     }
 
     .songTitle {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
     }
 
     .songArtist {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
+    }
+
+    .likeBtn {
+        width: 32px;
+        height: 32px;
+        padding: 4px;
     }
 
     .progressWrapper {
         display: none;
-        /* Hide standard progress bar to save space, maybe add mini thin one at top? */
     }
 
-    /* Simplified Controls for Mobile */
     .buttons {
-        gap: 12px;
+        gap: 8px;
     }
 
-    /* Hide Repeat/Shuffle on small screens to uncrowd */
-    .controlBtn.secondary[title*="Repeat"],
-    .controlBtn.secondary[title*="Shuffle"] {
-        display: none;
+    .controlBtn.secondary {
+        width: 32px;
+        height: 32px;
+    }
+
+    .controlBtn.primary {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .player {
+        padding: 0 8px;
+        height: 60px;
+    }
+
+    .thumbnail {
+        width: 44px;
+        height: 44px;
+    }
+
+    .songDetails {
+        max-width: 100px;
+    }
+
+    .songTitle {
+        font-size: 0.75rem;
+    }
+
+    .songArtist {
+        font-size: 0.65rem;
+    }
+
+    .buttons {
+        gap: 6px;
+    }
+
+    .controlBtn.secondary {
+        width: 28px;
+        height: 28px;
+    }
+
+    .controlBtn.primary {
+        width: 36px;
+        height: 36px;
+    }
+
+    .time {
+        font-size: 0.7rem;
+        min-width: 35px;
     }
 }

@@ -5,12 +5,14 @@ import Header from "@/components/layout/Header";
 import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { Heart, Clock, Music } from "lucide-react";
+import { usePlayerStore } from "@/store/playerStore";
 import type { Song } from "@/types";
 import styles from "./library.module.css";
 
 type Tab = "liked" | "recent";
 
 export default function LibraryPage() {
+    const { setLoading: setGlobalLoading } = usePlayerStore();
     const [activeTab, setActiveTab] = useState<Tab>("liked");
     const [likedSongs, setLikedSongs] = useState<Song[]>([]);
     const [recentSongs, setRecentSongs] = useState<Song[]>([]);
@@ -27,6 +29,7 @@ export default function LibraryPage() {
     useEffect(() => {
         const fetchInitialData = async () => {
             setLoading(true);
+            setGlobalLoading(true, "Loading library...");
             try {
                 // Fetch both concurrently
                 const [likedRes, historyRes] = await Promise.all([
@@ -60,15 +63,17 @@ export default function LibraryPage() {
                 console.error("Failed to fetch library data:", error);
             } finally {
                 setLoading(false);
+                setGlobalLoading(false);
             }
         };
 
         fetchInitialData();
-    }, []);
+    }, [setGlobalLoading]);
 
     const loadMoreLiked = async () => {
         if (loadingMore || !hasMore) return;
         setLoadingMore(true);
+        setGlobalLoading(true, "Loading more songs...");
         try {
             const nextPage = page + 1;
             const res = await fetch(`/api/liked?limit=50&page=${nextPage}`);
@@ -95,6 +100,7 @@ export default function LibraryPage() {
             console.error("Failed to load more liked songs:", error);
         } finally {
             setLoadingMore(false);
+            setGlobalLoading(false);
         }
     };
 
@@ -103,6 +109,7 @@ export default function LibraryPage() {
 
         try {
             if (isLiked) {
+                setGlobalLoading(true, "Removing from liked...");
                 await fetch(`/api/liked?videoId=${song.videoId}`, { method: "DELETE" });
                 setLikedSongIds((prev) => {
                     const next = new Set(prev);
@@ -112,6 +119,7 @@ export default function LibraryPage() {
                 setLikedSongs((prev) => prev.filter((s) => s.videoId !== song.videoId));
                 setTotalLiked(prev => Math.max(0, prev - 1));
             } else {
+                setGlobalLoading(true, "Adding to liked...");
                 await fetch("/api/liked", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -123,6 +131,8 @@ export default function LibraryPage() {
             }
         } catch (error) {
             console.error("Failed to update like:", error);
+        } finally {
+            setGlobalLoading(false);
         }
     };
 
