@@ -67,8 +67,8 @@ export async function POST(request: NextRequest) {
             {
                 title,
                 artist,
-                thumbnail,
-                duration,
+                thumbnail: thumbnail || "/placeholder-album.png",
+                duration: duration || "0:00",
                 playedAt: new Date(),
             },
             { upsert: true, new: true }
@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
             videoId,
             title,
             artist,
-            thumbnail,
-            duration,
+            thumbnail: thumbnail || "/placeholder-album.png",
+            duration: duration || "0:00",
             listenDuration: listenDuration || 0,
         });
 
