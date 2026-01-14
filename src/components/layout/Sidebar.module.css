@@ -25,6 +25,22 @@
     flex-direction: column;
 }
 
+.premiumBadge {
+    font-size: 10px;
+    color: #34d399;
+    /* emerald-400 */
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: rgba(52, 211, 153, 0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(52, 211, 153, 0.2);
+    margin-top: 4px;
+    box-shadow: 0 0 10px rgba(52, 211, 153, 0.3);
+    align-self: flex-start;
+}
+
 .logoIcon {
     display: flex;
     align-items: center;

@@ -46,12 +46,25 @@ export const usePlayerStore = create<PlayerState>()(
             setCurrentSong: (song: Song) => {
                 const { queue } = get();
                 const index = queue.findIndex((s) => s.videoId === song.videoId);
-                set({
-                    currentSong: song,
-                    queueIndex: index >= 0 ? index : 0,
-                    currentTime: 0,
-                    isPlaying: true,
-                });
+
+                // If song is not in queue, start a new queue with just this song
+                // This ensures next/prev don't break (though they won't go anywhere with 1 song)
+                if (index === -1) {
+                    set({
+                        currentSong: song,
+                        queue: [song],
+                        queueIndex: 0,
+                        currentTime: 0,
+                        isPlaying: true,
+                    });
+                } else {
+                    set({
+                        currentSong: song,
+                        queueIndex: index,
+                        currentTime: 0,
+                        isPlaying: true,
+                    });
+                }
             },
 
             play: () => set({ isPlaying: true }),

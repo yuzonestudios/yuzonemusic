@@ -58,7 +58,7 @@ export default function Sidebar() {
                 </div>
                 <div className={styles.logoInfo}>
                     <span className={styles.logoText}>Yuzone</span>
-                    <span className="text-[10px] text-emerald-400 font-bold tracking-wider uppercase bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20 mt-1 shadow-[0_0_10px_rgba(52,211,153,0.3)]">Premium User</span>
+                    <span className={styles.premiumBadge}>Premium User</span>
                 </div>
             </div>
 
