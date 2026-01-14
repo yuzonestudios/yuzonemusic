@@ -105,19 +105,40 @@
 }
 
 .footer {
-    padding: 16px 8px;
+    padding: 16px 12px;
     border-top: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.1);
+    margin-top: auto; /* Push to bottom */
 }
 
-.footerText {
+.userProfile {
     display: flex;
     align-items: center;
+    gap: 12px;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent-primary);
+}
+
+.userInfo {
+    display: flex;
+    flex-direction: column;
     justify-content: center;
 }
 
-.version {
-    font-size: 0.75rem;
-    color: var(--text-muted);
+.userName {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
 }
 
 @media (max-width: 768px) {

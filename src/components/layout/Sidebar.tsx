@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Home, Search, Library, Trophy, Settings } from "lucide-react";
 import styles from "./Sidebar.module.css";
 
@@ -40,6 +41,7 @@ const navItems: NavItem[] = [
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const { data: session } = useSession();
 
     return (
         <aside className={styles.sidebar}>
@@ -57,8 +59,7 @@ export default function Sidebar() {
                     </svg>
                 </div>
                 <div className={styles.logoInfo}>
-                    <span className={styles.logoText}>Yuzone</span>
-                    <span className={styles.premiumBadge}>Premium User</span>
+                    <span className={styles.logoText}>Yuzone Music</span>
                 </div>
             </div>
 
@@ -80,9 +81,19 @@ export default function Sidebar() {
             </nav>
 
             <div className={styles.footer}>
-                <div className={styles.footerText}>
-                    <span className={styles.version}>Yuzone Music</span>
-                </div>
+                {session?.user && (
+                    <div className={styles.userProfile}>
+                        <img
+                            src={session.user.image || "/placeholder-user.png"}
+                            alt={session.user.name || "User"}
+                            className={styles.avatar}
+                        />
+                        <div className={styles.userInfo}>
+                            <span className={styles.userName}>{session.user.name || "User"}</span>
+                            <span className={styles.premiumBadge}>Premium User</span>
+                        </div>
+                    </div>
+                )}
             </div>
         </aside>
     );
