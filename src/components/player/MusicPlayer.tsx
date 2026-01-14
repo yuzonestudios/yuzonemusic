@@ -46,7 +46,11 @@ export default function MusicPlayer() {
                     const res = await fetch(`/api/liked?check=${currentSong.videoId}`);
                     if (res.ok) {
                         const data = await res.json();
-                        if (data.success) setIsLiked(data.isLiked);
+                        if (data.success) {
+                            setIsLiked(data.isLiked);
+                        }
+                    } else {
+                        console.error("Failed to check like status:", res.status, res.statusText);
                     }
                 } catch (e) {
                     console.error("Error checking like status:", e);
@@ -57,11 +61,16 @@ export default function MusicPlayer() {
             // 2. Track in history
             const trackHistory = async () => {
                 try {
-                    await fetch("/api/history", {
+                    const res = await fetch("/api/history", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(currentSong),
                     });
+                    
+                    if (!res.ok) {
+                        const error = await res.json();
+                        console.error("Failed to track history:", res.status, error);
+                    }
                 } catch (e) {
                     console.error("Error tracking history:", e);
                 }
@@ -78,15 +87,35 @@ export default function MusicPlayer() {
 
         try {
             if (newLiked) {
-                await fetch("/api/liked", {
+                const res = await fetch("/api/liked", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(currentSong),
                 });
+                
+                if (!res.ok) {
+                    console.error("Failed to like song:", res.status);
+                    setIsLiked(!newLiked); // Revert on error
+                } else {
+                    // Dispatch custom event for other components to listen
+                    window.dispatchEvent(new CustomEvent('songLiked', { 
+                        detail: { videoId: currentSong.videoId, liked: true }
+                    }));
+                }
             } else {
-                await fetch(`/api/liked?videoId=${currentSong.videoId}`, {
+                const res = await fetch(`/api/liked?videoId=${currentSong.videoId}`, {
                     method: "DELETE",
                 });
+                
+                if (!res.ok) {
+                    console.error("Failed to unlike song:", res.status);
+                    setIsLiked(!newLiked); // Revert on error
+                } else {
+                    // Dispatch custom event for other components to listen
+                    window.dispatchEvent(new CustomEvent('songLiked', { 
+                        detail: { videoId: currentSong.videoId, liked: false }
+                    }));
+                }
             }
         } catch (error) {
             console.error("Failed to toggle like:", error);

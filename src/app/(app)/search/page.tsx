@@ -79,6 +79,25 @@ export default function SearchPage() {
         return () => clearTimeout(timer);
     }, [query, handleSearch]);
 
+    // Listen for like events from player
+    useEffect(() => {
+        const handleLikeEvent = (event: any) => {
+            const { videoId, liked } = event.detail;
+            setLikedSongIds((prev) => {
+                const next = new Set(prev);
+                if (liked) {
+                    next.add(videoId);
+                } else {
+                    next.delete(videoId);
+                }
+                return next;
+            });
+        };
+
+        window.addEventListener('songLiked', handleLikeEvent);
+        return () => window.removeEventListener('songLiked', handleLikeEvent);
+    }, []);
+
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter") {
             handleSearch();
@@ -88,24 +107,63 @@ export default function SearchPage() {
     const handleLike = async (song: Song) => {
         const isLiked = likedSongIds.has(song.videoId);
 
+        // Optimistically update UI
+        if (isLiked) {
+            setLikedSongIds((prev) => {
+                const next = new Set(prev);
+                next.delete(song.videoId);
+                return next;
+            });
+        } else {
+            setLikedSongIds((prev) => new Set(prev).add(song.videoId));
+        }
+
         try {
             if (isLiked) {
-                await fetch(`/api/liked?videoId=${song.videoId}`, { method: "DELETE" });
+                const res = await fetch(`/api/liked?videoId=${song.videoId}`, { method: "DELETE" });
+                if (!res.ok) {
+                    console.error("Failed to unlike song:", res.status);
+                    // Revert on error
+                    setLikedSongIds((prev) => new Set(prev).add(song.videoId));
+                } else {
+                    // Dispatch event for other components
+                    window.dispatchEvent(new CustomEvent('songLiked', { 
+                        detail: { videoId: song.videoId, liked: false }
+                    }));
+                }
+            } else {
+                const res = await fetch("/api/liked", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(song),
+                });
+                if (!res.ok) {
+                    console.error("Failed to like song:", res.status);
+                    // Revert on error
+                    setLikedSongIds((prev) => {
+                        const next = new Set(prev);
+                        next.delete(song.videoId);
+                        return next;
+                    });
+                } else {
+                    // Dispatch event for other components
+                    window.dispatchEvent(new CustomEvent('songLiked', { 
+                        detail: { videoId: song.videoId, liked: true }
+                    }));
+                }
+            }
+        } catch (error) {
+            console.error("Failed to update like:", error);
+            // Revert on error
+            if (isLiked) {
+                setLikedSongIds((prev) => new Set(prev).add(song.videoId));
+            } else {
                 setLikedSongIds((prev) => {
                     const next = new Set(prev);
                     next.delete(song.videoId);
                     return next;
                 });
-            } else {
-                await fetch("/api/liked", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(song),
-                });
-                setLikedSongIds((prev) => new Set(prev).add(song.videoId));
             }
-        } catch (error) {
-            console.error("Failed to update like:", error);
         }
     };
 

@@ -86,12 +86,6 @@ export function useAudioPlayer() {
         // Reset state for new song
         // Don't reload if it's the same URL
         if (audio.src === streamUrl) {
-            // Just ensure it's playing if meant to be
-            if (isPlaying && audio.paused) {
-                audio.play().catch(e => {
-                    if (e.name !== 'AbortError') console.error("Resume play failed:", e);
-                });
-            }
             return;
         }
 
@@ -113,7 +107,7 @@ export function useAudioPlayer() {
 
         loadAndPlay();
 
-    }, [currentSong?.videoId, isPlaying]); // Only depend on videoId ref, not full object
+    }, [currentSong?.videoId]); // Only depend on videoId, not isPlaying
 
     // Play/Pause toggle effect
     useEffect(() => {
@@ -150,19 +144,14 @@ export function useAudioPlayer() {
 
             const safeTime = Math.min(Math.max(0, time), duration);
 
-            // 2. Check seekable ranges
-            // Some browsers/proxies report empty seekable ranges for streamed content initially
-            const ranges = audio.seekable;
-            if (ranges.length > 0) {
+            // 2. Update audio element first
+            try {
                 audio.currentTime = safeTime;
-            } else {
-                // Try anyway - mostly for development/legacy compatibility
-                console.warn("Stream might not support seeking yet. Attempting strict seek to", safeTime);
-                audio.currentTime = safeTime;
+                // 3. Update store after successful seek
+                setCurrentTime(safeTime);
+            } catch (error) {
+                console.error("Seek error:", error);
             }
-
-            // 3. Update UI immediately
-            setCurrentTime(safeTime);
         }
     }, [setCurrentTime]);
 

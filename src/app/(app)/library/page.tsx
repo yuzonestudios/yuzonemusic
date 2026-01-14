@@ -70,6 +70,29 @@ export default function LibraryPage() {
         fetchInitialData();
     }, [setGlobalLoading]);
 
+    // Listen for like events from other components (player, search)
+    useEffect(() => {
+        const handleLikeEvent = (event: any) => {
+            const { videoId, liked } = event.detail;
+            
+            if (liked) {
+                setLikedSongIds((prev) => new Set(prev).add(videoId));
+            } else {
+                setLikedSongIds((prev) => {
+                    const next = new Set(prev);
+                    next.delete(videoId);
+                    return next;
+                });
+                // Remove from liked songs list if on liked tab
+                setLikedSongs((prev) => prev.filter((s) => s.videoId !== videoId));
+                setTotalLiked(prev => Math.max(0, prev - 1));
+            }
+        };
+
+        window.addEventListener('songLiked', handleLikeEvent);
+        return () => window.removeEventListener('songLiked', handleLikeEvent);
+    }, []);
+
     const loadMoreLiked = async () => {
         if (loadingMore || !hasMore) return;
         setLoadingMore(true);
@@ -110,24 +133,40 @@ export default function LibraryPage() {
         try {
             if (isLiked) {
                 setGlobalLoading(true, "Removing from liked...");
-                await fetch(`/api/liked?videoId=${song.videoId}`, { method: "DELETE" });
-                setLikedSongIds((prev) => {
-                    const next = new Set(prev);
-                    next.delete(song.videoId);
-                    return next;
-                });
-                setLikedSongs((prev) => prev.filter((s) => s.videoId !== song.videoId));
-                setTotalLiked(prev => Math.max(0, prev - 1));
+                const res = await fetch(`/api/liked?videoId=${song.videoId}`, { method: "DELETE" });
+                
+                if (res.ok) {
+                    setLikedSongIds((prev) => {
+                        const next = new Set(prev);
+                        next.delete(song.videoId);
+                        return next;
+                    });
+                    setLikedSongs((prev) => prev.filter((s) => s.videoId !== song.videoId));
+                    setTotalLiked(prev => Math.max(0, prev - 1));
+                    
+                    // Dispatch event for other components
+                    window.dispatchEvent(new CustomEvent('songLiked', { 
+                        detail: { videoId: song.videoId, liked: false }
+                    }));
+                }
             } else {
                 setGlobalLoading(true, "Adding to liked...");
-                await fetch("/api/liked", {
+                const res = await fetch("/api/liked", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(song),
                 });
-                setLikedSongIds((prev) => new Set(prev).add(song.videoId));
-                setLikedSongs((prev) => [song, ...prev]);
-                setTotalLiked(prev => prev + 1);
+                
+                if (res.ok) {
+                    setLikedSongIds((prev) => new Set(prev).add(song.videoId));
+                    setLikedSongs((prev) => [song, ...prev]);
+                    setTotalLiked(prev => prev + 1);
+                    
+                    // Dispatch event for other components
+                    window.dispatchEvent(new CustomEvent('songLiked', { 
+                        detail: { videoId: song.videoId, liked: true }
+                    }));
+                }
             }
         } catch (error) {
             console.error("Failed to update like:", error);
