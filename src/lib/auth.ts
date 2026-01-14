@@ -73,37 +73,57 @@ export const authOptions: NextAuthOptions = {
             return true;
         },
         async session({ session, token }) {
-            if (session.user && token.sub) {
+            if (session.user) {
                 try {
                     await connectDB();
-                    const dbUser = await User.findOne({ googleId: token.sub });
 
-                    // Strict verification: User MUST be in DB
-                    if (!dbUser) {
-                        console.error("CRITICAL: User not found in DB during session check!", token.sub);
-                        return {
-                            ...session,
-                            user: undefined as any // Force invalid user
-                        };
+                    // Prefer cached uid set in JWT
+                    if (token.uid) {
+                        session.user.id = token.uid as string;
+                        return session;
                     }
 
-                    if (dbUser) {
+                    // Fallback: lookup by googleId (token.sub)
+                    if (token.sub) {
+                        const dbUser = await User.findOne({ googleId: token.sub });
+
+                        if (!dbUser) {
+                            console.error("CRITICAL: User not found in DB during session check!", token.sub);
+                            return { ...session, user: undefined as any };
+                        }
+
                         session.user.id = dbUser._id.toString();
                     }
                 } catch (error) {
                     console.error("Error fetching user in session:", error);
-                    // Fail securely
-                    return {
-                        ...session,
-                        user: undefined as any
-                    };
+                    return { ...session, user: undefined as any };
                 }
             }
             return session;
         },
         async jwt({ token, account }) {
-            if (account) {
-                token.sub = account.providerAccountId;
+            try {
+                await connectDB();
+
+                // On first sign-in, account is present
+                if (account?.providerAccountId) {
+                    const dbUser = await User.findOne({ googleId: account.providerAccountId });
+                    if (dbUser) {
+                        token.uid = dbUser._id.toString();
+                    }
+                    token.sub = account.providerAccountId;
+                    return token;
+                }
+
+                // For subsequent requests, ensure uid is set
+                if (!token.uid && token.sub) {
+                    const dbUser = await User.findOne({ googleId: token.sub });
+                    if (dbUser) {
+                        token.uid = dbUser._id.toString();
+                    }
+                }
+            } catch (error) {
+                console.error("JWT callback error:", error);
             }
             return token;
         },
