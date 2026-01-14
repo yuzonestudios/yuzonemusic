@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Download } from "lucide-react";
+import { Download, Heart } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
@@ -34,24 +34,64 @@ export default function MusicPlayer() {
 
     const { seek } = useAudioPlayer();
     useKeyboardShortcuts();
+    const [isLiked, setIsLiked] = useState(false);
 
-    // Track song play in history
+    // Track song play in history & Check Like Status
     useEffect(() => {
-        if (currentSong && isPlaying) {
-            const trackPlay = async () => {
+        if (currentSong) {
+            // 1. Check if liked
+            const checkLike = async () => {
                 try {
-                    await fetch("/api/history", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(currentSong),
-                    });
-                } catch (error) {
-                    console.error("Failed to track play:", error);
+                    const res = await fetch(`/api/liked?check=${currentSong.videoId}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.success) setIsLiked(data.isLiked);
+                    }
+                } catch (e) {
+                    console.error("Failed to check like status:", e);
                 }
             };
-            trackPlay();
+            checkLike();
+
+            // 2. Track history if playing
+            if (isPlaying) {
+                const trackPlay = async () => {
+                    try {
+                        await fetch("/api/history", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(currentSong),
+                        });
+                    } catch (error) {
+                        console.error("Failed to track play:", error);
+                    }
+                };
+                trackPlay();
+            }
         }
-    }, [currentSong?.videoId]);
+    }, [currentSong?.videoId, isPlaying]);
+
+    const toggleLike = async () => {
+        if (!currentSong) return;
+
+        // Optimistic update
+        setIsLiked(!isLiked);
+
+        try {
+            if (isLiked) {
+                await fetch(`/api/liked?videoId=${currentSong.videoId}`, { method: "DELETE" });
+            } else {
+                await fetch("/api/liked", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(currentSong),
+                });
+            }
+        } catch (error) {
+            console.error("Failed to toggle like:", error);
+            setIsLiked(prev => !prev); // Revert on error
+        }
+    };
 
     const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!duration) return;
@@ -85,6 +125,13 @@ export default function MusicPlayer() {
                             <span className={styles.songTitle}>{currentSong.title}</span>
                             <span className={styles.songArtist}>{currentSong.artist}</span>
                         </div>
+                        <button
+                            onClick={toggleLike}
+                            className={`${styles.likeBtn} ${isLiked ? styles.active : ""}`}
+                            title={isLiked ? "Unlike" : "Like"}
+                        >
+                            <Heart size={20} fill={isLiked ? "var(--accent-primary)" : "none"} stroke={isLiked ? "var(--accent-primary)" : "currentColor"} />
+                        </button>
                     </>
                 ) : (
                     <div className={styles.noSong}>

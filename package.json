@@ -17,6 +17,7 @@
         "mongoose": "^8.9.3",
         "next": "16.1.1",
         "next-auth": "^4.24.10",
+        "nextjs-toploader": "^3.9.17",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "three": "^0.182.0",

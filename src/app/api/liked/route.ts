@@ -18,6 +18,18 @@ export async function GET(request: NextRequest) {
         }
 
         const searchParams = request.nextUrl.searchParams;
+        const checkId = searchParams.get("check");
+
+        // Optimization: Check existence of specific song
+        if (checkId) {
+            await connectDB();
+            const exists = await LikedSong.exists({
+                userId: session.user.id,
+                videoId: checkId
+            });
+            return NextResponse.json({ success: true, isLiked: !!exists });
+        }
+
         const page = parseInt(searchParams.get("page") || "1");
         const limit = parseInt(searchParams.get("limit") || "50");
         const skip = (page - 1) * limit;

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import NextTopLoader from 'nextjs-toploader';
 import Providers from "./providers";
 import "./globals.css";
 
@@ -22,6 +23,17 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             <body>
+                <NextTopLoader
+                    color="var(--accent-primary)"
+                    initialPosition={0.08}
+                    crawlSpeed={200}
+                    height={3}
+                    crawl={true}
+                    showSpinner={false}
+                    easing="ease"
+                    speed={200}
+                    shadow="0 0 10px var(--accent-primary),0 0 5px var(--accent-primary)"
+                />
                 <Providers>{children}</Providers>
             </body>
         </html>
