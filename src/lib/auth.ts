@@ -21,7 +21,13 @@ export const authOptions: NextAuthOptions = {
         async signIn({ user, account }) {
             if (account?.provider === "google") {
                 try {
-                    await connectDB();
+                    const conn = await connectDB();
+
+                    // If connection failed (Offline Mode check)
+                    if (!conn) {
+                        console.warn("OFFLINE MODE: Database connection failed. Allowing login without saving user.");
+                        return true;
+                    }
 
                     // ATOMIC UPSERT: Handles both "Create" and "Update" in one optimized DB call.
                     // This creates the user if they don't exist, or updates them if they do.
@@ -58,13 +64,9 @@ export const authOptions: NextAuthOptions = {
 
                     if (error instanceof Error) {
                         console.error("Stack:", error.stack);
-
+                        // Original error check kept just in case
                         if (error.name === "MongooseServerSelectionError") {
-                            console.error("\n\n!!! MONGODB CONNECTION FAILED !!!");
-                            console.error("Your IP address is likely not whitelisted in MongoDB Atlas.");
-                            console.error("Please go to Network Access -> Add IP Address -> Add Current IP.");
-                            console.error("Switching to OFFLINE MODE. Login permitted w/o Database.\n\n");
-                            return true; // ALLOW LOGIN despite DB error
+                            return true;
                         }
                     }
 
@@ -78,7 +80,15 @@ export const authOptions: NextAuthOptions = {
             if (session.user && token.sub) {
                 try {
                     // console.log("DEBUG: Session callback for sub:", token.sub);
-                    await connectDB();
+                    const conn = await connectDB();
+
+                    // OFFLINE MODE / CONNECTION FAILED
+                    if (!conn) {
+                        console.warn("OFFLINE MODE: Using Google ID as session ID.");
+                        session.user.id = token.sub;
+                        return session;
+                    }
+
                     const dbUser = await User.findOne({ googleId: token.sub });
                     // console.log("DEBUG: DB User found for session:", !!dbUser);
 
@@ -98,7 +108,7 @@ export const authOptions: NextAuthOptions = {
                     // To be safe but resilient: If we just allowed them in signIn via Offline Mode,
                     // we should probably allow them here too.
                     // We'll use the GoogleID as a fallback "id" so the app doesn't crash.
-                    console.warn("User not found in DB. Using Google ID as fallback session ID (Offline/Resilient Mode).");
+                    console.warn("User not found in DB. Using Google ID as fallback.");
                     session.user.id = token.sub; // Fallback ID
                     return session;
 

@@ -41,7 +41,9 @@ async function connectDB(): Promise<typeof mongoose> {
     cached.conn = await cached.promise;
   } catch (e) {
     cached.promise = null;
-    throw e;
+    console.error("MongoDB Connection Failed:", e);
+    // Don't throw globally, let the caller handle null
+    return null as any;
   }
 
   return cached.conn;
