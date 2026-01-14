@@ -28,6 +28,11 @@ export function useAudioPlayer() {
         }
         audioRef.current = globalAudioRef;
 
+        // Expose globally for components (e.g., fullscreen) to access
+        if (typeof window !== "undefined") {
+            (window as any).__yuzoneAudio = globalAudioRef;
+        }
+
         const audio = audioRef.current;
 
         const handleTimeUpdate = () => {

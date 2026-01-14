@@ -13,10 +13,11 @@ function formatTime(seconds: number): string {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
-// Get global audio element
+// Get global audio element exposed by useAudioPlayer
 const getAudioElement = () => {
-    if (typeof window !== 'undefined') {
-        return document.querySelector('audio');
+    if (typeof window !== "undefined") {
+        const audio = (window as any).__yuzoneAudio as HTMLAudioElement | undefined;
+        return audio || null;
     }
     return null;
 };
