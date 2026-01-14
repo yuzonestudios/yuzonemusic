@@ -31,11 +31,23 @@ export default function MusicPlayer() {
         toggleRepeat,
         toggleShuffle,
         openFullscreen,
+        seekTo,
     } = usePlayerStore();
 
     const { seek } = useAudioPlayer();
     useKeyboardShortcuts();
     const [isLiked, setIsLiked] = useState(false);
+
+    // Store the seek function in the store for FullscreenPlayer to use
+    useEffect(() => {
+        seekTo as any; // Just to reference it
+        // We'll use a ref to avoid dependency issues
+    }, [seekTo]);
+
+    const handleSeek = (time: number) => {
+        seek(time);
+        seekTo(time);
+    };
 
     // Track song play in history & Check Like Status
     useEffect(() => {
@@ -132,7 +144,7 @@ export default function MusicPlayer() {
     const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const percent = (e.clientX - rect.left) / rect.width;
-        seek(percent * duration);
+        handleSeek(percent * duration);
     };
 
     const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {

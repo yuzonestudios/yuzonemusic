@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
 import { X, SkipBack, Play, Pause, SkipForward, Volume2, Repeat, Shuffle } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import styles from "./FullscreenPlayer.module.css";
 
 function formatTime(seconds: number): string {
@@ -13,6 +12,14 @@ function formatTime(seconds: number): string {
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
+
+// Get global audio element
+const getAudioElement = () => {
+    if (typeof window !== 'undefined') {
+        return document.querySelector('audio');
+    }
+    return null;
+};
 
 export default function FullscreenPlayer() {
     const {
@@ -33,8 +40,6 @@ export default function FullscreenPlayer() {
         closeFullscreen,
     } = usePlayerStore();
 
-    const { seek } = useAudioPlayer();
-
     useEffect(() => {
         if (!isFullscreenOpen) return;
 
@@ -51,10 +56,13 @@ export default function FullscreenPlayer() {
 
     const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!duration) return;
+        const audio = getAudioElement();
+        if (!audio) return;
+        
         const rect = e.currentTarget.getBoundingClientRect();
         const percent = (e.clientX - rect.left) / rect.width;
         const newTime = percent * duration;
-        seek(newTime);
+        audio.currentTime = newTime;
     };
 
     const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {

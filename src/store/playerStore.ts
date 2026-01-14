@@ -24,6 +24,7 @@ interface PlayerState {
     setVolume: (volume: number) => void;
     setCurrentTime: (time: number) => void;
     setDuration: (duration: number) => void;
+    seekTo: (time: number) => void;
     nextSong: () => void;
     previousSong: () => void;
     setQueue: (songs: Song[], startIndex?: number) => void;
@@ -83,6 +84,7 @@ export const usePlayerStore = create<PlayerState>()(
             setVolume: (volume: number) => set({ volume }),
             setCurrentTime: (time: number) => set({ currentTime: time }),
             setDuration: (duration: number) => set({ duration }),
+            seekTo: (time: number) => set({ currentTime: time }),
 
             nextSong: () => {
                 const { queue, queueIndex, repeat, shuffle } = get();

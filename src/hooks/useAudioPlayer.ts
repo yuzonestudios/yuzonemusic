@@ -3,6 +3,9 @@
 import { useEffect, useRef, useCallback } from "react";
 import { usePlayerStore } from "@/store/playerStore";
 
+// Global audio element to ensure only one instance
+let globalAudioRef: HTMLAudioElement | null = null;
+
 export function useAudioPlayer() {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const {
@@ -17,12 +20,13 @@ export function useAudioPlayer() {
         repeat,
     } = usePlayerStore();
 
-    // Initialize audio element
+    // Initialize audio element (only once globally)
     useEffect(() => {
-        if (!audioRef.current) {
-            audioRef.current = new Audio();
-            audioRef.current.preload = "metadata";
+        if (!globalAudioRef) {
+            globalAudioRef = new Audio();
+            globalAudioRef.preload = "metadata";
         }
+        audioRef.current = globalAudioRef;
 
         const audio = audioRef.current;
 
