@@ -5,11 +5,7 @@ export interface IUser extends Document {
     email: string;
     name: string;
     image?: string;
-    googleId: {
-        type: String,
-        required: true,
-        unique: true,
-    };
+    googleId: string;
     theme: string;
     createdAt: Date;
     updatedAt: Date;
