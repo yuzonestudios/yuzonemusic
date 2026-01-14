@@ -17,6 +17,8 @@ export default function LibraryPage() {
     const [loading, setLoading] = useState(true);
     const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
 
+    const [totalLiked, setTotalLiked] = useState(0);
+
     // Pagination state
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
@@ -28,8 +30,8 @@ export default function LibraryPage() {
             try {
                 // Fetch both concurrently
                 const [likedRes, historyRes] = await Promise.all([
-                    fetch("/api/liked?limit=50&page=1"),
-                    fetch("/api/history?limit=50")
+                    fetch("/api/liked?limit=50&page=1", { cache: "no-store" }),
+                    fetch("/api/history?limit=50", { cache: "no-store" })
                 ]);
 
                 if (likedRes.ok) {
@@ -37,10 +39,12 @@ export default function LibraryPage() {
                     if (likedData.success) {
                         setLikedSongs(likedData.data || []);
                         setLikedSongIds(new Set(likedData.data.map((s: Song) => s.videoId)));
-                        // Check pagination
+                        // Set total count
                         if (likedData.pagination) {
+                            setTotalLiked(likedData.pagination.total);
                             setHasMore(likedData.pagination.page < likedData.pagination.pages);
                         } else {
+                            setTotalLiked(likedData.data.length);
                             setHasMore(false);
                         }
                     }
@@ -80,6 +84,8 @@ export default function LibraryPage() {
                     setPage(nextPage);
                     if (data.pagination) {
                         setHasMore(data.pagination.page < data.pagination.pages);
+                        // Ensure total is synced if changed
+                        setTotalLiked(data.pagination.total);
                     } else {
                         setHasMore(false);
                     }
@@ -104,6 +110,7 @@ export default function LibraryPage() {
                     return next;
                 });
                 setLikedSongs((prev) => prev.filter((s) => s.videoId !== song.videoId));
+                setTotalLiked(prev => Math.max(0, prev - 1));
             } else {
                 await fetch("/api/liked", {
                     method: "POST",
@@ -112,6 +119,7 @@ export default function LibraryPage() {
                 });
                 setLikedSongIds((prev) => new Set(prev).add(song.videoId));
                 setLikedSongs((prev) => [song, ...prev]);
+                setTotalLiked(prev => prev + 1);
             }
         } catch (error) {
             console.error("Failed to update like:", error);
@@ -133,7 +141,7 @@ export default function LibraryPage() {
                     >
                         <Heart size={18} fill={activeTab === "liked" ? "currentColor" : "none"} />
                         Liked Songs
-                        <span className={styles.count}>{likedSongs.length}</span>
+                        <span className={styles.count}>{totalLiked}</span>
                     </button>
                     <button
                         onClick={() => setActiveTab("recent")}

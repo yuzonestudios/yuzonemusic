@@ -44,14 +44,22 @@ export function useAudioPlayer() {
         };
 
         const handleError = (e: Event) => {
-            const error = audioRef.current?.error;
-            console.error("Audio error details:", {
-                code: error?.code,
-                message: error?.message,
-                networkState: audioRef.current?.networkState,
-                src: audioRef.current?.src,
-                eventType: e.type
+            const target = e.target as HTMLAudioElement;
+            const error = target.error;
+
+            console.error("Audio Playback Error:", {
+                code: error?.code, // 1: Aborted, 2: Network, 3: Decode, 4: Src Not Supported
+                message: error?.message || "Unknown error",
+                networkState: target.networkState,
+                readyState: target.readyState,
+                currentSrc: target.src
             });
+
+            // Prevent infinite error loops
+            if (error?.code === 4 && target.src.includes("/api/stream")) {
+                console.warn("Stream source not supported or failed to load.");
+            }
+
             pause();
         };
 

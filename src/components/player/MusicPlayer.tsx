@@ -21,7 +21,6 @@ export default function MusicPlayer() {
         isPlaying,
         volume,
         currentTime,
-        currentTime,
         duration,
         repeat,
         togglePlay,

@@ -69,14 +69,6 @@ export default function SettingsPage() {
                     </div>
                 </div>
             </div>
-
-            <div className={`glass-panel ${styles.section}`}>
-                <h2 className={styles.sectionHeader}>About</h2>
-                <p className={styles.about}>
-                    Yuzone Music<br />
-                    Powered by Next.js 16.1.1 & YouTube Music
-                </p>
-            </div>
         </div>
     );
 }
