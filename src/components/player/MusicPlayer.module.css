@@ -240,19 +240,46 @@
 
 @media (max-width: 768px) {
     .player {
-        grid-template-columns: 1fr 1fr;
-        padding: 0 16px;
+        bottom: var(--mobile-nav-height);
+        /* Sit above bottom nav */
+        padding: 0 12px;
+        height: 70px;
+        /* Smaller height on mobile */
     }
 
     .volumeControl {
         display: none;
+        /* Hide volume on mobile */
     }
 
     .songDetails {
-        display: none;
+        display: flex;
+        /* Keep song info visible but maybe smaller */
+        flex: 1;
+        max-width: 140px;
+    }
+
+    .songTitle {
+        font-size: 0.85rem;
+    }
+
+    .songArtist {
+        font-size: 0.75rem;
     }
 
     .progressWrapper {
-        max-width: 300px;
+        display: none;
+        /* Hide standard progress bar to save space, maybe add mini thin one at top? */
+    }
+
+    /* Simplified Controls for Mobile */
+    .buttons {
+        gap: 12px;
+    }
+
+    /* Hide Repeat/Shuffle on small screens to uncrowd */
+    .controlBtn.secondary[title*="Repeat"],
+    .controlBtn.secondary[title*="Shuffle"] {
+        display: none;
     }
 }

@@ -1,0 +1,50 @@
+.mobileNav {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobileNav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: var(--mobile-nav-height);
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border-color);
+        z-index: 100;
+        align-items: center;
+        justify-content: space-around;
+        padding-bottom: env(safe-area-inset-bottom);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
+
+    .navItem {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        color: var(--text-secondary);
+        font-size: 0.7rem;
+        flex: 1;
+        height: 100%;
+        transition: color 0.2s ease;
+    }
+
+    .navItem.active {
+        color: var(--accent-primary);
+    }
+
+    .icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .icon svg {
+        width: 22px;
+        height: 22px;
+    }
+}
