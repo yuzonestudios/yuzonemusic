@@ -32,7 +32,9 @@ export async function GET(request: NextRequest) {
         const songs = data.map((song: any) => ({
             videoId: song.videoId || song.id || "",
             title: song.title || "Unknown Title",
-            artist: song.artist || song.artists || "Unknown Artist",
+            artist: Array.isArray(song.artists) 
+                ? song.artists.join(", ") 
+                : song.artist || song.artists || "Unknown Artist",
             thumbnail: song.thumbnail || song.thumbnails?.[0]?.url || "/placeholder-album.png",
             duration: song.duration || "0:00",
             album: song.album

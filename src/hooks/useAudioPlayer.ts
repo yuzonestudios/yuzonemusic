@@ -144,16 +144,16 @@ export function useAudioPlayer() {
 
             const safeTime = Math.min(Math.max(0, time), duration);
 
-            // 2. Update audio element first
+            // 2. Update audio element - let timeupdate event handle store update
             try {
                 audio.currentTime = safeTime;
-                // 3. Update store after successful seek
-                setCurrentTime(safeTime);
+                // Don't call setCurrentTime here - let the timeupdate event handle it
+                // This prevents the race condition where timeupdate fires with old value
             } catch (error) {
                 console.error("Seek error:", error);
             }
         }
-    }, [setCurrentTime]);
+    }, []);
 
     return { audioRef, seek };
 }
