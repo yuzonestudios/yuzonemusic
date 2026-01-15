@@ -14,22 +14,17 @@ export default function TopSongsPage() {
     useEffect(() => {
         const fetchTopSongs = async () => {
             try {
-                // We need an API route for this since youtubei.js runs on server
-                const response = await fetch("/api/search?q=top100&type=chart");
-                // Wait, I didn't create a specific chart endpoint. 
-                // I can modify /api/search to handle "type=chart" or create /api/top
-
-                // Let's assume I will create /api/top
                 const res = await fetch("/api/top");
                 const data = await res.json();
 
-                if (data.success) {
-                    setSongs(data.products || data.songs || []);
+                if (data.success && data.songs) {
+                    setSongs(data.songs.slice(0, 20));
                 } else {
-                    setError("Failed to load charts");
+                    setError("Failed to load top songs");
                 }
             } catch (err) {
-                setError("Error fetching charts");
+                console.error("Error fetching top songs:", err);
+                setError("Error fetching top songs");
             } finally {
                 setLoading(false);
             }
