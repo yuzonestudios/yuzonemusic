@@ -251,10 +251,10 @@
 @media (max-width: 768px) {
     .player {
         bottom: calc(var(--mobile-nav-height) + 8px);
-        padding: 0 12px;
-        height: 70px;
+        padding: 6px 8px;
+        height: 64px;
         flex-wrap: wrap;
-        gap: 0.5rem;
+        gap: 0.25rem;
     }
 
     .songInfo {
@@ -295,17 +295,17 @@
     }
 
     .buttons {
-        gap: 8px;
+        gap: 4px;
     }
 
     .controlBtn.secondary {
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
     }
 
     .controlBtn.primary {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
     }
 }
 

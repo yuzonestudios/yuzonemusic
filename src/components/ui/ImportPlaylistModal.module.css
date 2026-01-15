@@ -110,6 +110,17 @@
     }
 }
 
+.miniSpinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--bg-tertiary);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
 .loadingText {
     color: var(--text-secondary);
     font-size: 0.95rem;

@@ -34,6 +34,7 @@ export default function ImportPlaylistModal({
     const [activeTab, setActiveTab] = useState<"spotify" | "youtube">("spotify");
     const [playlistLink, setPlaylistLink] = useState("");
     const [loading, setLoading] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
     const [playlistData, setPlaylistData] = useState<PlaylistData | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -77,6 +78,7 @@ export default function ImportPlaylistModal({
     const handleImport = async () => {
         if (!playlistData) return;
 
+        setIsImporting(true);
         try {
             const playlistName = playlistData.playlistName || `Imported from ${activeTab === "spotify" ? "Spotify" : "YouTube Music"}`;
             console.log("Importing with name:", playlistName, "from playlistData:", playlistData);
@@ -85,6 +87,8 @@ export default function ImportPlaylistModal({
         } catch (err) {
             console.error("Error importing playlist:", err);
             setError("Failed to import playlist. Please try again.");
+        } finally {
+            setIsImporting(false);
         }
     };
 
@@ -223,14 +227,23 @@ export default function ImportPlaylistModal({
                             <button
                                 className={`${importStyles.btn} ${importStyles.cancelBtn}`}
                                 onClick={handleClose}
+                                disabled={isImporting}
                             >
                                 Cancel
                             </button>
                             <button
                                 className={`${importStyles.btn} ${importStyles.confirmBtn}`}
                                 onClick={handleImport}
+                                disabled={isImporting}
                             >
-                                Import Playlist
+                                {isImporting ? (
+                                    <>
+                                        <div className={importStyles.miniSpinner}></div>
+                                        Importing...
+                                    </>
+                                ) : (
+                                    "Import Playlist"
+                                )}
                             </button>
                         </div>
                     </>
