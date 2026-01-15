@@ -18,21 +18,11 @@ export async function GET(request: NextRequest) {
             const externalApiUrl = "https://api.yuzone.me/download";
             // console.log(`Proxying stream for ${videoId} via ${externalApiUrl}`);
 
-            // Forward user's Range header if present
-            const rangeHeader = request.headers.get("range");
+            // Get full audio from external API (don't forward Range header)
+            // This ensures we always get the complete file, allowing the browser to handle seeking
             const headers = new Headers({
                 "Content-Type": "application/json",
             });
-            if (rangeHeader) {
-                headers.set("Range", rangeHeader);
-            } else {
-                // Optimization: If no range requested, still prefer partial content to allow seeking later? 
-                // Actually, standard browsers send Range: bytes=0- initially.
-            }
-
-            // FORCE Range header for initial request to ensure server supports it?
-            // Some servers return 200 OK for full file if Range=0-. 
-            // We just pass through whatever the browser sent.
 
             const response = await fetch(externalApiUrl, {
                 method: "POST",
@@ -41,28 +31,27 @@ export async function GET(request: NextRequest) {
                     videoId: videoId,
                     format: "mp3",
                 }),
-                // IMPORTANT: Don't let Next.js cache this fetch, as Ranges differ!
+                // IMPORTANT: Don't let Next.js cache this fetch
                 cache: 'no-store'
             });
 
-            if (response.ok || response.status === 206) {
+            if (response.ok) {
                 const contentType = response.headers.get("Content-Type") || "audio/mpeg";
                 const contentLength = response.headers.get("Content-Length");
-                const contentRange = response.headers.get("Content-Range");
-                const acceptRanges = response.headers.get("Accept-Ranges");
 
-                console.log(`[StreamAPI] External API success: ${response.status} ${contentType}`);
+                console.log(`[StreamAPI] External API success: ${response.status} ${contentType} (${contentLength} bytes)`);
 
                 const responseHeaders = new Headers();
                 responseHeaders.set("Content-Type", contentType);
                 responseHeaders.set("Cache-Control", "public, max-age=31536000");
+                responseHeaders.set("Accept-Ranges", "bytes");
 
-                if (contentLength) responseHeaders.set("Content-Length", contentLength);
-                if (contentRange) responseHeaders.set("Content-Range", contentRange);
-                if (acceptRanges) responseHeaders.set("Accept-Ranges", acceptRanges);
+                if (contentLength) {
+                    responseHeaders.set("Content-Length", contentLength);
+                }
 
                 return new NextResponse(response.body, {
-                    status: response.status,
+                    status: 200,
                     headers: responseHeaders,
                 });
             }
