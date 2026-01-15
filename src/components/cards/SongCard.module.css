@@ -273,6 +273,12 @@
     box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
 }
 
+.actionBtn.added {
+    color: var(--accent-primary);
+    background: rgba(139, 92, 246, 0.2);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.35);
+}
+
 @media (max-width: 768px) {
     .card {
         padding: 0.875rem;

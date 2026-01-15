@@ -323,8 +323,6 @@ export default function PlaylistDetailPage() {
                                     song={song}
                                     songs={playlist.songs}
                                     index={index}
-                                    onLike={() => handleRemoveSong(song.videoId)}
-                                    isLiked={true}
                                 />
                             ))}
                         </div>

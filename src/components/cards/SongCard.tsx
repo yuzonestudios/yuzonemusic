@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ListPlus, Play, Pause } from "lucide-react";
+import { ListPlus, Play, Pause, Check } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import AddToPlaylistModal from "@/components/ui/AddToPlaylistModal";
 import type { Song } from "@/types";
@@ -27,6 +27,7 @@ export default function SongCard({
 }: SongCardProps) {
     const { currentSong, setQueue, isPlaying, togglePlay, setCurrentSong } = usePlayerStore();
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+    const [addedToPlaylist, setAddedToPlaylist] = useState(false);
 
     const isCurrentSong = currentSong?.videoId === song.videoId;
 
@@ -102,11 +103,11 @@ export default function SongCard({
                         </button>
                     )}
                     <button
-                        onClick={() => setIsPlaylistModalOpen(true)}
-                        className={styles.actionBtn}
-                        title="Add to Playlist"
+                        onClick={() => { setAddedToPlaylist(true); setIsPlaylistModalOpen(true); }}
+                        className={`${styles.actionBtn} ${addedToPlaylist ? styles.added : ""}`}
+                        title={addedToPlaylist ? "Added to Playlist" : "Add to Playlist"}
                     >
-                        <ListPlus size={20} />
+                        {addedToPlaylist ? <Check size={20} /> : <ListPlus size={20} />}
                     </button>
                 </div>
             )}
