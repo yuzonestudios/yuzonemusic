@@ -8,6 +8,16 @@ export const metadata: Metadata = {
     description: "Discover and stream millions of songs with Yuzone Music. Modern music streaming experience with YouTube Music integration.",
     keywords: ["music", "streaming", "youtube music", "songs", "playlist"],
     authors: [{ name: "Yuzone Studios" }],
+    manifest: "/manifest.json",
+    icons: {
+        icon: "/icon-192x192.png",
+        apple: "/icon-192x192.png",
+    },
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: "black-translucent",
+        title: "Yuzone Music",
+    },
     openGraph: {
         title: "Yuzone Music",
         description: "Stream your favorite music",
