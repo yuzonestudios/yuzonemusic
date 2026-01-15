@@ -299,8 +299,7 @@
     }
 
     .controlBtn.secondary {
-        width: 28px;
-        height: 28px;
+        display: none;
     }
 
     .controlBtn.primary {
