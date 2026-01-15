@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 
                 const responseHeaders = new Headers();
                 responseHeaders.set("Content-Type", contentType);
-                responseHeaders.set("Cache-Control", "public, max-age=31536000");
+                responseHeaders.set("Cache-Control", "no-cache, must-revalidate");
                 responseHeaders.set("Accept-Ranges", "bytes");
 
                 if (contentLength) {

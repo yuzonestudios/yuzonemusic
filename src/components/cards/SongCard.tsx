@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ListPlus } from "lucide-react";
+import { ListPlus, Play, Pause } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import AddToPlaylistModal from "@/components/ui/AddToPlaylistModal";
 import type { Song } from "@/types";
@@ -79,6 +79,17 @@ export default function SongCard({
 
             {showActions && (
                 <div className={styles.actions}>
+                    <button
+                        onClick={handlePlay}
+                        className={styles.playBtn}
+                        title={isCurrentSong && isPlaying ? "Pause" : "Play"}
+                    >
+                        {isCurrentSong && isPlaying ? (
+                            <Pause size={16} fill="currentColor" />
+                        ) : (
+                            <Play size={16} fill="currentColor" />
+                        )}
+                    </button>
                     {onLike && (
                         <button
                             onClick={() => onLike(song)}
