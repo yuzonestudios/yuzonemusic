@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ url }),
+            body: JSON.stringify({ link: url }),
         });
 
         if (!response.ok) {
