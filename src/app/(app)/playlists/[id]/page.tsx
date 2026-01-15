@@ -8,6 +8,7 @@ import { Play, Trash2, Music, ArrowLeft, User, Share2, Shuffle } from "lucide-re
 import SongCard from "@/components/cards/SongCard";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { usePlayerStore } from "@/store/playerStore";
+import type { Song as GlobalSong } from "@/types";
 import styles from "./playlist-detail.module.css";
 
 interface Song {
@@ -38,6 +39,7 @@ export default function PlaylistDetailPage() {
     
     const [playlist, setPlaylist] = useState<Playlist | null>(null);
     const [loading, setLoading] = useState(true);
+    const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;
         title: string;
@@ -57,6 +59,7 @@ export default function PlaylistDetailPage() {
             router.push("/login");
         } else if (status === "authenticated" && playlistId) {
             fetchPlaylist();
+            fetchLikedSongs();
         }
     }, [status, playlistId, router]);
 
@@ -85,6 +88,65 @@ export default function PlaylistDetailPage() {
             });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchLikedSongs = async () => {
+        try {
+            const res = await fetch("/api/liked");
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    const ids = new Set(data.data.map((s: GlobalSong) => s.videoId));
+                    setLikedSongIds(ids as Set<string>);
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching liked songs:", error);
+        }
+    };
+
+    const handleLike = async (song: GlobalSong) => {
+        const isLiked = likedSongIds.has(song.videoId);
+
+        try {
+            if (isLiked) {
+                const res = await fetch(`/api/liked?videoId=${song.videoId}`, {
+                    method: "DELETE",
+                });
+
+                if (res.ok) {
+                    setLikedSongIds((prev) => {
+                        const next = new Set(prev);
+                        next.delete(song.videoId);
+                        return next;
+                    });
+
+                    window.dispatchEvent(
+                        new CustomEvent("songLiked", {
+                            detail: { videoId: song.videoId, liked: false },
+                        })
+                    );
+                }
+            } else {
+                const res = await fetch("/api/liked", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(song),
+                });
+
+                if (res.ok) {
+                    setLikedSongIds((prev) => new Set(prev).add(song.videoId));
+
+                    window.dispatchEvent(
+                        new CustomEvent("songLiked", {
+                            detail: { videoId: song.videoId, liked: true },
+                        })
+                    );
+                }
+            }
+        } catch (error) {
+            console.error("Failed to update like:", error);
         }
     };
 
@@ -323,8 +385,8 @@ export default function PlaylistDetailPage() {
                                     song={song}
                                     songs={playlist.songs}
                                     index={index}
-                                    onLike={() => handleRemoveSong(song.videoId)}
-                                    isLiked={true}
+                                    onLike={handleLike}
+                                    isLiked={likedSongIds.has(song.videoId)}
                                 />
                             ))}
                         </div>
