@@ -2,7 +2,6 @@
 
 import { useSession } from "next-auth/react";
 
-import Header from "@/components/layout/Header";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTheme } from "@/context/ThemeContext";
 import styles from "./settings.module.css";
