@@ -5,7 +5,7 @@ import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Playlist from "@/models/Playlist";
 
-// GET - Fetch all playlists for the authenticated user
+// GET - Fetch all playlists for the authenticated user OR a single playlist by ID
 export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
@@ -25,6 +25,36 @@ export async function GET(req: NextRequest) {
             );
         }
 
+        // Check if requesting a single playlist
+        const { searchParams } = new URL(req.url);
+        const playlistId = searchParams.get("id");
+
+        if (playlistId) {
+            // Fetch single playlist
+            const playlist = await Playlist.findOne({
+                _id: playlistId,
+                userId: user._id,
+            }).lean();
+
+            if (!playlist) {
+                return NextResponse.json(
+                    { success: false, error: "Playlist not found" },
+                    { status: 404 }
+                );
+            }
+
+            return NextResponse.json({
+                success: true,
+                playlist: {
+                    ...playlist,
+                    _id: playlist._id.toString(),
+                    userId: playlist.userId.toString(),
+                    songCount: playlist.songs.length,
+                },
+            });
+        }
+
+        // Fetch all playlists
         const playlists = await Playlist.find({ userId: user._id })
             .sort({ createdAt: -1 })
             .lean();
