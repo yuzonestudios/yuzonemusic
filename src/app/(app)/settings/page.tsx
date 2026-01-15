@@ -1,10 +1,11 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-
+import Link from "next/link";
 import Header from "@/components/layout/Header";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTheme } from "@/context/ThemeContext";
+import { BarChart3 } from "lucide-react";
 import styles from "./settings.module.css";
 
 
@@ -75,6 +76,17 @@ export default function SettingsPage() {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div className={`glass-panel ${styles.section}`}>
+                <h2 className={styles.sectionHeader}>Analytics</h2>
+                <p className={styles.sectionDescription}>
+                    View detailed analytics about your viewership and visitor insights.
+                </p>
+                <Link href="/analytics" className={styles.analyticsLink}>
+                    <BarChart3 size={20} />
+                    View Analytics Dashboard
+                </Link>
             </div>
             </div>
         </div>
