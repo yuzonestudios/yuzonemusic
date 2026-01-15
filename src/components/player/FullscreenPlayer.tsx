@@ -91,7 +91,7 @@ export default function FullscreenPlayer() {
             setLyricsError(null);
 
             try {
-                const res = await fetch("https://api.yuzone.me/lyrics", {
+                const res = await fetch("/api/lyrics", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
