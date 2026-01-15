@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
-import { Play, Trash2, Music, ArrowLeft, User } from "lucide-react";
+import { Play, Trash2, Music, ArrowLeft, User, Share2, Shuffle } from "lucide-react";
 import PlaylistSongCard from "@/components/cards/PlaylistSongCard";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { usePlayerStore } from "@/store/playerStore";
@@ -50,7 +50,7 @@ export default function PlaylistDetailPage() {
         onConfirm: () => {},
     });
     
-    const { setQueue, setCurrentSong, play } = usePlayerStore();
+    const { setQueue, setCurrentSong, play, toggleShuffle } = usePlayerStore();
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -94,6 +94,45 @@ export default function PlaylistDetailPage() {
             setCurrentSong(playlist.songs[0]);
             play();
         }
+    };
+
+    const handleShufflePlay = () => {
+        if (playlist && playlist.songs.length > 0) {
+            setQueue(playlist.songs);
+            setCurrentSong(playlist.songs[0]);
+            toggleShuffle();
+            play();
+        }
+    };
+
+    const handleShare = async () => {
+        const shareUrl = `${window.location.origin}/shared/playlist/${playlistId}`;
+        
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: playlist?.name || "Check out this playlist",
+                    text: `Listen to "${playlist?.name}" on Yuzone Music`,
+                    url: shareUrl,
+                });
+            } catch (err) {
+                // User cancelled or share failed
+                copyToClipboard(shareUrl);
+            }
+        } else {
+            copyToClipboard(shareUrl);
+        }
+    };
+
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text).then(() => {
+            setConfirmDialog({
+                isOpen: true,
+                title: "Link Copied!",
+                message: "Playlist link copied to clipboard. Share it with your friends!",
+                onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false }),
+            });
+        });
     };
 
     const handleDeletePlaylist = async () => {
@@ -248,11 +287,26 @@ export default function PlaylistDetailPage() {
                             Play
                         </button>
                         <button
+                            className={`${styles.secondaryBtn} ${styles.shuffleBtn}`}
+                            onClick={handleShufflePlay}
+                            disabled={playlist.songs.length === 0}
+                        >
+                            <Shuffle size={18} />
+                            Shuffle
+                        </button>
+                        <button
+                            className={styles.secondaryBtn}
+                            onClick={handleShare}
+                        >
+                            <Share2 size={18} />
+                            Share
+                        </button>
+                        <button
                             className={`${styles.secondaryBtn} ${styles.deleteBtn}`}
                             onClick={handleDeletePlaylist}
                         >
                             <Trash2 size={18} />
-                            Delete Playlist
+                            Delete
                         </button>
                     </div>
                 </div>

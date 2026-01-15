@@ -197,9 +197,30 @@
     background: rgba(255, 255, 255, 0.05);
 }
 
+.shuffleBtn {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.3);
+    color: var(--accent-primary);
+}
+
+.shuffleBtn:hover:not(:disabled) {
+    background: rgba(139, 92, 246, 0.2);
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 1rem;
+        padding-bottom: calc(var(--player-height) + var(--mobile-nav-height) + 1rem);
+    }
+
+    .backBtn {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: var(--bg-primary);
+        margin-bottom: 1rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
     }
 
     .header {
@@ -215,17 +236,47 @@
     }
 
     .title {
-        font-size: 2rem;
+        font-size: 1.75rem;
     }
 
     .actions {
-        flex-direction: column;
+        flex-wrap: wrap;
+        gap: 0.5rem;
         width: 100%;
+    }
+
+    .playBtn {
+        flex: 1 1 100%;
+        order: 1;
+    }
+
+    .shuffleBtn {
+        flex: 1 1 calc(50% - 0.25rem);
+        order: 2;
+    }
+
+    .secondaryBtn:not(.shuffleBtn):not(.deleteBtn) {
+        flex: 1 1 calc(50% - 0.25rem);
+        order: 3;
+    }
+
+    .deleteBtn {
+        flex: 1 1 100%;
+        order: 4;
     }
 
     .playBtn,
     .secondaryBtn {
-        width: 100%;
         justify-content: center;
+    }
+
+    .meta {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .meta span:not(.metaItem) {
+        display: none;
     }
 }

@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Plus, Music } from "lucide-react";
+import { Plus, Music, Download } from "lucide-react";
 import PlaylistCard from "@/components/cards/PlaylistCard";
 import CreatePlaylistModal from "@/components/ui/CreatePlaylistModal";
+import ImportPlaylistModal from "@/components/ui/ImportPlaylistModal";
 import { usePlayerStore } from "@/store/playerStore";
 import styles from "./playlists.module.css";
 
@@ -31,6 +32,7 @@ export default function PlaylistsPage() {
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const { setQueue, setCurrentSong, play } = usePlayerStore();
 
     useEffect(() => {
@@ -110,6 +112,52 @@ export default function PlaylistsPage() {
         }
     };
 
+    const handleImportPlaylist = async (
+        tracks: Array<{ title: string; authors: string[]; videoId: string; thumbnail: string }>,
+        name: string,
+        author: string
+    ) => {
+        try {
+            // First create the playlist
+            const createRes = await fetch("/api/playlists", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: name,
+                    description: `Imported from ${author}`,
+                }),
+            });
+
+            const createData = await createRes.json();
+            if (!createData.success) {
+                throw new Error("Failed to create playlist");
+            }
+
+            const playlistId = createData.playlist._id;
+
+            // Add all tracks to the playlist
+            for (const track of tracks) {
+                await fetch(`/api/playlists/${playlistId}/songs`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        videoId: track.videoId,
+                        title: track.title,
+                        artist: track.authors.join(", "),
+                        thumbnail: track.thumbnail,
+                        duration: "0:00", // Duration not provided by API
+                    }),
+                });
+            }
+
+            // Refresh playlists
+            await fetchPlaylists();
+        } catch (error) {
+            console.error("Error importing playlist:", error);
+            throw error;
+        }
+    };
+
     if (status === "loading" || loading) {
         return (
             <div className={styles.playlists}>
@@ -123,13 +171,22 @@ export default function PlaylistsPage() {
             <div className={styles.header}>
                 <div className={styles.titleSection}>
                     <h1 className={styles.title}>My Playlists</h1>
-                    <button
-                        className={styles.createBtn}
-                        onClick={() => setIsCreateModalOpen(true)}
-                    >
-                        <Plus size={20} />
-                        Create Playlist
-                    </button>
+                    <div className={styles.headerActions}>
+                        <button
+                            className={styles.createBtn}
+                            onClick={() => setIsCreateModalOpen(true)}
+                        >
+                            <Plus size={20} />
+                            Create Playlist
+                        </button>
+                        <button
+                            className={`${styles.createBtn} ${styles.importBtn}`}
+                            onClick={() => setIsImportModalOpen(true)}
+                        >
+                            <Download size={20} />
+                            Import
+                        </button>
+                    </div>
                 </div>
                 <p className={styles.subtitle}>
                     Create and manage your custom playlists
@@ -174,6 +231,12 @@ export default function PlaylistsPage() {
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onCreate={handleCreatePlaylist}
+            />
+
+            <ImportPlaylistModal
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                onImport={handleImportPlaylist}
             />
         </div>
     );
