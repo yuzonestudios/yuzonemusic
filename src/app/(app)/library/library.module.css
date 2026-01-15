@@ -88,7 +88,45 @@
 .songList {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
+}
+
+/* Compact song list items for library */
+.songList :global(.card) {
+    flex-direction: row;
+    gap: 0.75rem;
+    padding: 0.75rem;
+}
+
+.songList :global(.thumbnail) {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;
+    aspect-ratio: auto;
+    flex-shrink: 0;
+}
+
+.songList :global(.info) {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+}
+
+.songList :global(.title) {
+    font-size: 0.9rem;
+    -webkit-line-clamp: 1;
+}
+
+.songList :global(.artist) {
+    font-size: 0.75rem;
+}
+
+.songList :global(.duration) {
+    align-self: center;
+}
+
+.songList :global(.actions) {
+    align-self: center;
 }
 
 /* Empty State */
