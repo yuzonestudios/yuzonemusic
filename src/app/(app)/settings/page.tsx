@@ -21,7 +21,6 @@ export default function SettingsPage() {
 
     return (
         <div>
-            <Header title="Settings" />
             <div className={styles.container}>
                 <h1 className={`${styles.title} neon-text`}>Settings</h1>
 
