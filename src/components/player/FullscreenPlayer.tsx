@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { X, SkipBack, Play, Pause, SkipForward, Volume2, Repeat, Shuffle, Heart, ListPlus } from "lucide-react";
+import { X, SkipBack, Play, Pause, SkipForward, Volume2, Repeat, Shuffle, Heart, ListPlus, Download } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import AddToPlaylistModal from "@/components/ui/AddToPlaylistModal";
 import styles from "./FullscreenPlayer.module.css";
@@ -279,6 +279,15 @@ export default function FullscreenPlayer() {
                     >
                         <ListPlus size={22} />
                     </button>
+
+                    <a
+                        href={currentSong ? `/api/stream?id=${currentSong.videoId}` : "#"}
+                        download={currentSong ? `${currentSong.title}.mp3` : undefined}
+                        className={styles.secondaryBtn}
+                        title="Download"
+                    >
+                        <Download size={22} />
+                    </a>
                 </div>
 
                 {/* Volume Control */}
