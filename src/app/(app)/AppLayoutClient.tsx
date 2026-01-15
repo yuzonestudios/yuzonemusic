@@ -1,6 +1,7 @@
 "use client";
 
 import Sidebar from "@/components/layout/Sidebar";
+import MobileNav from "@/components/layout/MobileNav";
 import AmbientBackground from "@/components/ui/AmbientBackground";
 import LoadingOverlay from "@/components/ui/LoadingOverlay";
 import PersistentPlayer from "@/components/layout/PersistentPlayer";
@@ -21,6 +22,7 @@ export default function AppLayoutClient({ children }: AppLayoutClientProps) {
         <div className={styles.appLayout}>
             <AmbientBackground />
             <Sidebar />
+            <MobileNav />
             <main className={styles.main}>{children}</main>
             <PersistentPlayer />
             <LoadingOverlay />

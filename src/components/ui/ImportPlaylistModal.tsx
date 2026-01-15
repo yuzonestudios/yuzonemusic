@@ -47,14 +47,14 @@ export default function ImportPlaylistModal({
         setPlaylistData(null);
 
         try {
-            const endpoint = activeTab === "spotify" 
-                ? "https://api.yuzone.me/spotifyPlaylist"
-                : "https://api.yuzone.me/youtubePlaylist";
-
-            const res = await fetch(endpoint, {
+            // Use our proxy API endpoint instead of calling external API directly
+            const res = await fetch("/api/import-playlist", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ link: playlistLink }),
+                body: JSON.stringify({ 
+                    url: playlistLink,
+                    source: activeTab 
+                }),
             });
 
             const data = await res.json();
@@ -62,7 +62,7 @@ export default function ImportPlaylistModal({
             if (res.ok && data.tracks) {
                 setPlaylistData(data);
             } else {
-                setError("Failed to fetch playlist. Please check the link and try again.");
+                setError(data.error || "Failed to fetch playlist. Please check the link and try again.");
             }
         } catch (err) {
             console.error("Error fetching playlist:", err);
