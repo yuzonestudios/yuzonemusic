@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
+import { ListPlus } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
+import AddToPlaylistModal from "@/components/ui/AddToPlaylistModal";
 import type { Song } from "@/types";
 import styles from "./SongCard.module.css";
 
@@ -23,6 +26,7 @@ export default function SongCard({
     isLiked = false,
 }: SongCardProps) {
     const { currentSong, setQueue, isPlaying, togglePlay, setCurrentSong } = usePlayerStore();
+    const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
 
     const isCurrentSong = currentSong?.videoId === song.videoId;
 
@@ -86,8 +90,21 @@ export default function SongCard({
                             </svg>
                         </button>
                     )}
+                    <button
+                        onClick={() => setIsPlaylistModalOpen(true)}
+                        className={styles.actionBtn}
+                        title="Add to Playlist"
+                    >
+                        <ListPlus size={20} />
+                    </button>
                 </div>
             )}
+
+            <AddToPlaylistModal
+                isOpen={isPlaylistModalOpen}
+                onClose={() => setIsPlaylistModalOpen(false)}
+                song={song}
+            />
         </div>
     );
 }

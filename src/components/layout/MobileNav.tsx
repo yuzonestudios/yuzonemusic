@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Library, Trophy, Settings } from "lucide-react";
+import { Home, Search, Library, Trophy, Settings, ListMusic } from "lucide-react";
 import styles from "./MobileNav.module.css";
 
 const navItems = [
@@ -27,9 +27,9 @@ const navItems = [
         icon: <Library size={24} />,
     },
     {
-        href: "/settings",
-        label: "Settings",
-        icon: <Settings size={24} />,
+        href: "/playlists",
+        label: "Playlists",
+        icon: <ListMusic size={20} />,
     },
 ];
 

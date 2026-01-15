@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Home, Search, Library, Trophy, Settings } from "lucide-react";
+import { Home, Search, Library, Trophy, Settings, ListMusic } from "lucide-react";
 import styles from "./Sidebar.module.css";
 
 interface NavItem {
@@ -31,6 +31,11 @@ const navItems: NavItem[] = [
         href: "/library",
         label: "Library",
         icon: <Library size={24} />,
+    },
+    {
+        href: "/playlists",
+        label: "Playlists",
+        icon: <ListMusic size={24} />,
     },
     {
         href: "/settings",
