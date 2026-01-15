@@ -45,6 +45,10 @@ export default function FullscreenPlayer() {
 
     const [isLiked, setIsLiked] = useState(false);
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+    const [lyrics, setLyrics] = useState<string | null>(null);
+    const [lyricsLoading, setLyricsLoading] = useState(false);
+    const [lyricsError, setLyricsError] = useState<string | null>(null);
+    const [showLyrics, setShowLyrics] = useState(false);
 
     useEffect(() => {
         if (!isFullscreenOpen) return;
@@ -74,6 +78,51 @@ export default function FullscreenPlayer() {
             checkLike();
         }
     }, [currentSong?.videoId]);
+
+    // Fetch lyrics when fullscreen is open and song changes
+    useEffect(() => {
+        if (!isFullscreenOpen || !currentSong?.videoId || !showLyrics) {
+            return;
+        }
+
+        const controller = new AbortController();
+        const loadLyrics = async () => {
+            setLyricsLoading(true);
+            setLyricsError(null);
+
+            try {
+                const res = await fetch("https://api.yuzone.me/lyrics", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ videoId: currentSong.videoId }),
+                    signal: controller.signal,
+                });
+
+                if (!res.ok) {
+                    throw new Error(`Lyrics request failed (${res.status})`);
+                }
+
+                const data = await res.json();
+                const text = (data && data.lyrics) ? String(data.lyrics) : "";
+                setLyrics(text.trim() || null);
+            } catch (error) {
+                if (controller.signal.aborted) return;
+                console.error("Failed to fetch lyrics", error);
+                setLyrics(null);
+                setLyricsError("Lyrics unavailable for this track.");
+            } finally {
+                if (!controller.signal.aborted) {
+                    setLyricsLoading(false);
+                }
+            }
+        };
+
+        loadLyrics();
+
+        return () => controller.abort();
+    }, [isFullscreenOpen, currentSong?.videoId, showLyrics]);
 
     const toggleLike = async () => {
         if (!currentSong) return;
@@ -186,6 +235,40 @@ export default function FullscreenPlayer() {
                     <div className={styles.songInfo}>
                         <h1 className={styles.title}>{currentSong.title}</h1>
                         <p className={styles.artist}>{currentSong.artist}</p>
+                        <div className={styles.metaRow}>
+                            <button
+                                className={`${styles.lyricsToggle} ${showLyrics ? styles.active : ""}`}
+                                onClick={() => setShowLyrics((prev) => !prev)}
+                                disabled={!currentSong}
+                            >
+                                {showLyrics ? "Hide Lyrics" : "Show Lyrics"}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Lyrics */}
+                {currentSong && showLyrics && (
+                    <div className={styles.lyricsPanel}>
+                        <div className={styles.lyricsHeader}>
+                            <span>Lyrics</span>
+                            {lyricsLoading && <span className={styles.lyricsStatus}>Loading…</span>}
+                            {lyricsError && !lyricsLoading && (
+                                <span className={styles.lyricsError}>{lyricsError}</span>
+                            )}
+                        </div>
+                        <div className={styles.lyricsBody}>
+                            {lyricsLoading && <span className={styles.lyricsStatus}>Fetching lyrics…</span>}
+                            {!lyricsLoading && lyrics && lyrics.split(/\r?\n/).map((line, idx) => (
+                                <p key={idx} className={styles.lyricsLine}>{line || "\u00a0"}</p>
+                            ))}
+                            {!lyricsLoading && !lyrics && !lyricsError && (
+                                <span className={styles.lyricsStatus}>Lyrics not available.</span>
+                            )}
+                            {!lyricsLoading && lyricsError && (
+                                <span className={styles.lyricsStatus}>{lyricsError}</span>
+                            )}
+                        </div>
                     </div>
                 )}
 
