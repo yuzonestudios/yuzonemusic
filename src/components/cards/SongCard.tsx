@@ -102,13 +102,15 @@ export default function SongCard({
                             </svg>
                         </button>
                     )}
-                    <button
-                        onClick={() => { setAddedToPlaylist(true); setIsPlaylistModalOpen(true); }}
-                        className={`${styles.actionBtn} ${addedToPlaylist ? styles.added : ""}`}
-                        title={addedToPlaylist ? "Added to Playlist" : "Add to Playlist"}
-                    >
-                        {addedToPlaylist ? <Check size={20} /> : <ListPlus size={20} />}
-                    </button>
+                    {!onLike && (
+                        <button
+                            onClick={() => { setAddedToPlaylist(true); setIsPlaylistModalOpen(true); }}
+                            className={`${styles.actionBtn} ${addedToPlaylist ? styles.added : ""}`}
+                            title={addedToPlaylist ? "Added to Playlist" : "Add to Playlist"}
+                        >
+                            {addedToPlaylist ? <Check size={20} /> : <ListPlus size={20} />}
+                        </button>
+                    )}
                 </div>
             )}
 
