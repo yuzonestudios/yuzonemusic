@@ -348,10 +348,13 @@ export default function MusicPlayer() {
                 />
             </div>
 
-                {currentSong && (
-                    <AddToPlaylistModal
-                        isOpen={isPlaylistModalOpen}
-                        onClose={() => setIsPlaylistModalOpen(false)}
-                        song={currentSong}
-                    />
-                )}
+            {currentSong && (
+                <AddToPlaylistModal
+                    isOpen={isPlaylistModalOpen}
+                    onClose={() => setIsPlaylistModalOpen(false)}
+                    song={currentSong}
+                />
+            )}
+        </footer>
+    );
+}
