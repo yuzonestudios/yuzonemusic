@@ -270,15 +270,6 @@ export default function MusicPlayer() {
                         )}
                     </button>
 
-                    <button
-                        onClick={openFullscreen}
-                        className={`${styles.controlBtn} ${styles.secondary}`}
-                        disabled={!currentSong}
-                        title="Fullscreen Player"
-                    >
-                        <Maximize size={18} />
-                    </button>
-
                     <a
                         href={currentSong ? `/api/stream?id=${currentSong.videoId}` : "#"}
                         download={currentSong ? `${currentSong.title}.mp3` : undefined}
@@ -294,6 +285,15 @@ export default function MusicPlayer() {
                         title="Add to Playlist"
                     >
                         <ListPlus size={18} />
+                    </button>
+
+                    <button
+                        onClick={openFullscreen}
+                        className={`${styles.controlBtn} ${styles.secondary}`}
+                        disabled={!currentSong}
+                        title="Fullscreen Player"
+                    >
+                        <Maximize size={18} />
                     </button>
                 </div>
 
