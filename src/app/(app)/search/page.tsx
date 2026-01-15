@@ -168,8 +168,6 @@ export default function SearchPage() {
 
     return (
         <div className={styles.page}>
-            <Header title="Search" />
-
             <div className={styles.content}>
                 {/* Search Input */}
                 <div className={styles.searchBox}>
