@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { X, SkipBack, Play, Pause, SkipForward, Volume2, Repeat, Shuffle } from "lucide-react";
+import { X, SkipBack, Play, Pause, SkipForward, Volume2, Repeat, Shuffle, Heart, ListPlus } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
+import AddToPlaylistModal from "@/components/ui/AddToPlaylistModal";
 import styles from "./FullscreenPlayer.module.css";
 
 function formatTime(seconds: number): string {
@@ -42,6 +43,9 @@ export default function FullscreenPlayer() {
         closeFullscreen,
     } = usePlayerStore();
 
+    const [isLiked, setIsLiked] = useState(false);
+    const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+
     useEffect(() => {
         if (!isFullscreenOpen) return;
 
@@ -51,6 +55,75 @@ export default function FullscreenPlayer() {
             document.body.style.overflow = "unset";
         };
     }, [isFullscreenOpen]);
+
+    useEffect(() => {
+        if (currentSong) {
+            const checkLike = async () => {
+                try {
+                    const res = await fetch(`/api/liked?check=${currentSong.videoId}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.success) {
+                            setIsLiked(data.isLiked);
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error checking like status:", e);
+                }
+            };
+            checkLike();
+        }
+    }, [currentSong?.videoId]);
+
+    const toggleLike = async () => {
+        if (!currentSong) return;
+
+        const newLiked = !isLiked;
+        setIsLiked(newLiked);
+
+        try {
+            if (newLiked) {
+                const res = await fetch("/api/liked", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(currentSong),
+                });
+                if (!res.ok) {
+                    setIsLiked(!newLiked);
+                } else {
+                    window.dispatchEvent(new CustomEvent('songLiked', { 
+                        detail: { videoId: currentSong.videoId, liked: true }
+                    }));
+                }
+            } else {
+                const res = await fetch(`/api/liked?videoId=${currentSong.videoId}`, {
+                    method: "DELETE",
+                });
+                if (!res.ok) {
+                    setIsLiked(!newLiked);
+                } else {
+                    window.dispatchEvent(new CustomEvent('songLiked', { 
+                        detail: { videoId: currentSong.videoId, liked: false }
+                    }));
+                }
+            }
+        } catch (error) {
+            console.error("Failed to toggle like:", error);
+            setIsLiked(!newLiked);
+        }
+    };
+
+    const oldUseEffect = useEffect(() => {
+        if (!isFullscreenOpen) return;
+
+        // Prevent body scroll when modal is open
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = "unset";
+        };
+    }, [isFullscreenOpen]);
+
+    // This will replace the old useEffect, removing the duplicate
 
     if (!isFullscreenOpen) return null;
 
@@ -187,6 +260,27 @@ export default function FullscreenPlayer() {
                     </button>
                 </div>
 
+                {/* Secondary Controls */}
+                <div className={styles.secondaryControls}>
+                    <button
+                        onClick={toggleLike}
+                        className={`${styles.secondaryBtn} ${isLiked ? styles.active : ""}`}
+                        title={isLiked ? "Unlike" : "Like"}
+                        disabled={!currentSong}
+                    >
+                        <Heart size={22} fill={isLiked ? "currentColor" : "none"} />
+                    </button>
+
+                    <button
+                        onClick={() => setIsPlaylistModalOpen(true)}
+                        className={styles.secondaryBtn}
+                        title="Add to Playlist"
+                        disabled={!currentSong}
+                    >
+                        <ListPlus size={22} />
+                    </button>
+                </div>
+
                 {/* Volume Control */}
                 <div className={styles.volumeSection}>
                     <Volume2 size={20} />
@@ -201,6 +295,14 @@ export default function FullscreenPlayer() {
                     />
                     <span className={styles.volumeValue}>{Math.round(volume * 100)}%</span>
                 </div>
+
+                {currentSong && (
+                    <AddToPlaylistModal
+                        isOpen={isPlaylistModalOpen}
+                        onClose={() => setIsPlaylistModalOpen(false)}
+                        song={currentSong}
+                    />
+                )}
             </div>
         </div>
     );
