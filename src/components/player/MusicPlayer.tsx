@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Download, Heart, Maximize } from "lucide-react";
+import { Download, Heart, Maximize, ListPlus } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import AddToPlaylistModal from "@/components/ui/AddToPlaylistModal";
 import styles from "./MusicPlayer.module.css";
 
 function formatTime(seconds: number): string {
@@ -37,6 +38,7 @@ export default function MusicPlayer() {
     const { seek } = useAudioPlayer();
     useKeyboardShortcuts();
     const [isLiked, setIsLiked] = useState(false);
+    const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
 
     // Store the seek function in the store for FullscreenPlayer to use
     useEffect(() => {
@@ -285,6 +287,14 @@ export default function MusicPlayer() {
                     >
                         <Download size={18} />
                     </a>
+                    <button
+                        onClick={() => setIsPlaylistModalOpen(true)}
+                        className={`${styles.controlBtn} ${styles.secondary}`}
+                        disabled={!currentSong}
+                        title="Add to Playlist"
+                    >
+                        <ListPlus size={18} />
+                    </button>
                 </div>
 
                 {/* Progress Bar */}
@@ -337,6 +347,11 @@ export default function MusicPlayer() {
                     className={styles.volumeSlider}
                 />
             </div>
-        </footer>
-    );
-}
+
+                {currentSong && (
+                    <AddToPlaylistModal
+                        isOpen={isPlaylistModalOpen}
+                        onClose={() => setIsPlaylistModalOpen(false)}
+                        song={currentSong}
+                    />
+                )}

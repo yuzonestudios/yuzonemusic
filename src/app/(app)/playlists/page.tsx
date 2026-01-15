@@ -113,7 +113,7 @@ export default function PlaylistsPage() {
     };
 
     const handleImportPlaylist = async (
-        tracks: Array<{ title: string; authors: string[]; videoId: string; thumbnail: string; duration?: number | null }>,
+        tracks: Array<{ title: string; authors: string[]; videoId: string; thumbnail: string; duration?: string }>,
         name: string,
         author: string
     ) => {
@@ -137,13 +137,8 @@ export default function PlaylistsPage() {
 
             // Add all tracks to the playlist
             for (const track of tracks) {
-                // Convert duration to MM:SS format if it exists
-                let durationStr = "0:00";
-                if (track.duration) {
-                    const minutes = Math.floor(track.duration / 60);
-                    const seconds = Math.floor(track.duration % 60);
-                    durationStr = `${minutes}:${seconds.toString().padStart(2, "0")}`;
-                }
+                // Duration is already in MM:SS format from the API
+                const durationStr = track.duration || "0:00";
 
                 await fetch(`/api/playlists/${playlistId}/songs`, {
                     method: "POST",

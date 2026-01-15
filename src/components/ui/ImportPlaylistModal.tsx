@@ -11,7 +11,7 @@ interface Track {
     authors: string[];
     videoId: string;
     thumbnail: string;
-    duration?: number | null;
+    duration?: string;
 }
 
 interface PlaylistData {
