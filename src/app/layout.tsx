@@ -10,8 +10,9 @@ export const metadata: Metadata = {
     authors: [{ name: "Yuzone Studios" }],
     manifest: "/manifest.json",
     icons: {
-        icon: "/icon-192x192.png",
-        apple: "/icon-192x192.png",
+        icon: "/logo.png",
+        shortcut: "/logo.png",
+        apple: "/logo.png",
     },
     appleWebApp: {
         capable: true,
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
         title: "Yuzone Music",
         description: "Stream your favorite music",
         type: "website",
+        images: ["/logo.png"],
     },
 };
 
