@@ -356,25 +356,3 @@
         grid-template-columns: repeat(2, 1fr);
     }
 }
-
-
-/* Show thumbnails on search results */
-.songList :global(.thumbnail) {
-    display: block !important;
-}
-
-.songList :global(.card) {
-    flex-direction: row;
-    gap: 1rem;
-}
-
-.songList :global(.thumbnail) {
-    width: 100px;
-    height: 100px;
-    aspect-ratio: auto;
-    flex-shrink: 0;
-}
-
-.songList :global(.info) {
-    flex: 1;
-}

@@ -350,24 +350,3 @@
     .empty p {
         font-size: 0.85rem;
     }
-}
-/* Show thumbnails in library */
-.songList :global(.thumbnail) {
-    display: block !important;
-}
-
-.songList :global(.card) {
-    flex-direction: row;
-    gap: 1rem;
-}
-
-.songList :global(.thumbnail) {
-    width: 100px;
-    height: 100px;
-    aspect-ratio: auto;
-    flex-shrink: 0;
-}
-
-.songList :global(.info) {
-    flex: 1;
-}
