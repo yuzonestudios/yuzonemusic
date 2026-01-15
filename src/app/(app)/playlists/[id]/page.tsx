@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import { Play, Trash2, Music, ArrowLeft, User, Share2, Shuffle } from "lucide-react";
-import PlaylistSongCard from "@/components/cards/PlaylistSongCard";
+import SongCard from "@/components/cards/SongCard";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { usePlayerStore } from "@/store/playerStore";
 import styles from "./playlist-detail.module.css";
@@ -316,14 +316,15 @@ export default function PlaylistDetailPage() {
                 {playlist.songs.length > 0 ? (
                     <>
                         <h2 className={styles.sectionTitle}>Songs</h2>
-                        <div className={styles.songList}>
+                        <div className={styles.songGrid}>
                             {playlist.songs.map((song, index) => (
-                                <PlaylistSongCard
+                                <SongCard
                                     key={`${song.videoId}-${index}`}
                                     song={song}
                                     songs={playlist.songs}
                                     index={index}
-                                    onRemove={handleRemoveSong}
+                                    onLike={() => handleRemoveSong(song.videoId)}
+                                    isLiked={true}
                                 />
                             ))}
                         </div>
