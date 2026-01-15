@@ -52,14 +52,12 @@ export default function Sidebar() {
         <aside className={styles.sidebar}>
             <div className={styles.logo}>
                 <div className={styles.logoIcon}>
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                        <div className={styles.logoIcon}>
-                            <img src="/logo.png" alt="Yuzone Music" className={styles.logoImage} />
-                        </div>
-                        <div className={styles.logoInfo}>
-                            <span className={styles.logoText}>Yuzone Music</span>
-                        </div>
+                    <img src="/logo.png" alt="Yuzone Music" className={styles.logoImage} />
                 </div>
+                <div className={styles.logoInfo}>
+                    <span className={styles.logoText}>Yuzone Music</span>
+                </div>
+            </div>
 
                 <nav className={styles.nav}>
                     <ul className={styles.navList}>

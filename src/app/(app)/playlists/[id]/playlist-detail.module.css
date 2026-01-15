@@ -304,3 +304,30 @@
         display: none;
     }
 }
+
+/* Show thumbnails in playlist with row layout */
+.songGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.songGrid :global(.thumbnail) {
+    display: block !important;
+}
+
+.songGrid :global(.card) {
+    flex-direction: row;
+    gap: 1rem;
+}
+
+.songGrid :global(.thumbnail) {
+    width: 100px;
+    height: 100px;
+    aspect-ratio: auto;
+    flex-shrink: 0;
+}
+
+.songGrid :global(.info) {
+    flex: 1;
+}
