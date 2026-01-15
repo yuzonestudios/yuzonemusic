@@ -59,38 +59,38 @@ export default function Sidebar() {
                 </div>
             </div>
 
-                <nav className={styles.nav}>
-                    <ul className={styles.navList}>
-                        {navItems.map((item) => (
-                            <li key={item.href}>
-                                <Link
-                                    href={item.href}
-                                    className={`${styles.navItem} ${pathname === item.href ? styles.active : ""
-                                        }`}
-                                >
-                                    <span className={styles.navIcon}>{item.icon}</span>
-                                    <span className={styles.navLabel}>{item.label}</span>
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
+            <nav className={styles.nav}>
+                <ul className={styles.navList}>
+                    {navItems.map((item) => (
+                        <li key={item.href}>
+                            <Link
+                                href={item.href}
+                                className={`${styles.navItem} ${pathname === item.href ? styles.active : ""
+                                    }`}
+                            >
+                                <span className={styles.navIcon}>{item.icon}</span>
+                                <span className={styles.navLabel}>{item.label}</span>
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+            </nav>
 
-                <div className={styles.footer}>
-                    {session?.user && (
-                        <div className={styles.userProfile}>
-                            <img
-                                src={session.user.image || "/placeholder-user.png"}
-                                alt={session.user.name || "User"}
-                                className={styles.avatar}
-                            />
-                            <div className={styles.userInfo}>
-                                <span className={styles.userName}>{session.user.name || "User"}</span>
-                                <span className={styles.premiumBadge}>Premium User</span>
-                            </div>
+            <div className={styles.footer}>
+                {session?.user && (
+                    <div className={styles.userProfile}>
+                        <img
+                            src={session.user.image || "/placeholder-user.png"}
+                            alt={session.user.name || "User"}
+                            className={styles.avatar}
+                        />
+                        <div className={styles.userInfo}>
+                            <span className={styles.userName}>{session.user.name || "User"}</span>
+                            <span className={styles.premiumBadge}>Premium User</span>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
+            </div>
         </aside>
     );
 }
