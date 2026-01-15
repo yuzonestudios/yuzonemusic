@@ -311,6 +311,7 @@
 
 @media (max-width: 480px) {
     .player {
+        bottom: calc(var(--mobile-nav-height) + 8px);
         padding: 0 8px;
         height: 60px;
     }

@@ -59,6 +59,8 @@ export default function ImportPlaylistModal({
 
             const data = await res.json();
             
+            console.log("Received playlist data:", data);
+            
             if (res.ok && data.tracks) {
                 setPlaylistData(data);
             } else {
@@ -77,6 +79,7 @@ export default function ImportPlaylistModal({
 
         try {
             const playlistName = playlistData.playlistName || `Imported from ${activeTab === "spotify" ? "Spotify" : "YouTube Music"}`;
+            console.log("Importing with name:", playlistName, "from playlistData:", playlistData);
             await onImport(playlistData.tracks, playlistName, playlistData.playlistAuthor);
             handleClose();
         } catch (err) {
