@@ -8,7 +8,7 @@ import Playlist from "@/models/Playlist";
 // POST - Add a song to playlist
 export async function POST(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -19,7 +19,7 @@ export async function POST(
             );
         }
 
-        const playlistId = params.id;
+        const { id: playlistId } = await params;
         const body = await req.json();
         const { videoId, title, artist, thumbnail, duration } = body;
 
@@ -103,7 +103,7 @@ export async function POST(
 // DELETE - Remove a song from playlist
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -114,7 +114,7 @@ export async function DELETE(
             );
         }
 
-        const playlistId = params.id;
+        const { id: playlistId } = await params;
         const { searchParams } = new URL(req.url);
         const videoId = searchParams.get("videoId");
 
