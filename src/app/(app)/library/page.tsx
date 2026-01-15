@@ -179,9 +179,22 @@ export default function LibraryPage() {
 
     return (
         <div className={styles.page}>
-            <Header title="Library" />
-
             <div className={styles.content}>
+                {/* Header */}
+                <div className={styles.header}>
+                    <div className={styles.headerContent}>
+                        <div className={styles.headerIcon}>
+                            <Heart size={48} fill="currentColor" />
+                        </div>
+                        <div className={styles.headerInfo}>
+                            <h1 className={styles.headerTitle}>My Library</h1>
+                            <p className={styles.headerSubtitle}>
+                                Your favorite songs and listening history
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Tabs */}
                 <div className={styles.tabs}>
                     <button

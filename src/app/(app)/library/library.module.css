@@ -1,83 +1,133 @@
 .page {
     min-height: 100%;
+    padding-bottom: 6rem;
 }
 
 .content {
-    padding: clamp(1rem, 4vw, 2rem) clamp(1rem, 4vw, 2rem);
-    padding-bottom: 3rem;
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-bottom: 6rem;
 }
 
-@media (max-width: 768px) {
-    .content {
-        padding: 1.5rem;
-        padding-bottom: 2.5rem;
-    }
+.header {
+    margin-bottom: 2.5rem;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
 }
 
-@media (max-width: 480px) {
-    .content {
-        padding: 1rem;
-        padding-bottom: 2rem;
-    }
+.headerContent {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.headerIcon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #ec4899, #f43f5e);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2.5rem;
+    box-shadow: 0 8px 24px rgba(236, 72, 153, 0.4);
+    flex-shrink: 0;
+}
+
+.headerInfo {
+    flex: 1;
+}
+
+.headerTitle {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ec4899, #f43f5e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.headerSubtitle {
+    color: var(--text-secondary);
+    font-size: 1rem;
 }
 
 /* Tabs */
 .tabs {
     display: flex;
-    gap: clamp(0.75rem, 2vw, 1rem);
-    margin-bottom: clamp(1.5rem, 4vw, 2rem);
+    gap: 1rem;
+    margin-bottom: 2rem;
     flex-wrap: wrap;
-}
-
-@media (max-width: 480px) {
-    .tabs {
-        gap: 0.5rem;
-    }
+    position: relative;
+    z-index: 1;
 }
 
 .tab {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: clamp(0.75rem, 2vw, 0.875rem) clamp(1rem, 3vw, 1.5rem);
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(139, 92, 246, 0.15);
     border-radius: var(--radius-lg);
-    font-size: clamp(0.8rem, 2vw, 0.95rem);
-    font-weight: 500;
+    font-size: 0.95rem;
+    font-weight: 600;
     color: var(--text-secondary);
-    transition: all var(--transition-fast);
+    transition: all var(--transition-normal);
     white-space: nowrap;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
 }
 
-@media (max-width: 480px) {
-    .tab {
-        padding: 0.6rem 0.8rem;
-        font-size: 0.75rem;
-    }
+.tab::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1));
+    opacity: 0;
+    transition: opacity var(--transition-normal);
+    pointer-events: none;
 }
 
 .tab:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(139, 92, 246, 0.08);
+    border-color: rgba(139, 92, 246, 0.3);
     color: var(--text-primary);
 }
 
+.tab:hover::before {
+    opacity: 1;
+}
+
 .tab.active {
-    background: rgba(139, 92, 246, 0.15);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.15));
     border-color: var(--accent-primary);
     color: var(--accent-primary);
 }
 
+.tab.active::before {
+    opacity: 1;
+}
+
 .count {
-    padding: 2px 8px;
-    background: rgba(255, 255, 255, 0.1);
+    padding: 0.25rem 0.75rem;
+    background: rgba(139, 92, 246, 0.2);
     border-radius: var(--radius-full);
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent-primary);
 }
 
 .tab.active .count {
-    background: rgba(139, 92, 246, 0.2);
+    background: rgba(139, 92, 246, 0.3);
 }
 
 /* Content */
@@ -91,12 +141,14 @@
     gap: 2px;
 }
 
-/* Compact song list items for library - PC/Desktop only */
+/* Compact song list items for library - Desktop */
 @media (min-width: 1024px) {
     .songList :global(.card) {
         flex-direction: row !important;
         gap: 0.75rem;
         padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(139, 92, 246, 0.1);
     }
 
     .songList :global(.thumbnail) {
@@ -137,38 +189,165 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 80px 32px;
+    min-height: 450px;
+    padding: 2rem;
     text-align: center;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(236, 72, 153, 0.05));
+    border: 2px dashed rgba(139, 92, 246, 0.2);
+    border-radius: var(--radius-lg);
 }
 
 .emptyIcon {
-    font-size: 4rem;
-    margin-bottom: 24px;
-    opacity: 0.6;
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-muted);
 }
 
 .empty h3 {
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 8px;
+    margin-bottom: 0.5rem;
 }
 
 .empty p {
     color: var(--text-secondary);
-    margin-bottom: 24px;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
 }
 
 .emptyLink {
-    padding: 12px 24px;
-    background: var(--accent-gradient);
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
     border-radius: var(--radius-md);
     font-weight: 600;
     color: white;
     transition: all var(--transition-fast);
+    display: inline-block;
 }
 
 .emptyLink:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+@media (max-width: 1024px) {
+    .content {
+        padding: 1.5rem;
+    }
+
+    .header {
+        padding: 1.5rem;
+    }
+
+    .headerContent {
+        gap: 1.5rem;
+    }
+
+    .headerIcon {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+    }
+
+    .headerTitle {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .content {
+        padding: 1.5rem;
+        padding-bottom: 5.5rem;
+    }
+
+    .page {
+        padding-bottom: 5.5rem;
+    }
+
+    .header {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .headerContent {
+        gap: 1.5rem;
+    }
+
+    .tabs {
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .tab {
+        padding: 0.7rem 1rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .content {
+        padding: 1rem;
+        padding-bottom: 5rem;
+    }
+
+    .page {
+        padding-bottom: 5rem;
+    }
+
+    .header {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .headerContent {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .headerIcon {
+        width: 70px;
+        height: 70px;
+        font-size: 2rem;
+    }
+
+    .headerTitle {
+        font-size: 1.8rem;
+    }
+
+    .headerSubtitle {
+        font-size: 0.9rem;
+    }
+
+    .tabs {
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .tab {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.75rem;
+    }
+
+    .count {
+        padding: 0.2rem 0.6rem;
+        font-size: 0.65rem;
+    }
+
+    .empty {
+        min-height: 350px;
+    }
+
+    .emptyIcon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .empty h3 {
+        font-size: 1.2rem;
+    }
+
+    .empty p {
+        font-size: 0.85rem;
+    }
 }
