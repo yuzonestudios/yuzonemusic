@@ -17,7 +17,7 @@ export default function DashboardPage() {
         const fetchData = async () => {
             try {
                 // Fetch recently played
-                const historyRes = await fetch("/api/history?limit=10");
+                const historyRes = await fetch("/api/history?limit=50");
                 if (historyRes.ok) {
                     const historyData = await historyRes.json();
                     if (historyData.success) {

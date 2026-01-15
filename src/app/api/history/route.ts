@@ -75,6 +75,18 @@ export async function POST(request: NextRequest) {
             { upsert: true, new: true }
         );
 
+        // Check if count exceeds 50 and delete oldest if needed
+        const count = await RecentlyPlayed.countDocuments({ userId: session.user.id });
+        if (count > 50) {
+            const oldestEntry = await RecentlyPlayed.findOne({ userId: session.user.id })
+                .sort({ playedAt: 1 })
+                .lean();
+            
+            if (oldestEntry) {
+                await RecentlyPlayed.deleteOne({ _id: oldestEntry._id });
+            }
+        }
+
         // Also add to playback history for analytics
         await PlaybackHistory.create({
             userId: session.user.id,

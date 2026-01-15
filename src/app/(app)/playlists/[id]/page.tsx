@@ -387,6 +387,7 @@ export default function PlaylistDetailPage() {
                                     index={index}
                                     onLike={handleLike}
                                     isLiked={likedSongIds.has(song.videoId)}
+                                    hideAddToPlaylist={true}
                                 />
                             ))}
                         </div>

@@ -15,6 +15,7 @@ interface SongCardProps {
     showActions?: boolean;
     onLike?: (song: Song) => void;
     isLiked?: boolean;
+    hideAddToPlaylist?: boolean;
 }
 
 export default function SongCard({
@@ -24,6 +25,7 @@ export default function SongCard({
     showActions = true,
     onLike,
     isLiked = false,
+    hideAddToPlaylist = false,
 }: SongCardProps) {
     const { currentSong, setQueue, isPlaying, togglePlay, setCurrentSong } = usePlayerStore();
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
@@ -102,7 +104,7 @@ export default function SongCard({
                             </svg>
                         </button>
                     )}
-                    {!onLike && (
+                    {!hideAddToPlaylist && (
                         <button
                             onClick={() => { setAddedToPlaylist(true); setIsPlaylistModalOpen(true); }}
                             className={`${styles.actionBtn} ${addedToPlaylist ? styles.added : ""}`}
