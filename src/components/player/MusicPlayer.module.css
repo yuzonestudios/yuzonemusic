@@ -285,9 +285,7 @@
     }
 
     .likeBtn {
-        width: 32px;
-        height: 32px;
-        padding: 4px;
+        display: none;
     }
 
     .progressWrapper {
@@ -295,17 +293,22 @@
     }
 
     .buttons {
-        gap: 4px;
+        gap: 6px;
     }
 
     .controlBtn.secondary {
-        width: 28px;
-        height: 28px;
+        display: none;
+    }
+
+    .controlBtn.secondary:last-child {
+        display: flex;
+        width: 32px;
+        height: 32px;
     }
 
     .controlBtn.primary {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
     }
 }
 
