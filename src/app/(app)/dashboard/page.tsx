@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { Search, Heart, Music } from "lucide-react";
@@ -109,18 +110,18 @@ export default function DashboardPage() {
 
                 {/* Quick Actions */}
                 <section className={styles.quickActions}>
-                    <a href="/search" className={styles.actionCard}>
+                    <Link href="/search" className={styles.actionCard}>
                         <div className={styles.actionIcon}>
                             <Search size={28} />
                         </div>
                         <span>Search Songs</span>
-                    </a>
-                    <a href="/library" className={styles.actionCard}>
+                    </Link>
+                    <Link href="/library" className={styles.actionCard}>
                         <div className={styles.actionIcon}>
                             <Heart size={28} fill="currentColor" />
                         </div>
                         <span>Liked Songs</span>
-                    </a>
+                    </Link>
                 </section>
 
                 {/* Recently Played */}
@@ -156,9 +157,9 @@ export default function DashboardPage() {
                             <p style={{ marginBottom: "1.5rem" }}>
                                 Start playing songs to see them here
                             </p>
-                            <a href="/search" className={styles.emptyLink}>
+                            <Link href="/search" className={styles.emptyLink}>
                                 Start exploring music
-                            </a>
+                            </Link>
                         </div>
                     )}
                 </section>
