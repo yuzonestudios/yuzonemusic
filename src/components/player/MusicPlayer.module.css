@@ -251,15 +251,17 @@
 @media (max-width: 768px) {
     .player {
         bottom: calc(var(--mobile-nav-height) + 8px);
-        padding: 6px 8px;
-        height: 64px;
-        flex-wrap: wrap;
-        gap: 0.25rem;
+        padding: 8px 12px;
+        height: auto;
+        min-height: 70px;
+        flex-wrap: nowrap;
+        gap: 1rem;
     }
 
     .songInfo {
         gap: 12px;
-        min-width: auto;
+        min-width: 0;
+        flex: 1;
     }
 
     .thumbnail {
@@ -273,15 +275,15 @@
 
     .songDetails {
         flex: 1;
-        max-width: 120px;
+        min-width: 0;
     }
 
     .songTitle {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
     }
 
     .songArtist {
-        font-size: 0.7rem;
+        font-size: 0.75rem;
     }
 
     .likeBtn {
@@ -292,8 +294,12 @@
         display: none;
     }
 
+    .controls {
+        gap: 0;
+    }
+
     .buttons {
-        gap: 6px;
+        gap: 8px;
     }
 
     .controlBtn.secondary {
@@ -302,13 +308,13 @@
 
     .controlBtn.secondary:last-child {
         display: flex;
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
     }
 
     .controlBtn.primary {
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
     }
 }
 
