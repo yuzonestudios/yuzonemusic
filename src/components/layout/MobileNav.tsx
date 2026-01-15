@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Library, Trophy, Settings, ListMusic } from "lucide-react";
+import { Home, Search, Library, Trophy, ListMusic } from "lucide-react";
 import styles from "./MobileNav.module.css";
 
 const navItems = [

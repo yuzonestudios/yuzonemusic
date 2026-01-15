@@ -250,7 +250,7 @@
 
 @media (max-width: 768px) {
     .player {
-        bottom: var(--mobile-nav-height);
+        bottom: calc(var(--mobile-nav-height) + 8px);
         padding: 0 12px;
         height: 70px;
         flex-wrap: wrap;
