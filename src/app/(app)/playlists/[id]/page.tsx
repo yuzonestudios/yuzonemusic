@@ -5,7 +5,8 @@ import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import { Play, Trash2, Music, ArrowLeft, User } from "lucide-react";
-import SongCard from "@/components/cards/SongCard";
+import PlaylistSongCard from "@/components/cards/PlaylistSongCard";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { usePlayerStore } from "@/store/playerStore";
 import styles from "./playlist-detail.module.css";
 
@@ -37,7 +38,19 @@ export default function PlaylistDetailPage() {
     
     const [playlist, setPlaylist] = useState<Playlist | null>(null);
     const [loading, setLoading] = useState(true);
-    const { setQueue, setCurrentSong, togglePlay, isPlaying } = usePlayerStore();
+    const [confirmDialog, setConfirmDialog] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: "",
+        message: "",
+        onConfirm: () => {},
+    });
+    
+    const { setQueue, setCurrentSong, play } = usePlayerStore();
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -55,13 +68,21 @@ export default function PlaylistDetailPage() {
             if (data.success) {
                 setPlaylist(data.playlist);
             } else {
-                alert(data.error || "Failed to load playlist");
-                router.push("/playlists");
+                setConfirmDialog({
+                    isOpen: true,
+                    title: "Error",
+                    message: data.error || "Failed to load playlist",
+                    onConfirm: () => router.push("/playlists"),
+                });
             }
         } catch (error) {
             console.error("Error fetching playlist:", error);
-            alert("Failed to load playlist");
-            router.push("/playlists");
+            setConfirmDialog({
+                isOpen: true,
+                title: "Error",
+                message: "Failed to load playlist",
+                onConfirm: () => router.push("/playlists"),
+            });
         } finally {
             setLoading(false);
         }
@@ -71,63 +92,91 @@ export default function PlaylistDetailPage() {
         if (playlist && playlist.songs.length > 0) {
             setQueue(playlist.songs);
             setCurrentSong(playlist.songs[0]);
-            if (!isPlaying) {
-                togglePlay();
-            }
+            play();
         }
     };
 
     const handleDeletePlaylist = async () => {
         if (!playlist) return;
 
-        if (!confirm(`Delete playlist "${playlist.name}"? This action cannot be undone.`)) {
-            return;
-        }
+        setConfirmDialog({
+            isOpen: true,
+            title: "Delete Playlist",
+            message: `Are you sure you want to delete "${playlist.name}"? This action cannot be undone.`,
+            onConfirm: async () => {
+                try {
+                    const res = await fetch(`/api/playlists?id=${playlistId}`, {
+                        method: "DELETE",
+                    });
 
-        try {
-            const res = await fetch(`/api/playlists?id=${playlistId}`, {
-                method: "DELETE",
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                router.push("/playlists");
-            } else {
-                alert(data.error || "Failed to delete playlist");
-            }
-        } catch (error) {
-            console.error("Error deleting playlist:", error);
-            alert("Failed to delete playlist");
-        }
+                    const data = await res.json();
+                    if (data.success) {
+                        router.push("/playlists");
+                    } else {
+                        setConfirmDialog({
+                            isOpen: true,
+                            title: "Error",
+                            message: data.error || "Failed to delete playlist",
+                            onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false }),
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error deleting playlist:", error);
+                    setConfirmDialog({
+                        isOpen: true,
+                        title: "Error",
+                        message: "Failed to delete playlist",
+                        onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false }),
+                    });
+                }
+            },
+        });
     };
 
     const handleRemoveSong = async (videoId: string) => {
         if (!playlist) return;
 
-        if (!confirm("Remove this song from the playlist?")) {
-            return;
-        }
+        const song = playlist.songs.find(s => s.videoId === videoId);
+        if (!song) return;
 
-        try {
-            const res = await fetch(`/api/playlists/${playlistId}/songs?videoId=${videoId}`, {
-                method: "DELETE",
-            });
+        setConfirmDialog({
+            isOpen: true,
+            title: "Remove Song",
+            message: `Remove "${song.title}" from this playlist?`,
+            onConfirm: async () => {
+                try {
+                    const res = await fetch(`/api/playlists/${playlistId}/songs?videoId=${videoId}`, {
+                        method: "DELETE",
+                    });
 
-            const data = await res.json();
-            if (data.success) {
-                // Update local state
-                setPlaylist({
-                    ...playlist,
-                    songs: playlist.songs.filter(song => song.videoId !== videoId),
-                    songCount: playlist.songCount - 1,
-                });
-            } else {
-                alert(data.error || "Failed to remove song");
-            }
-        } catch (error) {
-            console.error("Error removing song:", error);
-            alert("Failed to remove song");
-        }
+                    const data = await res.json();
+                    if (data.success) {
+                        // Update local state
+                        setPlaylist({
+                            ...playlist,
+                            songs: playlist.songs.filter(s => s.videoId !== videoId),
+                            songCount: playlist.songCount - 1,
+                        });
+                        setConfirmDialog({ ...confirmDialog, isOpen: false });
+                    } else {
+                        setConfirmDialog({
+                            isOpen: true,
+                            title: "Error",
+                            message: data.error || "Failed to remove song",
+                            onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false }),
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error removing song:", error);
+                    setConfirmDialog({
+                        isOpen: true,
+                        title: "Error",
+                        message: "Failed to remove song",
+                        onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false }),
+                    });
+                }
+            },
+        });
     };
 
     if (status === "loading" || loading) {
@@ -215,14 +264,12 @@ export default function PlaylistDetailPage() {
                         <h2 className={styles.sectionTitle}>Songs</h2>
                         <div className={styles.songList}>
                             {playlist.songs.map((song, index) => (
-                                <SongCard
+                                <PlaylistSongCard
                                     key={`${song.videoId}-${index}`}
                                     song={song}
                                     songs={playlist.songs}
                                     index={index}
-                                    showActions={true}
-                                    onLike={() => handleRemoveSong(song.videoId)}
-                                    isLiked={true}
+                                    onRemove={handleRemoveSong}
                                 />
                             ))}
                         </div>
@@ -237,6 +284,16 @@ export default function PlaylistDetailPage() {
                     </div>
                 )}
             </div>
+
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                confirmText={confirmDialog.title === "Error" ? "OK" : "Delete"}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+                variant={confirmDialog.title === "Error" ? "info" : "warning"}
+            />
         </div>
     );
 }

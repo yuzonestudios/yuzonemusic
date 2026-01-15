@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { X, Music, Plus } from "lucide-react";
+import { X, Music, Plus, CheckCircle } from "lucide-react";
 import styles from "./PlaylistModal.module.css";
 
 interface Song {
@@ -36,10 +36,12 @@ export default function AddToPlaylistModal({
 }: AddToPlaylistModalProps) {
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
     const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     useEffect(() => {
         if (isOpen) {
             fetchPlaylists();
+            setMessage(null);
         }
     }, [isOpen]);
 
@@ -70,14 +72,16 @@ export default function AddToPlaylistModal({
 
             const data = await res.json();
             if (data.success) {
-                alert("Song added to playlist!");
-                onClose();
+                setMessage({ type: "success", text: "Song added to playlist!" });
+                setTimeout(() => {
+                    onClose();
+                }, 1500);
             } else {
-                alert(data.error || "Failed to add song to playlist");
+                setMessage({ type: "error", text: data.error || "Failed to add song to playlist" });
             }
         } catch (error) {
             console.error("Error adding song to playlist:", error);
-            alert("Failed to add song to playlist");
+            setMessage({ type: "error", text: "Failed to add song to playlist" });
         }
     };
 
@@ -105,6 +109,13 @@ export default function AddToPlaylistModal({
                         <X size={20} />
                     </button>
                 </div>
+
+                {message && (
+                    <div className={`${styles.message} ${styles[message.type]}`}>
+                        {message.type === "success" ? <CheckCircle size={20} /> : <X size={20} />}
+                        <span>{message.text}</span>
+                    </div>
+                )}
 
                 {loading ? (
                     <div className={styles.emptyState}>Loading playlists...</div>

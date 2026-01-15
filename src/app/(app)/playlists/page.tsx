@@ -31,7 +31,7 @@ export default function PlaylistsPage() {
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const { setQueue, setCurrentSong, togglePlay, isPlaying } = usePlayerStore();
+    const { setQueue, setCurrentSong, play } = usePlayerStore();
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -103,9 +103,7 @@ export default function PlaylistsPage() {
             if (data.success && data.playlist.songs.length > 0) {
                 setQueue(data.playlist.songs);
                 setCurrentSong(data.playlist.songs[0]);
-                if (!isPlaying) {
-                    togglePlay();
-                }
+                play();
             }
         } catch (error) {
             console.error("Error playing playlist:", error);
