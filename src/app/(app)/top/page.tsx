@@ -11,6 +11,7 @@ export default function TopSongsPage() {
     const [songs, setSongs] = useState<YTMusicSong[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
 
     const fetchTopSongs = async () => {
         setLoading(true);
@@ -33,7 +34,44 @@ export default function TopSongsPage() {
     };
 
     useEffect(() => {
-        fetchTopSongs();
+        const fetchInitialData = async () => {
+            await fetchTopSongs();
+            
+            // Fetch liked songs
+            try {
+                const likedRes = await fetch("/api/liked");
+                if (likedRes.ok) {
+                    const likedData = await likedRes.json();
+                    if (likedData.success) {
+                        const ids = new Set(likedData.data.map((s: any) => s.videoId));
+                        setLikedSongIds(ids as Set<string>);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch liked songs:", error);
+            }
+        };
+
+        fetchInitialData();
+    }, []);
+
+    // Listen for like events
+    useEffect(() => {
+        const handleLikeEvent = (event: any) => {
+            const { videoId, liked } = event.detail;
+            setLikedSongIds((prev) => {
+                const next = new Set(prev);
+                if (liked) {
+                    next.add(videoId);
+                } else {
+                    next.delete(videoId);
+                }
+                return next;
+            });
+        };
+
+        window.addEventListener('songLiked', handleLikeEvent);
+        return () => window.removeEventListener('songLiked', handleLikeEvent);
     }, []);
 
     if (loading)
@@ -49,12 +87,65 @@ export default function TopSongsPage() {
             <div className={styles.error}>
                 <div>
                     <p className={styles.errorText}>{error}</p>
-                    <button className={styles.refreshBtn} onClick={fetchTopSongs}>
+                    <button className={styles.refreshBtn} onClick={() => {
+                        setError("");
+                        fetchTopSongs();
+                    }}>
                         Try Again
                     </button>
                 </div>
             </div>
         );
+
+    const handleLike = async (song: YTMusicSong) => {
+        const isLiked = likedSongIds.has(song.videoId);
+
+        try {
+            if (isLiked) {
+                const res = await fetch(`/api/liked?videoId=${song.videoId}`, {
+                    method: "DELETE",
+                });
+
+                if (res.ok) {
+                    setLikedSongIds((prev) => {
+                        const next = new Set(prev);
+                        next.delete(song.videoId);
+                        return next;
+                    });
+
+                    window.dispatchEvent(
+                        new CustomEvent("songLiked", {
+                            detail: { videoId: song.videoId, liked: false },
+                        })
+                    );
+                }
+            } else {
+                const res = await fetch("/api/liked", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        videoId: song.videoId,
+                        title: song.title,
+                        artist: song.artist,
+                        thumbnail: song.thumbnail,
+                        duration: song.duration || "0:00",
+                    }),
+                });
+
+                if (res.ok) {
+                    setLikedSongIds((prev) => new Set(prev).add(song.videoId));
+
+                    window.dispatchEvent(
+                        new CustomEvent("songLiked", {
+                            detail: { videoId: song.videoId, liked: true },
+                        })
+                    );
+                }
+            }
+        } catch (error) {
+            console.error("Failed to update like:", error);
+        }
+    };
 
     return (
         <div className={styles.topSongs}>
@@ -86,9 +177,15 @@ export default function TopSongsPage() {
 
             <div className={styles.content}>
                 <div className={styles.grid}>
-                    {songs.map((song) => (
-                        <div key={song.videoId} className={styles.songCardWrapper}>
-                            <SongCard song={song} />
+                    {songs.map((song, index) => (
+                        <div key={`${song.videoId}-${index}`} className={styles.songCardWrapper}>
+                            <SongCard 
+                                song={song}
+                                songs={songs}
+                                index={index}
+                                onLike={handleLike}
+                                isLiked={likedSongIds.has(song.videoId)}
+                            />
                         </div>
                     ))}
                 </div>
