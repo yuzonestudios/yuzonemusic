@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Playlist from "@/models/Playlist";
+import { cache } from "@/lib/cache";
 
 // POST - Add a song to playlist
 export async function POST(
@@ -80,6 +81,10 @@ export async function POST(
         }
 
         await playlist.save();
+
+        // Invalidate cache for this playlist and all playlists
+        cache.delete(`playlist:${user._id}:${playlistId}`);
+        cache.delete(`playlists:${user._id}`);
 
         return NextResponse.json({
             success: true,
@@ -169,6 +174,10 @@ export async function DELETE(
         }
 
         await playlist.save();
+
+        // Invalidate cache for this playlist and all playlists
+        cache.delete(`playlist:${user._id}:${playlistId}`);
+        cache.delete(`playlists:${user._id}`);
 
         return NextResponse.json({
             success: true,

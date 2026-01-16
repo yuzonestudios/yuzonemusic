@@ -1,4 +1,5 @@
 import { Innertube } from "youtubei.js";
+import { cache, CACHE_TTL } from "./cache";
 
 let innertube: Innertube | null = null;
 
@@ -275,6 +276,13 @@ export async function getProxyStream(videoId: string, headers?: Record<string, s
 
 export async function getStreamUrl(videoId: string): Promise<string | null> {
     try {
+        // Check cache first (URLs are valid for ~6 hours)
+        const cacheKey = `stream-url:${videoId}`;
+        const cached = cache.get<string>(cacheKey);
+        if (cached) {
+            return cached;
+        }
+
         const yt = await getInnertube();
         const info = await yt.getBasicInfo(videoId);
 
@@ -287,11 +295,16 @@ export async function getStreamUrl(videoId: string): Promise<string | null> {
             const bestFormat = audioFormats[0];
 
             if (bestFormat.url) {
+                // Cache the URL
+                cache.set(cacheKey, bestFormat.url, CACHE_TTL.STREAM_URL);
                 return bestFormat.url;
             }
 
             if (bestFormat.decipher) {
-                return bestFormat.decipher(yt.session.player);
+                const url = bestFormat.decipher(yt.session.player);
+                // Cache the deciphered URL
+                cache.set(cacheKey, url, CACHE_TTL.STREAM_URL);
+                return url;
             }
 
             console.error(`[getStreamUrl] No URL or decipher method available`);

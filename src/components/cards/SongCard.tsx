@@ -53,10 +53,11 @@ export default function SongCard({
         <div className={`${styles.card} ${isCurrentSong ? styles.playing : ""}`}>
             <div className={styles.thumbnail} onClick={handlePlay}>
                 <Image
-                    src={song.thumbnail}
+                    src={song.thumbnail.replace(/=w\d+-h\d+/, '=w240-h240')}
                     alt={song.title}
-                    width={56}
-                    height={56}
+                    width={120}
+                    height={120}
+                    quality={80}
                     className={styles.thumbnailImg}
                 />
                 <div className={styles.overlay}>

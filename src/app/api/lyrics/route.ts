@@ -1,3 +1,5 @@
+import { cache, CACHE_TTL } from "@/lib/cache";
+
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
@@ -10,6 +12,18 @@ export async function POST(request: Request) {
                 { error: "videoId is required" },
                 { status: 400 }
             );
+        }
+
+        // Check cache first
+        const cacheKey = `lyrics:${videoId}`;
+        const cached = cache.get(cacheKey);
+        if (cached) {
+            return Response.json(cached, {
+                headers: {
+                    'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=172800',
+                    'X-Cache': 'HIT'
+                }
+            });
         }
 
         const response = await fetch("https://api.yuzone.me/lyrics", {
@@ -28,7 +42,16 @@ export async function POST(request: Request) {
         }
 
         const data = await response.json();
-        return Response.json(data);
+        
+        // Cache the lyrics
+        cache.set(cacheKey, data, CACHE_TTL.LYRICS);
+        
+        return Response.json(data, {
+            headers: {
+                'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=172800',
+                'X-Cache': 'MISS'
+            }
+        });
     } catch (error) {
         console.error("Lyrics API error:", error);
         return Response.json(

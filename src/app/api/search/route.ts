@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { searchSongs, searchArtists, searchAlbums } from "@/lib/youtube-music";
+import { cache, CACHE_TTL } from "@/lib/cache";
 
 export async function GET(request: NextRequest) {
     try {
@@ -11,6 +12,18 @@ export async function GET(request: NextRequest) {
                 { success: false, error: "Query parameter 'q' is required" },
                 { status: 400 }
             );
+        }
+
+        // Check cache first
+        const cacheKey = `search:${query}`;
+        const cached = cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached, {
+                headers: {
+                    'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+                    'X-Cache': 'HIT'
+                }
+            });
         }
 
         // Use the user's external API
@@ -41,10 +54,20 @@ export async function GET(request: NextRequest) {
         }));
 
         // The external API returns an array directly, wrap it in our expected format
-        return NextResponse.json({
+        const response = {
             success: true,
             data: {
                 songs: songs
+            }
+        };
+
+        // Cache the result
+        cache.set(cacheKey, response, CACHE_TTL.SEARCH);
+
+        return NextResponse.json(response, {
+            headers: {
+                'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+                'X-Cache': 'MISS'
             }
         });
 

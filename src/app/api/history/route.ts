@@ -60,6 +60,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Only save to history if song has been played for at least 20 seconds
+        if (!listenDuration || listenDuration < 20) {
+            return NextResponse.json({ 
+                success: true, 
+                message: "Song not played long enough to save to history" 
+            });
+        }
+
         await connectDB();
 
         // Update or create recently played entry

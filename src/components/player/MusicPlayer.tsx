@@ -75,27 +75,42 @@ export default function MusicPlayer() {
             };
             checkLike();
 
-            // 2. Track in history
-            const trackHistory = async () => {
-                try {
-                    const res = await fetch("/api/history", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(currentSong),
-                    });
+            // 2. Track in history after 20 seconds of listening
+            let startTime = Date.now();
+            let hasTrackedHistory = false;
+
+            const historyCheckInterval = setInterval(async () => {
+                const listenDuration = Math.floor((Date.now() - startTime) / 1000);
+                
+                // Only track once after 20 seconds
+                if (!hasTrackedHistory && listenDuration >= 20) {
+                    hasTrackedHistory = true;
+                    clearInterval(historyCheckInterval);
                     
-                    if (!res.ok) {
-                        const error = await res.json();
-                        console.error("Failed to track history:", res.status, error);
-                        console.error("Song data sent:", currentSong);
-                    } else {
-                        console.log("Successfully tracked history for:", currentSong.title);
+                    try {
+                        const res = await fetch("/api/history", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                ...currentSong,
+                                listenDuration
+                            }),
+                        });
+                        
+                        if (!res.ok) {
+                            const error = await res.json();
+                            console.error("Failed to track history:", res.status, error);
+                        }
+                    } catch (e) {
+                        console.error("Error tracking history:", e);
                     }
-                } catch (e) {
-                    console.error("Error tracking history:", e);
                 }
+            }, 1000); // Check every second
+
+            // Cleanup interval on song change or unmount
+            return () => {
+                clearInterval(historyCheckInterval);
             };
-            trackHistory();
         }
     }, [currentSong?.videoId]);
 
