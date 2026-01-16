@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
         }));
 
         // The external API returns an array directly, wrap it in our expected format
-        const response = {
+        const result = {
             success: true,
             data: {
                 songs: songs
@@ -62,9 +62,9 @@ export async function GET(request: NextRequest) {
         };
 
         // Cache the result
-        cache.set(cacheKey, response, CACHE_TTL.SEARCH);
+        cache.set(cacheKey, result, CACHE_TTL.SEARCH);
 
-        return NextResponse.json(response, {
+        return NextResponse.json(result, {
             headers: {
                 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
                 'X-Cache': 'MISS'
