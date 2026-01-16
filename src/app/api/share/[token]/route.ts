@@ -72,25 +72,68 @@ export async function GET(
                 viewCount: share.viewCount,
             });
         } else if (share.contentType === "song") {
-            // Try to fetch song metadata for a nicer shared view
+            // Try to fetch song metadata using external API
             let songData = null;
             try {
-                songData = await getSongInfo(share.contentId);
+                // Use external API to search for the song by videoId
+                const externalApiUrl = `https://api.yuzone.me/search?q=${encodeURIComponent(share.contentId)}`;
+                const response = await fetch(externalApiUrl, {
+                    headers: {
+                        'User-Agent': 'YuzoneMusic/1.0'
+                    }
+                });
+                
+                if (response.ok) {
+                    const results = await response.json();
+                    console.log("External API response for videoId:", results);
+                    
+                    // Find exact match by videoId
+                    const match = results.find((song: any) => 
+                        song.videoId === share.contentId || song.id === share.contentId
+                    );
+                    
+                    if (match) {
+                        songData = {
+                            videoId: match.videoId || match.id,
+                            title: match.title || "Unknown Title",
+                            artist: Array.isArray(match.artists) 
+                                ? match.artists.join(", ") 
+                                : match.artist || match.artists || "Unknown Artist",
+                            thumbnail: match.thumbnail || match.thumbnails?.[0]?.url || "/placeholder-album.png",
+                            duration: match.duration || "",
+                        };
+                        console.log("Fetched song data from external API:", songData);
+                    }
+                }
             } catch (err) {
-                console.error("Failed to fetch song info for shared link", err);
+                console.error("Failed to fetch song info from external API:", err);
             }
+
+            // Fallback: try getSongInfo
+            if (!songData) {
+                try {
+                    songData = await getSongInfo(share.contentId);
+                    console.log("Fetched song data from getSongInfo:", songData);
+                } catch (err) {
+                    console.error("Failed to fetch song info from getSongInfo:", err);
+                }
+            }
+
+            const responseData = songData || {
+                videoId: share.contentId,
+                title: "Unknown Title",
+                artist: "Unknown Artist",
+                thumbnail: "/placeholder-album.png",
+                duration: "",
+            };
+
+            console.log("Returning song data:", responseData);
 
             return NextResponse.json({
                 success: true,
                 content: {
                     type: "song",
-                    data: songData || {
-                        videoId: share.contentId,
-                        title: "Unknown Title",
-                        artist: "Unknown Artist",
-                        thumbnail: "/placeholder-album.png",
-                        duration: "",
-                    },
+                    data: responseData,
                 },
                 viewCount: share.viewCount,
             });

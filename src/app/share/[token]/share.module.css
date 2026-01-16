@@ -239,6 +239,31 @@
     transform: translateX(4px);
 }
 
+.playSongButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(236, 72, 153, 0.2);
+    border: 1px solid rgba(236, 72, 153, 0.3);
+    color: #ec4899;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.playSongButton:hover {
+    background: rgba(236, 72, 153, 0.3);
+    border-color: rgba(236, 72, 153, 0.5);
+    transform: scale(1.1);
+}
+
+.playSongButton:active {
+    transform: scale(0.95);
+}
+
 .songNumber {
     min-width: 2rem;
     text-align: center;

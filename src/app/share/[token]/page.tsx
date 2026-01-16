@@ -21,6 +21,8 @@ export default function SharePage() {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const audioRef = useRef<HTMLAudioElement>(null);
+    const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
+    const playlistAudioRef = useRef<HTMLAudioElement>(null);
 
     useEffect(() => {
         const fetchSharedContent = async () => {
@@ -31,6 +33,7 @@ export default function SharePage() {
                     throw new Error(errorData.error || "Failed to load shared content");
                 }
                 const data = await response.json();
+                console.log("Shared content received:", data);
                 setContent(data.content);
             } catch (err) {
                 setError(err instanceof Error ? err.message : "An error occurred");
@@ -75,6 +78,20 @@ export default function SharePage() {
 
     if (content.type === "playlist") {
         const playlist = content.data;
+
+        const togglePlaylistSong = (videoId: string) => {
+            if (playlistAudioRef.current) {
+                if (playingVideoId === videoId) {
+                    playlistAudioRef.current.pause();
+                    setPlayingVideoId(null);
+                } else {
+                    playlistAudioRef.current.src = `/api/stream?id=${videoId}`;
+                    playlistAudioRef.current.play().catch((err) => console.error("Play error:", err));
+                    setPlayingVideoId(videoId);
+                }
+            }
+        };
+
         return (
             <div className={`${styles.container}`}>
                 <div className={`${styles.header} glass-panel`}>
@@ -105,6 +122,18 @@ export default function SharePage() {
                             {playlist.songs.map(
                                 (song: any, index: number) => (
                                     <div key={song.videoId} className={styles.songItem}>
+                                        <button
+                                            className={styles.playSongButton}
+                                            onClick={() => togglePlaylistSong(song.videoId)}
+                                            title={playingVideoId === song.videoId ? "Pause" : "Play"}
+                                        >
+                                            {playingVideoId === song.videoId ? (
+                                                <Pause size={16} />
+                                            ) : (
+                                                <Play size={16} fill="currentColor" />
+                                            )}
+                                        </button>
+        console.log("Rendering song with data:", song);
                                         <div className={styles.songNumber}>{index + 1}</div>
                                         {song.thumbnail && (
                                             <img
@@ -123,6 +152,11 @@ export default function SharePage() {
                             )}
                         </div>
                     )}
+                    <audio
+                        ref={playlistAudioRef}
+                        onEnded={() => setPlayingVideoId(null)}
+                        crossOrigin="anonymous"
+                    />
                 </div>
             </div>
         );
