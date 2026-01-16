@@ -37,6 +37,7 @@ const ShareSchema = new Schema<IShare>(
         expiresAt: {
             type: Date,
             default: null, // null means never expires
+            index: { expires: 0 }, // TTL index: MongoDB will auto-delete documents when expiresAt is reached
         },
         viewCount: {
             type: Number,

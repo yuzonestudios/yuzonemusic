@@ -14,12 +14,31 @@
     align-items: flex-start;
 }
 
-.thumbnail {
+.thumbnailWrapper {
+    position: relative;
     width: 200px;
     height: 200px;
+    flex-shrink: 0;
+}
+
+.thumbnail {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.placeholderThumbnail {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(126, 34, 206, 0.1) 100%);
+    border: 2px dashed rgba(236, 72, 153, 0.3);
+    border-radius: 12px;
+    color: rgba(236, 72, 153, 0.6);
 }
 
 .info {
@@ -44,6 +63,103 @@
 .meta {
     font-size: 0.875rem;
     color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 1rem;
+}
+
+.playerSection {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.playerControls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.playButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ec4899 0%, #d946a6 100%);
+    border: none;
+    color: white;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+}
+
+.playButton:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(236, 72, 153, 0.4);
+}
+
+.playButton:active {
+    transform: scale(0.95);
+}
+
+.progressContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.progressBar {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+}
+
+.progressBar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ec4899;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
+    transition: all 0.2s ease;
+}
+
+.progressBar::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.6);
+}
+
+.progressBar::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ec4899;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
+    transition: all 0.2s ease;
+}
+
+.progressBar::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.6);
+}
+
+.timeDisplay {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .actionsRow {
@@ -197,7 +313,7 @@
         gap: 1.5rem;
     }
 
-    .thumbnail {
+    .thumbnailWrapper {
         width: 100%;
         max-width: 250px;
         margin: 0 auto;
@@ -212,6 +328,15 @@
     }
 
     .songThumbnail {
+        width: 40px;
+        height: 40px;
+    }
+
+    .playerControls {
+        gap: 0.75rem;
+    }
+
+    .playButton {
         width: 40px;
         height: 40px;
     }

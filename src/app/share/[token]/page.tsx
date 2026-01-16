@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
+import { Download, Play, Pause, Music } from "lucide-react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import styles from "./share.module.css";
 
@@ -16,6 +17,10 @@ export default function SharePage() {
     const [content, setContent] = useState<SharedContent | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string>("");
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const audioRef = useRef<HTMLAudioElement>(null);
 
     useEffect(() => {
         const fetchSharedContent = async () => {
@@ -125,27 +130,105 @@ export default function SharePage() {
 
     if (content.type === "song") {
         const song = content.data;
+
+        const togglePlay = () => {
+            if (audioRef.current) {
+                if (isPlaying) {
+                    audioRef.current.pause();
+                } else {
+                    audioRef.current.play().catch((err) => console.error("Play error:", err));
+                }
+                setIsPlaying(!isPlaying);
+            }
+        };
+
+        const handleTimeUpdate = () => {
+            if (audioRef.current) {
+                setCurrentTime(audioRef.current.currentTime);
+                setDuration(audioRef.current.duration);
+            }
+        };
+
+        const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const newTime = parseFloat(e.target.value);
+            setCurrentTime(newTime);
+            if (audioRef.current) {
+                audioRef.current.currentTime = newTime;
+            }
+        };
+
+        const formatTime = (seconds: number) => {
+            if (!seconds || isNaN(seconds)) return "0:00";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, "0")}`;
+        };
+
+        const downloadUrl = `/api/stream?id=${song.videoId}`;
+
         return (
             <div className={`${styles.container}`}>
                 <div className={`${styles.header} glass-panel`}>
-                    {song.thumbnail && (
-                        <img
-                            src={song.thumbnail}
-                            alt={song.title || "Song thumbnail"}
-                            className={styles.thumbnail}
-                        />
-                    )}
+                    <div className={styles.thumbnailWrapper}>
+                        {song.thumbnail && song.thumbnail !== "/placeholder-album.png" ? (
+                            <img
+                                src={song.thumbnail}
+                                alt={song.title || "Song"}
+                                className={styles.thumbnail}
+                            />
+                        ) : (
+                            <div className={styles.placeholderThumbnail}>
+                                <Music size={64} />
+                            </div>
+                        )}
+                    </div>
                     <div className={styles.info}>
-                        <h1 className={styles.title}>{song.title || "Shared song"}</h1>
+                        <h1 className={styles.title}>{song.title || "Shared Song"}</h1>
                         {song.artist && <p className={styles.description}>{song.artist}</p>}
-                        <p className={styles.meta}>{song.duration || ""}</p>
+                        {song.duration && <p className={styles.meta}>{song.duration}</p>}
+                        
+                        <div className={styles.playerSection}>
+                            <div className={styles.playerControls}>
+                                <button
+                                    className={styles.playButton}
+                                    onClick={togglePlay}
+                                    title={isPlaying ? "Pause" : "Play"}
+                                >
+                                    {isPlaying ? <Pause size={24} /> : <Play size={24} fill="white" />}
+                                </button>
+                                <div className={styles.progressContainer}>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max={duration || 0}
+                                        value={currentTime}
+                                        onChange={handleProgressChange}
+                                        className={styles.progressBar}
+                                    />
+                                    <div className={styles.timeDisplay}>
+                                        <span>{formatTime(currentTime)}</span>
+                                        <span>{formatTime(duration)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <audio
+                                ref={audioRef}
+                                src={downloadUrl}
+                                onTimeUpdate={handleTimeUpdate}
+                                onEnded={() => setIsPlaying(false)}
+                                crossOrigin="anonymous"
+                            />
+                        </div>
+
                         <div className={styles.actionsRow}>
                             <a
                                 className={styles.primaryLink}
-                                href={`/api/stream?id=${song.videoId}`}
-                                rel="noopener noreferrer"
+                                href={downloadUrl}
+                                download={`${song.title || "song"}.mp3`}
+                                title="Download"
                             >
-                                Play
+                                <Download size={18} />
+                                Download
                             </a>
                             <a
                                 className={styles.secondaryLink}
