@@ -19,10 +19,11 @@ interface Song {
 }
 
 interface RecommendationsData {
+    suggested: Song[];
+    artistsYouMightLike: Song[];
     basedOnRecent: Song[];
-    moreFromArtists: Song[];
     trendingInYourStyle: Song[];
-    discovery: Song[];
+    freshDiscoveries: Song[];
 }
 
 export default function RecommendationsPage() {
@@ -90,10 +91,11 @@ export default function RecommendationsPage() {
     }
 
     const hasRecommendations = recommendations && (
+        recommendations.suggested.length > 0 ||
+        recommendations.artistsYouMightLike.length > 0 ||
         recommendations.basedOnRecent.length > 0 ||
-        recommendations.moreFromArtists.length > 0 ||
         recommendations.trendingInYourStyle.length > 0 ||
-        recommendations.discovery.length > 0
+        recommendations.freshDiscoveries.length > 0
     );
 
     return (
@@ -131,6 +133,36 @@ export default function RecommendationsPage() {
                 </div>
             ) : (
                 <div className={styles.sections}>
+                    {recommendations.suggested.length > 0 && (
+                        <section className={styles.section}>
+                            <h2 className={styles.sectionTitle}>Songs You Might Like</h2>
+                            <div className={styles.grid}>
+                                {recommendations.suggested.map((song) => (
+                                    <SongCard
+                                        key={song.videoId}
+                                        song={song}
+                                        songs={recommendations.suggested}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {recommendations.artistsYouMightLike.length > 0 && (
+                        <section className={styles.section}>
+                            <h2 className={styles.sectionTitle}>Artists You Might Like</h2>
+                            <div className={styles.grid}>
+                                {recommendations.artistsYouMightLike.map((song) => (
+                                    <SongCard
+                                        key={song.videoId}
+                                        song={song}
+                                        songs={recommendations.artistsYouMightLike}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
                     {recommendations.basedOnRecent.length > 0 && (
                         <section className={styles.section}>
                             <h2 className={styles.sectionTitle}>Because You Played</h2>
@@ -140,21 +172,6 @@ export default function RecommendationsPage() {
                                         key={song.videoId}
                                         song={song}
                                         songs={recommendations.basedOnRecent}
-                                    />
-                                ))}
-                            </div>
-                        </section>
-                    )}
-
-                    {recommendations.moreFromArtists.length > 0 && (
-                        <section className={styles.section}>
-                            <h2 className={styles.sectionTitle}>More From Your Artists</h2>
-                            <div className={styles.grid}>
-                                {recommendations.moreFromArtists.map((song) => (
-                                    <SongCard
-                                        key={song.videoId}
-                                        song={song}
-                                        songs={recommendations.moreFromArtists}
                                     />
                                 ))}
                             </div>
@@ -176,15 +193,15 @@ export default function RecommendationsPage() {
                         </section>
                     )}
 
-                    {recommendations.discovery.length > 0 && (
+                    {recommendations.freshDiscoveries.length > 0 && (
                         <section className={styles.section}>
-                            <h2 className={styles.sectionTitle}>Discover New Music</h2>
+                            <h2 className={styles.sectionTitle}>Fresh Discoveries</h2>
                             <div className={styles.grid}>
-                                {recommendations.discovery.map((song) => (
+                                {recommendations.freshDiscoveries.map((song) => (
                                     <SongCard
                                         key={song.videoId}
                                         song={song}
-                                        songs={recommendations.discovery}
+                                        songs={recommendations.freshDiscoveries}
                                     />
                                 ))}
                             </div>

@@ -83,14 +83,47 @@ export async function GET(req: NextRequest) {
         const recommendations: ScoredSong[] = [];
         const seenVideoIds = new Set<string>();
 
-        // 1. Based on Recently Played (40% weight)
-        const recentSongs = history.slice(0, 20);
-        for (const song of recentSongs) {
-            if (recentlyPlayedIds.has(song.videoId)) continue;
-
-            // Search for similar songs using external API
+        // 1. Suggested Songs You Might Like (35% weight) - Based on liked songs
+        for (const liked of likedSongs.slice(0, 15)) {
             try {
-                const searchQuery = `${song.artist} ${song.title}`.substring(0, 50);
+                // Search for songs similar to liked ones
+                const searchQuery = `${liked.title} ${liked.artist}`.substring(0, 50);
+                const searchRes = await fetch(
+                    `https://api.yuzone.me/search?q=${encodeURIComponent(searchQuery)}`
+                );
+                
+                if (searchRes.ok) {
+                    const results = await searchRes.json();
+                    for (const result of results.slice(1, 4)) { // Skip first as it's likely the same song
+                        if (
+                            !recentlyPlayedIds.has(result.videoId) &&
+                            !seenVideoIds.has(result.videoId) &&
+                            result.videoId !== liked.videoId
+                        ) {
+                            recommendations.push({
+                                videoId: result.videoId,
+                                title: result.title || "Unknown Title",
+                                artist: Array.isArray(result.artists)
+                                    ? result.artists.join(", ")
+                                    : result.artist || result.artists || "Unknown Artist",
+                                thumbnail: result.thumbnail || result.thumbnails?.[0]?.url || "/placeholder-album.png",
+                                duration: result.duration || "",
+                                score: 0.35,
+                                reason: "You might like",
+                            });
+                            seenVideoIds.add(result.videoId);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch suggested songs:", error);
+            }
+        }
+
+        // 2. Artists You Might Like (25% weight) - Discover new artists
+        for (const artist of topArtists.slice(0, 5)) {
+            try {
+                const searchQuery = artist;
                 const searchRes = await fetch(
                     `https://api.yuzone.me/search?q=${encodeURIComponent(searchQuery)}`
                 );
@@ -98,6 +131,45 @@ export async function GET(req: NextRequest) {
                 if (searchRes.ok) {
                     const results = await searchRes.json();
                     for (const result of results.slice(0, 3)) {
+                        if (
+                            !recentlyPlayedIds.has(result.videoId) &&
+                            !seenVideoIds.has(result.videoId)
+                        ) {
+                            recommendations.push({
+                                videoId: result.videoId,
+                                title: result.title || "Unknown Title",
+                                artist: Array.isArray(result.artists)
+                                    ? result.artists.join(", ")
+                                    : result.artist || result.artists || "Unknown Artist",
+                                thumbnail: result.thumbnail || result.thumbnails?.[0]?.url || "/placeholder-album.png",
+                                duration: result.duration || "",
+                                score: 0.25,
+                                reason: `More from ${artist}`,
+                            });
+                            seenVideoIds.add(result.videoId);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch artist songs:", error);
+            }
+        }
+
+        // 3. Based on Recent Plays (20% weight) - Less weight now
+        const recentSongs = history.slice(0, 10); // Reduced from 20
+        for (const song of recentSongs) {
+            if (recentlyPlayedIds.has(song.videoId)) continue;
+
+            // Search for similar songs using external API
+            try {
+                const searchQuery = `${song.artist}`.substring(0, 30); // Search by artist only for more variety
+                const searchRes = await fetch(
+                    `https://api.yuzone.me/search?q=${encodeURIComponent(searchQuery)}`
+                );
+                
+                if (searchRes.ok) {
+                    const results = await searchRes.json();
+                    for (const result of results.slice(0, 2)) { // Reduced from 3
                         if (
                             !recentlyPlayedIds.has(result.videoId) &&
                             !seenVideoIds.has(result.videoId) &&
@@ -111,7 +183,7 @@ export async function GET(req: NextRequest) {
                                     : result.artist || result.artists || "Unknown Artist",
                                 thumbnail: result.thumbnail || result.thumbnails?.[0]?.url || "/placeholder-album.png",
                                 duration: result.duration || "",
-                                score: 0.4,
+                                score: 0.2,
                                 reason: `Because you played ${song.title}`,
                             });
                             seenVideoIds.add(result.videoId);
@@ -123,42 +195,7 @@ export async function GET(req: NextRequest) {
             }
         }
 
-        // 2. Based on Liked Songs (30% weight)
-        for (const liked of likedSongs.slice(0, 10)) {
-            try {
-                const searchQuery = `${liked.artist}`.substring(0, 30);
-                const searchRes = await fetch(
-                    `https://api.yuzone.me/search?q=${encodeURIComponent(searchQuery)}`
-                );
-                
-                if (searchRes.ok) {
-                    const results = await searchRes.json();
-                    for (const result of results.slice(0, 2)) {
-                        if (
-                            !recentlyPlayedIds.has(result.videoId) &&
-                            !seenVideoIds.has(result.videoId)
-                        ) {
-                            recommendations.push({
-                                videoId: result.videoId,
-                                title: result.title || "Unknown Title",
-                                artist: Array.isArray(result.artists)
-                                    ? result.artists.join(", ")
-                                    : result.artist || result.artists || "Unknown Artist",
-                                thumbnail: result.thumbnail || result.thumbnails?.[0]?.url || "/placeholder-album.png",
-                                duration: result.duration || "",
-                                score: 0.3,
-                                reason: `More from ${liked.artist}`,
-                            });
-                            seenVideoIds.add(result.videoId);
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error("Failed to fetch artist songs:", error);
-            }
-        }
-
-        // 3. Trending in Your Style (20% weight)
+        // 4. Trending in Your Style (15% weight)
         for (const trending of trendingSongs) {
             const trendingArtist = Array.isArray(trending.artists)
                 ? trending.artists.join(", ")
@@ -177,15 +214,15 @@ export async function GET(req: NextRequest) {
                     artist: trendingArtist || "Unknown Artist",
                     thumbnail: trending.thumbnail || "/placeholder-album.png",
                     duration: trending.duration || "",
-                    score: 0.2,
+                    score: 0.15,
                     reason: "Trending in your style",
                 });
                 seenVideoIds.add(trending.videoId);
             }
         }
 
-        // 4. Discovery (10% weight) - Random trending songs
-        for (const trending of trendingSongs.slice(10, 25)) {
+        // 5. Fresh Discoveries (5% weight) - Random trending songs for variety
+        for (const trending of trendingSongs.slice(10, 30)) {
             if (
                 !recentlyPlayedIds.has(trending.videoId) &&
                 !seenVideoIds.has(trending.videoId)
@@ -198,26 +235,27 @@ export async function GET(req: NextRequest) {
                         : trending.artist || trending.artists || "Unknown Artist",
                     thumbnail: trending.thumbnail || "/placeholder-album.png",
                     duration: trending.duration || "",
-                    score: 0.1,
-                    reason: "Discovery",
+                    score: 0.05,
+                    reason: "Fresh discoveries",
                 });
                 seenVideoIds.add(trending.videoId);
                 
-                if (seenVideoIds.size > 50) break;
+                if (seenVideoIds.size > 80) break; // Increased limit
             }
         }
 
         // Sort by score and return top recommendations
         const sortedRecommendations = recommendations
             .sort((a, b) => b.score - a.score)
-            .slice(0, 60);
+            .slice(0, 80); // Increased from 60
 
-        // Group by reason
+        // Group by reason with better distribution
         const groupedRecommendations = {
-            basedOnRecent: sortedRecommendations.filter(r => r.reason.includes("Because you played")).slice(0, 15),
-            moreFromArtists: sortedRecommendations.filter(r => r.reason.includes("More from")).slice(0, 15),
-            trendingInYourStyle: sortedRecommendations.filter(r => r.reason === "Trending in your style").slice(0, 15),
-            discovery: sortedRecommendations.filter(r => r.reason === "Discovery").slice(0, 15),
+            suggested: sortedRecommendations.filter(r => r.reason === "You might like").slice(0, 20),
+            artistsYouMightLike: sortedRecommendations.filter(r => r.reason.includes("More from")).slice(0, 20),
+            basedOnRecent: sortedRecommendations.filter(r => r.reason.includes("Because you played")).slice(0, 12),
+            trendingInYourStyle: sortedRecommendations.filter(r => r.reason === "Trending in your style").slice(0, 12),
+            freshDiscoveries: sortedRecommendations.filter(r => r.reason === "Fresh discoveries").slice(0, 16),
         };
 
         return NextResponse.json({

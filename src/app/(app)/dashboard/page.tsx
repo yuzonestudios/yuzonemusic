@@ -43,10 +43,11 @@ export default function DashboardPage() {
                     if (recData.success && recData.recommendations) {
                         // Combine all recommendation categories and take first 10
                         const allRecs = [
+                            ...recData.recommendations.suggested,
+                            ...recData.recommendations.artistsYouMightLike,
+                            ...recData.recommendations.freshDiscoveries,
                             ...recData.recommendations.basedOnRecent,
-                            ...recData.recommendations.moreFromArtists,
                             ...recData.recommendations.trendingInYourStyle,
-                            ...recData.recommendations.discovery,
                         ].slice(0, 10);
                         setRecommendations(allRecs);
                     }
