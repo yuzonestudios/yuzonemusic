@@ -153,6 +153,7 @@ export default function SettingsPage() {
 
                     <div className={styles.shareSection}>
                         <h3 className={styles.subsectionTitle}>Your Playlists</h3>
+                        
                         {loadingPlaylists ? (
                             <LoadingSpinner size="small" />
                         ) : playlists.length === 0 ? (
