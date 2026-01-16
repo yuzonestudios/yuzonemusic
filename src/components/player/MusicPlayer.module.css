@@ -348,7 +348,8 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    transition: background var(--transition-fast);
+    transition: background var(--transition-fast), border-color var(--transition-fast);
+    will-change: background;
 }
 
 .queueItem:hover {
@@ -364,6 +365,7 @@
     opacity: 0.9;
     background: rgba(139, 92, 246, 0.2);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+    transition: none;
 }
 
 .queueHandle {

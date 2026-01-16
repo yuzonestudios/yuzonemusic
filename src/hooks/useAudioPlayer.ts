@@ -43,6 +43,14 @@ export function useAudioPlayer() {
             setDuration(audio.duration);
         };
 
+        const handlePlay = () => {
+            usePlayerStore.setState({ isPlaying: true });
+        };
+
+        const handlePause = () => {
+            usePlayerStore.setState({ isPlaying: false });
+        };
+
         const handleEnded = () => {
             if (repeat === "one") {
                 audio.currentTime = 0;
@@ -74,12 +82,16 @@ export function useAudioPlayer() {
 
         audio.addEventListener("timeupdate", handleTimeUpdate);
         audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+        audio.addEventListener("play", handlePlay);
+        audio.addEventListener("pause", handlePause);
         audio.addEventListener("ended", handleEnded);
         audio.addEventListener("error", handleError);
 
         return () => {
             audio.removeEventListener("timeupdate", handleTimeUpdate);
             audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+            audio.removeEventListener("play", handlePlay);
+            audio.removeEventListener("pause", handlePause);
             audio.removeEventListener("ended", handleEnded);
             audio.removeEventListener("error", handleError);
         };

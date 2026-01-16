@@ -9,6 +9,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { usePlayerStore } from "@/store/playerStore";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { usePlayerSync } from "@/hooks/usePlayerSync";
 import AddToPlaylistModal from "@/components/ui/AddToPlaylistModal";
 import styles from "./MusicPlayer.module.css";
 
@@ -45,6 +46,7 @@ export default function MusicPlayer() {
 
     const { seek } = useAudioPlayer();
     useKeyboardShortcuts();
+    usePlayerSync();
     const [isLiked, setIsLiked] = useState(false);
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
     const [isQueueOpen, setIsQueueOpen] = useState(false);
