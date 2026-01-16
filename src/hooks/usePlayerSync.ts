@@ -12,6 +12,9 @@ export function usePlayerSync() {
         const sourceId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
         let applyingRemote = false;
 
+        // Request current state from other tabs on join
+        channel.postMessage({ sourceId, type: "request-state" });
+
         // Broadcast relevant player state on changes
         const selector = (state: any) => ({
             currentSong: state.currentSong,
@@ -31,10 +34,34 @@ export function usePlayerSync() {
             channel.postMessage({ sourceId, payload: snapshot });
         });
 
-        // Apply incoming state from other tabs
+        // Apply incoming state from other tabs or respond to state requests
         channel.onmessage = (event) => {
-            const { sourceId: incoming, payload } = event.data || {};
-            if (!payload || incoming === sourceId) return;
+            const { sourceId: incoming, type, payload } = event.data || {};
+            if (incoming === sourceId) return;
+
+            // Handle state request from new tabs
+            if (type === "request-state") {
+                const state = usePlayerStore.getState();
+                channel.postMessage({
+                    sourceId,
+                    type: "state-response",
+                    payload: {
+                        currentSong: state.currentSong,
+                        queue: state.queue,
+                        queueIndex: state.queueIndex,
+                        isPlaying: state.isPlaying,
+                        currentTime: state.currentTime,
+                        volume: state.volume,
+                        repeat: state.repeat,
+                        shuffle: state.shuffle,
+                        playbackSpeed: state.playbackSpeed,
+                    },
+                });
+                return;
+            }
+
+            // Handle state updates from other tabs
+            if (!payload) return;
 
             applyingRemote = true;
             usePlayerStore.setState((state) => ({
@@ -51,9 +78,11 @@ export function usePlayerSync() {
             }));
             applyingRemote = false;
 
-            // Keep the audio element aligned on receivers
-            const audio = (window as any).__yuzoneAudio as HTMLAudioElement | undefined;
-            if (audio) {
+            // Sync audio element with a small delay to ensure it's ready
+            setTimeout(() => {
+                const audio = (window as any).__yuzoneAudio as HTMLAudioElement | undefined;
+                if (!audio) return;
+
                 if (Math.abs(audio.currentTime - (payload.currentTime || 0)) > 0.75) {
                     audio.currentTime = payload.currentTime || 0;
                 }
@@ -63,12 +92,12 @@ export function usePlayerSync() {
                 if (typeof payload.volume === "number") {
                     audio.volume = Math.max(0, Math.min(1, payload.volume));
                 }
-                if (payload.isPlaying) {
+                if (payload.isPlaying && audio.paused) {
                     audio.play().catch(() => undefined);
-                } else {
+                } else if (!payload.isPlaying && !audio.paused) {
                     audio.pause();
                 }
-            }
+            }, 100);
         };
 
         return () => {

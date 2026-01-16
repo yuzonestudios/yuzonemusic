@@ -311,6 +311,8 @@ export const usePlayerStore = create<PlayerState>()(
                 currentSong: state.currentSong,
                 queue: state.queue,
                 queueIndex: state.queueIndex,
+                isPlaying: state.isPlaying,
+                currentTime: state.currentTime,
                 volume: state.volume,
                 repeat: state.repeat,
                 shuffle: state.shuffle,
