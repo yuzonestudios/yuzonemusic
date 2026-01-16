@@ -22,9 +22,11 @@ export async function POST(req: NextRequest) {
         }
 
         await connectDB();
+        const userId = (session.user as any)?.id || (session.user as any)?.sub;
+
         await FutureSuggestion.create({
             userEmail: session.user.email,
-            userId: session.user.id || session.user.sub,
+            userId,
             suggestion: text,
         });
 
