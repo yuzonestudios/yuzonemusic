@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Home, Search, Library, Trophy, Settings, ListMusic } from "lucide-react";
+import { Home, Search, Library, Trophy, Settings, ListMusic, Sparkles } from "lucide-react";
 import styles from "./Sidebar.module.css";
 
 interface NavItem {
@@ -21,6 +21,11 @@ const navItems: NavItem[] = [
         href: "/search",
         label: "Search",
         icon: <Search size={24} />,
+    },
+    {
+        href: "/recommendations",
+        label: "For You",
+        icon: <Sparkles size={24} />,
     },
     {
         href: "/top",
