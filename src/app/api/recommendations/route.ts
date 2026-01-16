@@ -66,11 +66,19 @@ export async function GET(req: NextRequest) {
             history.slice(0, 30).map((h: any) => h.videoId)
         );
 
-        // Build artist frequency map from history and likes
+        // Build artist frequency map from history and likes with recency decay for better signal
         const artistFrequency = new Map<string, number>();
-        [...history, ...likedSongs].forEach((song: any) => {
+        const decay = (idx: number) => Math.exp(-idx / 25); // softer tail for diversity
+
+        history.forEach((song: any, idx: number) => {
             const artist = song.artist || "Unknown";
-            artistFrequency.set(artist, (artistFrequency.get(artist) || 0) + 1);
+            artistFrequency.set(artist, (artistFrequency.get(artist) || 0) + decay(idx));
+        });
+
+        likedSongs.forEach((song: any, idx: number) => {
+            const artist = song.artist || "Unknown";
+            // likes get slightly higher weight
+            artistFrequency.set(artist, (artistFrequency.get(artist) || 0) + 1.2 * decay(idx));
         });
 
         // Get top artists
@@ -97,6 +105,16 @@ export async function GET(req: NextRequest) {
         // Collect recommendations from multiple sources
         const recommendations: ScoredSong[] = [];
         const seenVideoIds = new Set<string>();
+        const perArtistCount = new Map<string, number>();
+
+        const bumpArtist = (artist: string) => {
+            if (!artist) return;
+            perArtistCount.set(artist, (perArtistCount.get(artist) || 0) + 1);
+        };
+
+        const canAddArtist = (artist: string, cap = 4) => {
+            return (perArtistCount.get(artist) || 0) < cap;
+        };
 
         // 1. Suggested Songs You Might Like (35% weight) - Based on liked songs
         for (const liked of likedSongs.slice(0, 15)) {
@@ -110,23 +128,29 @@ export async function GET(req: NextRequest) {
                 if (searchRes.ok) {
                     const results = await searchRes.json();
                     for (const result of results.slice(1, 4)) { // Skip first as it's likely the same song
+                        const artist = Array.isArray(result.artists)
+                            ? result.artists.join(", ")
+                            : result.artist || result.artists || "Unknown Artist";
+
                         if (
                             !recentlyPlayedIds.has(result.videoId) &&
                             !seenVideoIds.has(result.videoId) &&
-                            result.videoId !== liked.videoId
+                            result.videoId !== liked.videoId &&
+                            canAddArtist(artist, 5)
                         ) {
+                            // weight boosted by how recent the liked track is
+                            const recBoost = 0.6 + 0.4 * Math.exp(-likedSongs.indexOf(liked) / 10);
                             recommendations.push({
                                 videoId: result.videoId,
                                 title: result.title || "Unknown Title",
-                                artist: Array.isArray(result.artists)
-                                    ? result.artists.join(", ")
-                                    : result.artist || result.artists || "Unknown Artist",
+                                artist,
                                 thumbnail: pickBestThumb(result),
                                 duration: result.duration || "",
-                                score: 0.35,
+                                score: 0.35 * recBoost,
                                 reason: "You might like",
                             });
                             seenVideoIds.add(result.videoId);
+                            bumpArtist(artist);
                         }
                     }
                 }
@@ -136,7 +160,7 @@ export async function GET(req: NextRequest) {
         }
 
         // 2. Artists You Might Like (25% weight) - Discover new artists
-        for (const artist of topArtists.slice(0, 5)) {
+        for (const artist of topArtists.slice(0, 6)) {
             try {
                 const searchQuery = artist;
                 const searchRes = await fetch(
@@ -146,22 +170,28 @@ export async function GET(req: NextRequest) {
                 if (searchRes.ok) {
                     const results = await searchRes.json();
                     for (const result of results.slice(0, 3)) {
+                        const recArtist = Array.isArray(result.artists)
+                            ? result.artists.join(", ")
+                            : result.artist || result.artists || "Unknown Artist";
+
                         if (
                             !recentlyPlayedIds.has(result.videoId) &&
-                            !seenVideoIds.has(result.videoId)
+                            !seenVideoIds.has(result.videoId) &&
+                            canAddArtist(recArtist)
                         ) {
+                            const affinity = artistFrequency.get(artist) || 1;
+                            const normalization = Math.log10(affinity + 10);
                             recommendations.push({
                                 videoId: result.videoId,
                                 title: result.title || "Unknown Title",
-                                artist: Array.isArray(result.artists)
-                                    ? result.artists.join(", ")
-                                    : result.artist || result.artists || "Unknown Artist",
+                                artist: recArtist,
                                 thumbnail: pickBestThumb(result),
                                 duration: result.duration || "",
-                                score: 0.25,
+                                score: 0.22 * normalization,
                                 reason: `More from ${artist}`,
                             });
                             seenVideoIds.add(result.videoId);
+                            bumpArtist(recArtist);
                         }
                     }
                 }
@@ -171,7 +201,7 @@ export async function GET(req: NextRequest) {
         }
 
         // 3. Based on Recent Plays (20% weight) - Less weight now
-        const recentSongs = history.slice(0, 10); // Reduced from 20
+        const recentSongs = history.slice(0, 12);
         for (const song of recentSongs) {
             if (recentlyPlayedIds.has(song.videoId)) continue;
 
@@ -184,24 +214,29 @@ export async function GET(req: NextRequest) {
                 
                 if (searchRes.ok) {
                     const results = await searchRes.json();
-                    for (const result of results.slice(0, 2)) { // Reduced from 3
+                    for (const result of results.slice(0, 3)) {
+                        const artist = Array.isArray(result.artists)
+                            ? result.artists.join(", ")
+                            : result.artist || result.artists || "Unknown Artist";
+
                         if (
                             !recentlyPlayedIds.has(result.videoId) &&
                             !seenVideoIds.has(result.videoId) &&
-                            result.videoId !== song.videoId
+                            result.videoId !== song.videoId &&
+                            canAddArtist(artist)
                         ) {
+                            const recencyBoost = 0.5 + 0.5 * Math.exp(-recentSongs.indexOf(song) / 6);
                             recommendations.push({
                                 videoId: result.videoId,
                                 title: result.title || "Unknown Title",
-                                artist: Array.isArray(result.artists)
-                                    ? result.artists.join(", ")
-                                    : result.artist || result.artists || "Unknown Artist",
+                                artist,
                                 thumbnail: pickBestThumb(result),
                                 duration: result.duration || "",
-                                score: 0.2,
+                                score: 0.18 * recencyBoost,
                                 reason: `Because you played ${song.title}`,
                             });
                             seenVideoIds.add(result.videoId);
+                            bumpArtist(artist);
                         }
                     }
                 }
@@ -223,21 +258,23 @@ export async function GET(req: NextRequest) {
                 !recentlyPlayedIds.has(trending.videoId) &&
                 !seenVideoIds.has(trending.videoId)
             ) {
+                const popScore = Math.min(1, (trending.views || trending.popularity || 50) / 100);
                 recommendations.push({
                     videoId: trending.videoId,
                     title: trending.title || "Unknown Title",
                     artist: trendingArtist || "Unknown Artist",
                     thumbnail: pickBestThumb(trending),
                     duration: trending.duration || "",
-                    score: 0.15,
+                    score: 0.12 + 0.05 * popScore,
                     reason: "Trending in your style",
                 });
                 seenVideoIds.add(trending.videoId);
+                bumpArtist(trendingArtist);
             }
         }
 
         // 5. Fresh Discoveries (5% weight) - Random trending songs for variety
-        for (const trending of trendingSongs.slice(10, 30)) {
+        for (const trending of trendingSongs.slice(10, 40)) {
             if (
                 !recentlyPlayedIds.has(trending.videoId) &&
                 !seenVideoIds.has(trending.videoId)
@@ -250,7 +287,7 @@ export async function GET(req: NextRequest) {
                         : trending.artist || trending.artists || "Unknown Artist",
                     thumbnail: pickBestThumb(trending),
                     duration: trending.duration || "",
-                    score: 0.05,
+                    score: 0.05 + Math.random() * 0.05,
                     reason: "Fresh discoveries",
                 });
                 seenVideoIds.add(trending.videoId);
@@ -260,17 +297,19 @@ export async function GET(req: NextRequest) {
         }
 
         // Sort by score and return top recommendations
+        // Normalize scores for variety and add slight jitter for dynamism
         const sortedRecommendations = recommendations
+            .map(rec => ({ ...rec, score: rec.score * (0.95 + Math.random() * 0.1) }))
             .sort((a, b) => b.score - a.score)
-            .slice(0, 80); // Increased from 60
+            .slice(0, 90);
 
         // Group by reason with better distribution
         const groupedRecommendations = {
-            suggested: sortedRecommendations.filter(r => r.reason === "You might like").slice(0, 20),
+            suggested: sortedRecommendations.filter(r => r.reason === "You might like").slice(0, 24),
             artistsYouMightLike: sortedRecommendations.filter(r => r.reason.includes("More from")).slice(0, 20),
-            basedOnRecent: sortedRecommendations.filter(r => r.reason.includes("Because you played")).slice(0, 12),
+            basedOnRecent: sortedRecommendations.filter(r => r.reason.includes("Because you played")).slice(0, 14),
             trendingInYourStyle: sortedRecommendations.filter(r => r.reason === "Trending in your style").slice(0, 12),
-            freshDiscoveries: sortedRecommendations.filter(r => r.reason === "Fresh discoveries").slice(0, 16),
+            freshDiscoveries: sortedRecommendations.filter(r => r.reason === "Fresh discoveries").slice(0, 20),
         };
 
         return NextResponse.json({

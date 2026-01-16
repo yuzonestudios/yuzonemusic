@@ -281,65 +281,7 @@
     box-shadow: 0 0 12px rgba(0, 0, 0, 0.35);
 }
 
-@media (max-width: 768px) {
-    .card {
-        padding: 0.875rem;
-    }
-
-    .title {
-        font-size: 0.9rem;
-    }
-
-    .artist {
-        font-size: 0.75rem;
-    }
-
-    .actionBtn {
-        width: 30px;
-        height: 30px;
-    }
-
-    .playBtn {
-        width: 32px;
-        height: 32px;
-    }
-}
-
-@media (max-width: 480px) {
-    .card {
-        flex-direction: column;
-        gap: 0.5rem;
-        padding: 0.75rem;
-    }
-
-    .thumbnail {
-        width: 100%;
-        height: 200px;
-        aspect-ratio: 1;
-    }
-
-    .title {
-        font-size: 0.85rem;
-    }
-
-    .artist {
-        font-size: 0.7rem;
-    }
-
-    .duration {
-        font-size: 0.7rem;
-    }
-
-    .actionBtn {
-        width: 26px;
-        height: 26px;
-    }
-
-    .playBtn {
-        width: 26px;
-        height: 26px;
-    }
-}
+/* Mobile matches desktop layout to keep consistent card appearance */
 
 .actionBtn:active {
     transform: scale(0.95);

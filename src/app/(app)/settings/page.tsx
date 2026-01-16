@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTheme } from "@/context/ThemeContext";
@@ -38,7 +38,8 @@ export default function SettingsPage() {
         }
     }, [session]);
 
-    const handleSaveDisplayName = async () => {
+    const handleSaveDisplayName = async (e?: FormEvent) => {
+        if (e) e.preventDefault();
         if (!displayName.trim() || displayName.length < 2 || displayName.length > 50) {
             setSaveMessage("Display name must be between 2 and 50 characters");
             return;
@@ -57,6 +58,8 @@ export default function SettingsPage() {
             const data = await res.json();
 
             if (data.success) {
+                const updated = displayName.trim();
+                setDisplayName(updated);
                 setSaveMessage("Display name updated successfully!");
                 setIsEditingName(false);
                 setTimeout(() => setSaveMessage(""), 3000);
@@ -125,7 +128,10 @@ export default function SettingsPage() {
                             className={styles.avatar}
                         />
                         <div className={styles.profileInfo}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
+                            <form
+                                onSubmit={handleSaveDisplayName}
+                                style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem", width: "100%" }}
+                            >
                                 {isEditingName ? (
                                     <>
                                         <input
@@ -135,15 +141,18 @@ export default function SettingsPage() {
                                             className={styles.nameInput}
                                             placeholder="Enter display name"
                                             maxLength={50}
+                                            inputMode="text"
+                                            autoComplete="name"
                                         />
                                         <button 
-                                            onClick={handleSaveDisplayName}
+                                            type="submit"
                                             disabled={isSaving}
                                             className={styles.saveBtn}
                                         >
                                             {isSaving ? "Saving..." : "Save"}
                                         </button>
                                         <button 
+                                            type="button"
                                             onClick={() => {
                                                 setIsEditingName(false);
                                                 setDisplayName(session.user?.name || "");
@@ -158,6 +167,7 @@ export default function SettingsPage() {
                                     <>
                                         <p className={styles.name}>{displayName || session.user?.name}</p>
                                         <button 
+                                            type="button"
                                             onClick={() => setIsEditingName(true)}
                                             className={styles.editBtn}
                                             title="Edit display name"
@@ -169,7 +179,7 @@ export default function SettingsPage() {
                                         </button>
                                     </>
                                 )}
-                            </div>
+                            </form>
                             {saveMessage && (
                                 <p className={`${styles.message} ${saveMessage.includes("success") ? styles.success : styles.error}`}>
                                     {saveMessage}

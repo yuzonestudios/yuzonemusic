@@ -423,6 +423,7 @@
     cursor: pointer;
     transition: all var(--transition-fast);
     white-space: nowrap;
+    touch-action: manipulation;
 }
 
 .saveBtn:hover:not(:disabled) {
@@ -446,6 +447,7 @@
     cursor: pointer;
     transition: all var(--transition-fast);
     white-space: nowrap;
+    touch-action: manipulation;
 }
 
 .cancelBtn:hover {

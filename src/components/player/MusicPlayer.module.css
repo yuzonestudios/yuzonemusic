@@ -540,12 +540,6 @@
         display: none;
     }
 
-    .controlBtn.secondary:last-child {
-        display: flex;
-        width: 36px;
-        height: 36px;
-    }
-
     .controlBtn.primary {
         width: 44px;
         height: 44px;

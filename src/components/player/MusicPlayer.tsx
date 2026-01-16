@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties, type MouseEvent } from "react";
 import Image from "next/image";
 import { Download, Heart, Maximize, ListPlus, ListMusic, X, GripVertical } from "lucide-react";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -50,6 +50,7 @@ export default function MusicPlayer() {
     const [isLiked, setIsLiked] = useState(false);
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
     const [isQueueOpen, setIsQueueOpen] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -58,6 +59,15 @@ export default function MusicPlayer() {
             },
         })
     );
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        const media = window.matchMedia("(max-width: 768px)");
+        const handleChange = () => setIsMobile(media.matches);
+        handleChange();
+        media.addEventListener("change", handleChange);
+        return () => media.removeEventListener("change", handleChange);
+    }, []);
 
     // Store the seek function in the store for FullscreenPlayer to use
     useEffect(() => {
@@ -68,6 +78,13 @@ export default function MusicPlayer() {
     const handleSeek = (time: number) => {
         seek(time);
         seekTo(time);
+    };
+
+    const handlePlayerTap = (event: MouseEvent<HTMLElement>) => {
+        if (!isMobile || !currentSong) return;
+        const target = event.target as HTMLElement;
+        if (target.closest("button") || target.closest("a") || target.closest("input")) return;
+        openFullscreen();
     };
 
     // Track song play in history & Check Like Status
@@ -265,7 +282,7 @@ export default function MusicPlayer() {
     };
 
     return (
-        <footer className={styles.player}>
+        <footer className={styles.player} onClick={handlePlayerTap}>
             {/* Song Info */}
             <div className={styles.songInfo}>
                 {currentSong ? (
