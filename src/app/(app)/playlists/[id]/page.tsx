@@ -154,16 +154,18 @@ export default function PlaylistDetailPage() {
 
     const handlePlayPlaylist = () => {
         if (playlist && playlist.songs.length > 0) {
-            setQueue(playlist.songs);
-            setCurrentSong(playlist.songs[0]);
+            const sorted = [...playlist.songs].sort((a, b) => (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase()));
+            setQueue(sorted);
+            setCurrentSong(sorted[0]);
             play();
         }
     };
 
     const handleShufflePlay = () => {
         if (playlist && playlist.songs.length > 0) {
-            setQueue(playlist.songs);
-            setCurrentSong(playlist.songs[0]);
+            const sorted = [...playlist.songs].sort((a, b) => (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase()));
+            setQueue(sorted);
+            setCurrentSong(sorted[0]);
             toggleShuffle();
             play();
         }
@@ -351,19 +353,21 @@ export default function PlaylistDetailPage() {
                     <>
                         <h2 className={styles.sectionTitle}>Songs</h2>
                         <div className={styles.songGrid}>
-                            {[...playlist.songs]
-                                .sort((a, b) => (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase()))
-                                .map((song, index) => (
-                                <SongCard
-                                    key={`${song.videoId}-${index}`}
-                                    song={song}
-                                    songs={playlist.songs}
-                                    index={index}
-                                    onLike={handleLike}
-                                    isLiked={likedSongIds.has(song.videoId)}
-                                    hideAddToPlaylist={true}
-                                />
-                            ))}
+                            {(() => {
+                                const sortedSongs = [...playlist.songs]
+                                    .sort((a, b) => (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase()));
+                                return sortedSongs.map((song, index) => (
+                                    <SongCard
+                                        key={`${song.videoId}-${index}`}
+                                        song={song}
+                                        songs={sortedSongs}
+                                        index={index}
+                                        onLike={handleLike}
+                                        isLiked={likedSongIds.has(song.videoId)}
+                                        hideAddToPlaylist={true}
+                                    />
+                                ));
+                            })()}
                         </div>
                     </>
                 ) : (
