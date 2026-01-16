@@ -165,9 +165,53 @@
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .songGrid {
-        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .songGrid :global(.card) {
+        border-radius: 0 !important;
+        border-left: none !important;
+        border-right: none !important;
+        border-top: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        background: transparent !important;
+        padding: 0.75rem 1rem !important;
+        flex-direction: row !important;
+        gap: 1rem !important;
+    }
+
+    .songGrid :global(.thumbnail) {
+        width: 48px !important;
+        height: 48px !important;
+        border-radius: 4px !important;
+    }
+
+    .songGrid :global(.info) {
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+
+    .songGrid :global(.title) {
+        font-size: 0.95rem !important;
+        -webkit-line-clamp: 1 !important;
+    }
+
+    .songGrid :global(.artist) {
+        font-size: 0.8rem !important;
+    }
+
+    .songGrid :global(.duration) {
+        font-size: 0.8rem !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+
+    .songGrid :global(.actions) {
+        gap: 0.5rem !important;
     }
 }
 

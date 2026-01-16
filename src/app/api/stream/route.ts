@@ -6,8 +6,6 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
         const videoId = searchParams.get("id");
 
-        console.log(`[StreamAPI] Request for videoId: ${videoId}`);
-
         if (!videoId) {
             return NextResponse.json(
                 { success: false, error: "Video ID is required" },
@@ -18,7 +16,6 @@ export async function GET(request: NextRequest) {
         // Try External API First (as requested by user)
         try {
             const externalApiUrl = "https://api.yuzone.me/download";
-            console.log(`[StreamAPI] Trying external API for ${videoId}`);
 
             const response = await fetch(externalApiUrl, {
                 method: "POST",
@@ -32,13 +29,9 @@ export async function GET(request: NextRequest) {
                 cache: 'no-store'
             });
 
-            console.log(`[StreamAPI] External API response status: ${response.status}`);
-
             if (response.ok) {
                 const contentType = response.headers.get("Content-Type") || "audio/mpeg";
                 const contentLength = response.headers.get("Content-Length");
-
-                console.log(`[StreamAPI] External API success: ${contentType} (${contentLength} bytes)`);
 
                 const responseHeaders = new Headers();
                 responseHeaders.set("Content-Type", contentType);
@@ -63,8 +56,6 @@ export async function GET(request: NextRequest) {
         }
 
         // Fallback to Internal Proxy
-        console.log(`[StreamAPI] Falling back to internal proxy for ${videoId}`);
-        
         const rangeHeader = request.headers.get("range");
         const headers: Record<string, string> = {};
         if (rangeHeader) {
@@ -80,8 +71,6 @@ export async function GET(request: NextRequest) {
                 { status: proxyResponse?.status || 500 }
             );
         }
-
-        console.log(`[StreamAPI] Internal proxy success for ${videoId}`);
 
         const responseHeaders = new Headers();
         responseHeaders.set("Content-Type", proxyResponse.headers.get("Content-Type") || "audio/mp4");

@@ -216,11 +216,12 @@ export default function FullscreenPlayer() {
                     {currentSong ? (
                         <div className={styles.albumArt}>
                             <Image
-                                src={currentSong.thumbnail}
+                                src={currentSong.thumbnail.replace(/=w\d+-h\d+/, '=w720-h720')}
                                 alt={currentSong.title}
-                                width={300}
-                                height={300}
+                                width={720}
+                                height={720}
                                 priority
+                                quality={95}
                                 className={styles.albumImage}
                             />
                             <div className={`${styles.albumGlow} ${isPlaying ? styles.playing : ""}`} />

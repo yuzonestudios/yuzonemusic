@@ -34,12 +34,6 @@ export default function SongCard({
     const isCurrentSong = currentSong?.videoId === song.videoId;
 
     const handlePlay = () => {
-        console.log('[SongCard] Play button clicked', { 
-            song: song.title, 
-            isCurrentSong, 
-            hasSongs: !!songs 
-        });
-        
         if (isCurrentSong) {
             togglePlay();
         } else if (songs && songs.length > 0) {

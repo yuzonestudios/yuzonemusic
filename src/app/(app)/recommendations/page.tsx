@@ -137,11 +137,12 @@ export default function RecommendationsPage() {
                         <section className={styles.section}>
                             <h2 className={styles.sectionTitle}>Songs You Might Like</h2>
                             <div className={styles.grid}>
-                                {recommendations.suggested.map((song) => (
+                                {recommendations.suggested.map((song, index) => (
                                     <SongCard
                                         key={song.videoId}
                                         song={song}
                                         songs={recommendations.suggested}
+                                        index={index}
                                     />
                                 ))}
                             </div>
@@ -152,11 +153,12 @@ export default function RecommendationsPage() {
                         <section className={styles.section}>
                             <h2 className={styles.sectionTitle}>Artists You Might Like</h2>
                             <div className={styles.grid}>
-                                {recommendations.artistsYouMightLike.map((song) => (
+                                {recommendations.artistsYouMightLike.map((song, index) => (
                                     <SongCard
                                         key={song.videoId}
                                         song={song}
                                         songs={recommendations.artistsYouMightLike}
+                                        index={index}
                                     />
                                 ))}
                             </div>
@@ -167,11 +169,12 @@ export default function RecommendationsPage() {
                         <section className={styles.section}>
                             <h2 className={styles.sectionTitle}>Because You Played</h2>
                             <div className={styles.grid}>
-                                {recommendations.basedOnRecent.map((song) => (
+                                {recommendations.basedOnRecent.map((song, index) => (
                                     <SongCard
                                         key={song.videoId}
                                         song={song}
                                         songs={recommendations.basedOnRecent}
+                                        index={index}
                                     />
                                 ))}
                             </div>
@@ -182,11 +185,12 @@ export default function RecommendationsPage() {
                         <section className={styles.section}>
                             <h2 className={styles.sectionTitle}>Trending In Your Style</h2>
                             <div className={styles.grid}>
-                                {recommendations.trendingInYourStyle.map((song) => (
+                                {recommendations.trendingInYourStyle.map((song, index) => (
                                     <SongCard
                                         key={song.videoId}
                                         song={song}
                                         songs={recommendations.trendingInYourStyle}
+                                        index={index}
                                     />
                                 ))}
                             </div>
@@ -197,11 +201,12 @@ export default function RecommendationsPage() {
                         <section className={styles.section}>
                             <h2 className={styles.sectionTitle}>Fresh Discoveries</h2>
                             <div className={styles.grid}>
-                                {recommendations.freshDiscoveries.map((song) => (
+                                {recommendations.freshDiscoveries.map((song, index) => (
                                     <SongCard
                                         key={song.videoId}
                                         song={song}
                                         songs={recommendations.freshDiscoveries}
+                                        index={index}
                                     />
                                 ))}
                             </div>
