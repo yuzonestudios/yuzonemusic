@@ -34,6 +34,7 @@ export default function FullscreenPlayer() {
         repeat,
         shuffle,
         isFullscreenOpen,
+        playbackSpeed,
         togglePlay,
         nextSong,
         previousSong,
@@ -42,6 +43,7 @@ export default function FullscreenPlayer() {
         toggleRepeat,
         toggleShuffle,
         closeFullscreen,
+        setPlaybackSpeed,
     } = usePlayerStore();
 
     const [isLiked, setIsLiked] = useState(false);
@@ -51,6 +53,7 @@ export default function FullscreenPlayer() {
     const [lyricsLoading, setLyricsLoading] = useState(false);
     const [lyricsError, setLyricsError] = useState<string | null>(null);
     const [showLyrics, setShowLyrics] = useState(false);
+    const [showSpeedMenu, setShowSpeedMenu] = useState(false);
 
     useEffect(() => {
         if (!isFullscreenOpen) return;
@@ -398,6 +401,33 @@ export default function FullscreenPlayer() {
                         className={styles.volumeSlider}
                     />
                     <span className={styles.volumeValue}>{Math.round(volume * 100)}%</span>
+                </div>
+
+                {/* Playback Speed Control */}
+                <div className={styles.speedSection}>
+                    <button 
+                        className={styles.speedBtn}
+                        onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+                        title="Playback Speed"
+                    >
+                        {playbackSpeed}x
+                    </button>
+                    {showSpeedMenu && (
+                        <div className={styles.speedMenu}>
+                            {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+                                <button
+                                    key={speed}
+                                    className={`${styles.speedOption} ${playbackSpeed === speed ? styles.active : ''}`}
+                                    onClick={() => {
+                                        setPlaybackSpeed(speed);
+                                        setShowSpeedMenu(false);
+                                    }}
+                                >
+                                    {speed}x
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {currentSong && (

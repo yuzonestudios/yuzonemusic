@@ -491,6 +491,98 @@
     text-align: right;
 }
 
+/* Playback Speed Section */
+.speedSection {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+    animation: fadeIn 0.6s ease-out 0.35s both;
+}
+
+.speedBtn {
+    padding: 0.5rem 1.25rem;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.speedBtn:hover {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.speedMenu {
+    position: absolute;
+    bottom: calc(100% + 0.5rem);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    min-width: 100px;
+    animation: slideUpMenu 0.2s ease-out;
+}
+
+@keyframes slideUpMenu {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.speedOption {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: none;
+}
+
+.speedOption:hover {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--text-primary);
+}
+
+.speedOption.active {
+    background: var(--accent-gradient);
+    color: white;
+    font-weight: 600;
+}
+
+@media (max-width: 480px) {
+    .speedSection {
+        margin-top: 0.75rem;
+    }
+
+    .speedBtn {
+        padding: 0.4rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
 /* Secondary Controls */
 .secondaryControls {
     display: flex;

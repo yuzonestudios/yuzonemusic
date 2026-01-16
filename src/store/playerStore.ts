@@ -15,6 +15,7 @@ interface PlayerState {
     isFullscreenOpen: boolean;
     isLoading: boolean;
     loadingMessage: string;
+    playbackSpeed: number;
 
     // Actions
     setCurrentSong: (song: Song) => void;
@@ -36,6 +37,7 @@ interface PlayerState {
     closeFullscreen: () => void;
     setLoading: (isLoading: boolean, message?: string) => void;
     ensurePlayback: () => void;
+    setPlaybackSpeed: (speed: number) => void;
 }
 
 export const usePlayerStore = create<PlayerState>()(
@@ -53,6 +55,7 @@ export const usePlayerStore = create<PlayerState>()(
             isFullscreenOpen: false,
             isLoading: false,
             loadingMessage: "Loading...",
+            playbackSpeed: 1,
 
             setCurrentSong: (song: Song) => {
                 const { queue } = get();
@@ -195,6 +198,15 @@ export const usePlayerStore = create<PlayerState>()(
         }),
         {
             name: "yuzone-player",
+            setPlaybackSpeed: (speed: number) => {
+                set({ playbackSpeed: speed });
+                if (typeof window !== "undefined") {
+                    const audio = (window as any).__yuzoneAudio as HTMLAudioElement | undefined;
+                    if (audio) {
+                        audio.playbackRate = speed;
+                    }
+                }
+            },
             partialize: (state) => ({
                 currentSong: state.currentSong,
                 queue: state.queue,
@@ -202,6 +214,7 @@ export const usePlayerStore = create<PlayerState>()(
                 volume: state.volume,
                 repeat: state.repeat,
                 shuffle: state.shuffle,
+                playbackSpeed: state.playbackSpeed,
             }),
         }
     )
