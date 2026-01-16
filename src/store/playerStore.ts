@@ -93,10 +93,16 @@ export const usePlayerStore = create<PlayerState>()(
             seekTo: (time: number) => set({ currentTime: time }),
 
             nextSong: () => {
-                const { queue, queueIndex, repeat, shuffle } = get();
+                const { queue, queueIndex, repeat, shuffle, currentSong } = get();
                 if (queue.length === 0) return;
 
-                const safeIndex = Math.min(Math.max(0, queueIndex), queue.length - 1);
+                // Align to the actual current song position when index drifts (e.g., after reordering)
+                const currentIdx = currentSong
+                    ? queue.findIndex((s) => s.videoId === currentSong.videoId)
+                    : -1;
+                const baseIndex = currentIdx >= 0 ? currentIdx : queueIndex;
+                const safeIndex = Math.min(Math.max(0, baseIndex), queue.length - 1);
+
                 let nextIndex: number;
 
                 if (shuffle) {
@@ -129,7 +135,7 @@ export const usePlayerStore = create<PlayerState>()(
             },
 
             previousSong: () => {
-                const { queue, queueIndex, currentTime } = get();
+                const { queue, queueIndex, currentTime, currentSong } = get();
                 if (queue.length === 0) return;
 
                 // If more than 3 seconds into song, restart it
@@ -138,7 +144,11 @@ export const usePlayerStore = create<PlayerState>()(
                     return;
                 }
 
-                const safeIndex = Math.min(Math.max(0, queueIndex), queue.length - 1);
+                const currentIdx = currentSong
+                    ? queue.findIndex((s) => s.videoId === currentSong.videoId)
+                    : -1;
+                const baseIndex = currentIdx >= 0 ? currentIdx : queueIndex;
+                const safeIndex = Math.min(Math.max(0, baseIndex), queue.length - 1);
                 const prevIndex = safeIndex - 1;
                 if (prevIndex < 0) {
                     set({ currentTime: 0 });
