@@ -54,7 +54,7 @@ export default function PlaylistDetailPage() {
     });
     const [shareModal, setShareModal] = useState({ isOpen: false, contentId: "", contentName: "" });
     
-    const { setQueue, setCurrentSong, play, toggleShuffle } = usePlayerStore();
+    const { setQueue, setCurrentSong, play, toggleShuffle, ensurePlayback } = usePlayerStore();
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -158,6 +158,7 @@ export default function PlaylistDetailPage() {
             setQueue(sorted);
             setCurrentSong(sorted[0]);
             play();
+            ensurePlayback();
         }
     };
 
@@ -168,6 +169,7 @@ export default function PlaylistDetailPage() {
             setCurrentSong(sorted[0]);
             toggleShuffle();
             play();
+            ensurePlayback();
         }
     };
 

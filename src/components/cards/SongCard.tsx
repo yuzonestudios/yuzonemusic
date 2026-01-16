@@ -27,7 +27,7 @@ export default function SongCard({
     isLiked = false,
     hideAddToPlaylist = false,
 }: SongCardProps) {
-    const { currentSong, setQueue, isPlaying, togglePlay, setCurrentSong, play } = usePlayerStore();
+    const { currentSong, setQueue, isPlaying, togglePlay, setCurrentSong, play, ensurePlayback } = usePlayerStore();
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
     const [addedToPlaylist, setAddedToPlaylist] = useState(false);
 
@@ -39,9 +39,11 @@ export default function SongCard({
         } else if (songs && songs.length > 0) {
             setQueue(songs, index);
             play();
+            ensurePlayback();
         } else {
             setCurrentSong(song);
             play();
+            ensurePlayback();
         }
     };
 

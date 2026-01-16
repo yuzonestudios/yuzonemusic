@@ -72,13 +72,14 @@ export default function LandingPage() {
                     <Scene />
                 </Canvas>
             </div>
+            <div className={styles.gradientOverlay} aria-hidden />
 
             {/* Content Overlay */}
             <main className={styles.main}>
                 <nav className={styles.nav}>
                     <div className={styles.logo}>
                         <Music className="w-8 h-8 text-cyan-400" />
-                        <span className="font-bold text-xl tracking-wider">YUZONE</span>
+                        <span className={styles.logoText}>YUZONE</span>
                     </div>
                     <Link href="/login" className={styles.loginBtn}>
                         Sign In

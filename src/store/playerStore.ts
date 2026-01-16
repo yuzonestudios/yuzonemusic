@@ -35,6 +35,7 @@ interface PlayerState {
     openFullscreen: () => void;
     closeFullscreen: () => void;
     setLoading: (isLoading: boolean, message?: string) => void;
+    ensurePlayback: () => void;
 }
 
 export const usePlayerStore = create<PlayerState>()(
@@ -178,6 +179,20 @@ export const usePlayerStore = create<PlayerState>()(
             closeFullscreen: () => set({ isFullscreenOpen: false }),
             setLoading: (isLoading: boolean, message = "Loading...") =>
                 set({ isLoading, loadingMessage: message }),
+
+            // Best-effort attempt to resume the HTMLAudioElement in response to a user gesture
+            ensurePlayback: () => {
+                if (typeof window === "undefined") return;
+                const audio = (window as any).__yuzoneAudio as HTMLAudioElement | undefined;
+                if (!audio) return;
+
+                audio
+                    .play()
+                    .catch((err) => {
+                        // Browser can reject when autoplay is blocked; we just log for debugging
+                        console.warn("Playback was blocked, retrying later", err?.message || err);
+                    });
+            },
         }),
         {
             name: "yuzone-player",
