@@ -351,7 +351,9 @@ export default function PlaylistDetailPage() {
                     <>
                         <h2 className={styles.sectionTitle}>Songs</h2>
                         <div className={styles.songGrid}>
-                            {playlist.songs.map((song, index) => (
+                            {[...playlist.songs]
+                                .sort((a, b) => (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase()))
+                                .map((song, index) => (
                                 <SongCard
                                     key={`${song.videoId}-${index}`}
                                     song={song}

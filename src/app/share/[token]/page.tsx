@@ -92,6 +92,11 @@ export default function SharePage() {
             }
         };
 
+        // Sort songs alphabetically by title
+        const sortedSongs = [...playlist.songs].sort((a, b) => 
+            (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase())
+        );
+
         return (
             <div className={`${styles.container}`}>
                 <div className={`${styles.header} glass-panel`}>
@@ -119,7 +124,7 @@ export default function SharePage() {
                         <p className={styles.empty}>No songs in this playlist</p>
                     ) : (
                         <div className={styles.songsList}>
-                            {playlist.songs.map(
+                            {sortedSongs.map(
                                 (song: any, index: number) => (
                                     <div key={song.videoId} className={styles.songItem}>
                                         <button
@@ -133,7 +138,6 @@ export default function SharePage() {
                                                 <Play size={16} fill="currentColor" />
                                             )}
                                         </button>
-        console.log("Rendering song with data:", song);
                                         <div className={styles.songNumber}>{index + 1}</div>
                                         {song.thumbnail && (
                                             <img
