@@ -4,7 +4,6 @@ export interface IUser extends Document {
     _id: mongoose.Types.ObjectId;
     email: string;
     name: string;
-    displayName?: string;
     image?: string;
     googleId: string;
     theme: string;
@@ -22,9 +21,6 @@ const UserSchema = new Schema<IUser>(
         name: {
             type: String,
             required: true,
-        },
-        displayName: {
-            type: String,
         },
         image: {
             type: String,

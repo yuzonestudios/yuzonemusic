@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTheme } from "@/context/ThemeContext";
@@ -10,63 +9,6 @@ import styles from "./settings.module.css";
 export default function SettingsPage() {
     const { data: session, status } = useSession();
     const { theme, setTheme } = useTheme();
-    const [displayName, setDisplayName] = useState("");
-    const [isEditingName, setIsEditingName] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    const [saveMessage, setSaveMessage] = useState("");
-
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const res = await fetch("/api/user/profile");
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.success) {
-                        setDisplayName(data.user.displayName || data.user.name);
-                    }
-                }
-            } catch (error) {
-                console.error("Failed to fetch profile:", error);
-            }
-        };
-
-        if (session) {
-            fetchProfile();
-        }
-    }, [session]);
-
-    const handleSaveDisplayName = async () => {
-        if (!displayName.trim() || displayName.length < 2 || displayName.length > 50) {
-            setSaveMessage("Display name must be between 2 and 50 characters");
-            return;
-        }
-
-        setIsSaving(true);
-        setSaveMessage("");
-
-        try {
-            const res = await fetch("/api/user/profile", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ displayName: displayName.trim() }),
-            });
-
-            const data = await res.json();
-
-            if (data.success) {
-                setSaveMessage("Display name updated successfully!");
-                setIsEditingName(false);
-                setTimeout(() => setSaveMessage(""), 3000);
-            } else {
-                setSaveMessage(data.error || "Failed to update display name");
-            }
-        } catch (error) {
-            console.error("Error updating display name:", error);
-            setSaveMessage("An error occurred. Please try again.");
-        } finally {
-            setIsSaving(false);
-        }
-    };
 
     if (status === "loading") {
         return <div className="flex justify-center p-12"><LoadingSpinner size="large" /></div>;
@@ -90,56 +32,7 @@ export default function SettingsPage() {
                             className={styles.avatar}
                         />
                         <div className={styles.profileInfo}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-                                {isEditingName ? (
-                                    <>
-                                        <input
-                                            type="text"
-                                            value={displayName}
-                                            onChange={(e) => setDisplayName(e.target.value)}
-                                            className={styles.nameInput}
-                                            placeholder="Enter display name"
-                                            maxLength={50}
-                                        />
-                                        <button 
-                                            onClick={handleSaveDisplayName}
-                                            disabled={isSaving}
-                                            className={styles.saveBtn}
-                                        >
-                                            {isSaving ? "Saving..." : "Save"}
-                                        </button>
-                                        <button 
-                                            onClick={() => {
-                                                setIsEditingName(false);
-                                                setDisplayName(session.user?.name || "");
-                                                setSaveMessage("");
-                                            }}
-                                            className={styles.cancelBtn}
-                                        >
-                                            Cancel
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <p className={styles.name}>{displayName || session.user?.name}</p>
-                                        <button 
-                                            onClick={() => setIsEditingName(true)}
-                                            className={styles.editBtn}
-                                            title="Edit display name"
-                                        >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                            </svg>
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                            {saveMessage && (
-                                <p className={`${styles.message} ${saveMessage.includes("success") ? styles.success : styles.error}`}>
-                                    {saveMessage}
-                                </p>
-                            )}
+                            <p className={styles.name}>{session.user?.name}</p>
                             <p className={styles.email}>{session.user?.email}</p>
                         </div>
                     </div>
