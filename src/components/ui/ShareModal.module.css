@@ -94,6 +94,12 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
+.select option {
+    background: #0f0f12;
+    color: #fff;
+    font-weight: 500;
+}
+
 .select:hover {
     border-color: rgba(255, 255, 255, 0.6);
     background: rgba(255, 255, 255, 0.12);

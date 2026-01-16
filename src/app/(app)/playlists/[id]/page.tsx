@@ -9,6 +9,7 @@ import SongCard from "@/components/cards/SongCard";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { usePlayerStore } from "@/store/playerStore";
 import type { Song as GlobalSong } from "@/types";
+import ShareModal from "@/components/ui/ShareModal";
 import styles from "./playlist-detail.module.css";
 
 interface Song {
@@ -51,6 +52,8 @@ export default function PlaylistDetailPage() {
         message: "",
         onConfirm: () => {},
     });
+    const [shareModal, setShareModal] = useState({ isOpen: false, contentId: "", contentName: "" });
+    const [shareModal, setShareModal] = useState({ isOpen: false, contentId: "", contentName: "" });
     
     const { setQueue, setCurrentSong, play, toggleShuffle } = usePlayerStore();
 
@@ -165,36 +168,6 @@ export default function PlaylistDetailPage() {
             toggleShuffle();
             play();
         }
-    };
-
-    const handleShare = async () => {
-        const shareUrl = `${window.location.origin}/shared/playlist/${playlistId}`;
-        
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: playlist?.name || "Check out this playlist",
-                    text: `Listen to "${playlist?.name}" on Yuzone Music`,
-                    url: shareUrl,
-                });
-            } catch (err) {
-                // User cancelled or share failed
-                copyToClipboard(shareUrl);
-            }
-        } else {
-            copyToClipboard(shareUrl);
-        }
-    };
-
-    const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text).then(() => {
-            setConfirmDialog({
-                isOpen: true,
-                title: "Link Copied!",
-                message: "Playlist link copied to clipboard. Share it with your friends!",
-                onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false }),
-            });
-        });
     };
 
     const handleDeletePlaylist = async () => {
@@ -358,7 +331,7 @@ export default function PlaylistDetailPage() {
                         </button>
                         <button
                             className={styles.secondaryBtn}
-                            onClick={handleShare}
+                            onClick={() => setShareModal({ isOpen: true, contentId: playlistId, contentName: playlist.name })}
                         >
                             <Share2 size={18} />
                             Share
@@ -401,14 +374,22 @@ export default function PlaylistDetailPage() {
                         <p>Add songs to this playlist from any song card</p>
                     </div>
                 )}
-            </div>
-
             <ConfirmDialog
                 isOpen={confirmDialog.isOpen}
                 title={confirmDialog.title}
                 message={confirmDialog.message}
-                confirmText={confirmDialog.title === "Error" ? "OK" : "Delete"}
                 onConfirm={confirmDialog.onConfirm}
+                onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+            />
+
+            {shareModal.isOpen && (
+                <ShareModal
+                    contentType="playlist"
+                    contentId={shareModal.contentId}
+                    contentName={shareModal.contentName}
+                    onClose={() => setShareModal({ isOpen: false, contentId: "", contentName: "" })}
+                />
+            )}
                 onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
                 variant={confirmDialog.title === "Error" ? "info" : "warning"}
             />
