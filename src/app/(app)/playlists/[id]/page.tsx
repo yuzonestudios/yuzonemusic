@@ -380,7 +380,6 @@ export default function PlaylistDetailPage() {
                 title={confirmDialog.title}
                 message={confirmDialog.message}
                 onConfirm={confirmDialog.onConfirm}
-                onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
                 onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
                 variant={confirmDialog.title === "Error" ? "info" : "warning"}
             />
