@@ -176,6 +176,18 @@
     transform: translateY(-2px);
 }
 
+.shareBtn {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.shareBtn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.24);
+    transform: translateY(-2px);
+}
+
 .emptyPlaylist {
     padding: 2rem;
     text-align: center;

@@ -1,84 +1,14 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import ShareModal from "@/components/ui/ShareModal";
 import { useTheme } from "@/context/ThemeContext";
 import styles from "./settings.module.css";
-
-interface Playlist {
-    _id: string;
-    name: string;
-    songCount: number;
-}
-
-interface LikedSong {
-    videoId: string;
-    title: string;
-    artist: string;
-}
 
 export default function SettingsPage() {
     const { data: session, status } = useSession();
     const { theme, setTheme } = useTheme();
-    const [playlists, setPlaylists] = useState<Playlist[]>([]);
-    const [likedSongs, setLikedSongs] = useState<LikedSong[]>([]);
-    const [loadingPlaylists, setLoadingPlaylists] = useState(false);
-    const [shareModal, setShareModal] = useState<{
-        isOpen: boolean;
-        contentType: "playlist" | "song";
-        contentId: string;
-        contentName: string;
-    }>({ isOpen: false, contentType: "playlist", contentId: "", contentName: "" });
-
-    useEffect(() => {
-        if (session?.user?.email) {
-            fetchPlaylists();
-            fetchLikedSongs();
-        }
-    }, [session?.user?.email]);
-
-    const fetchPlaylists = async () => {
-        setLoadingPlaylists(true);
-        try {
-            const response = await fetch("/api/playlists");
-            const data = await response.json();
-            if (data.success) {
-                setPlaylists(data.playlists || []);
-            }
-        } catch (error) {
-            console.error("Error fetching playlists:", error);
-        } finally {
-            setLoadingPlaylists(false);
-        }
-    };
-
-    const fetchLikedSongs = async () => {
-        try {
-            const response = await fetch("/api/liked");
-            const data = await response.json();
-            if (data.success) {
-                setLikedSongs(data.songs || []);
-            }
-        } catch (error) {
-            console.error("Error fetching liked songs:", error);
-        }
-    };
-
-    const openShareModal = (
-        contentType: "playlist" | "song",
-        contentId: string,
-        contentName: string
-    ) => {
-        setShareModal({
-            isOpen: true,
-            contentType,
-            contentId,
-            contentName,
-        });
-    };
 
     if (status === "loading") {
         return <div className="flex justify-center p-12"><LoadingSpinner size="large" /></div>;
@@ -144,90 +74,7 @@ export default function SettingsPage() {
                         </div>
                     </div>
                 </div>
-
-                <div className={`glass-panel ${styles.section}`}>
-                    <h2 className={styles.sectionHeader}>Share</h2>
-                    <p className={styles.shareDescription}>
-                        Share your playlists and liked songs with others without requiring them to log in.
-                    </p>
-
-                    <div className={styles.shareSection}>
-                        <h3 className={styles.subsectionTitle}>Your Playlists</h3>
-                        
-                        {loadingPlaylists ? (
-                            <LoadingSpinner size="small" />
-                        ) : playlists.length === 0 ? (
-                            <p className={styles.emptyState}>No playlists yet</p>
-                        ) : (
-                            <div className={styles.shareList}>
-                                {playlists.map((playlist) => (
-                                    <div key={playlist._id} className={styles.shareItem}>
-                                        <div className={styles.shareItemInfo}>
-                                            <p className={styles.shareItemName}>{playlist.name}</p>
-                                            <p className={styles.shareItemMeta}>
-                                                {playlist.songCount} {playlist.songCount === 1 ? "song" : "songs"}
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={() =>
-                                                openShareModal("playlist", playlist._id, playlist.name)
-                                            }
-                                            className={styles.shareButton}
-                                        >
-                                            <span>Share</span>
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className={styles.shareSection}>
-                        <h3 className={styles.subsectionTitle}>Your Liked Songs</h3>
-                        {likedSongs.length === 0 ? (
-                            <p className={styles.emptyState}>No liked songs yet</p>
-                        ) : (
-                            <div className={styles.shareList}>
-                                {likedSongs.slice(0, 5).map((song) => (
-                                    <div key={song.videoId} className={styles.shareItem}>
-                                        <div className={styles.shareItemInfo}>
-                                            <p className={styles.shareItemName}>{song.title}</p>
-                                            <p className={styles.shareItemMeta}>{song.artist}</p>
-                                        </div>
-                                        <button
-                                            onClick={() =>
-                                                openShareModal("song", song.videoId, song.title)
-                                            }
-                                            className={styles.shareButton}
-                                        >
-                                            <span>Share</span>
-                                        </button>
-                                    </div>
-                                ))}
-                                {likedSongs.length > 5 && (
-                                    <p className={styles.moreItems}>
-                                        +{likedSongs.length - 5} more liked songs
-                                    </p>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
             </div>
-
-            {shareModal.isOpen && (
-                <ShareModal
-                    contentType={shareModal.contentType}
-                    contentId={shareModal.contentId}
-                    contentName={shareModal.contentName}
-                    onClose={() =>
-                        setShareModal({
-                            ...shareModal,
-                            isOpen: false,
-                        })
-                    }
-                />
-            )}
         </div>
     );
 }

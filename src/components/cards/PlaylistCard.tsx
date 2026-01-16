@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Music, Play, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Music, Play, Trash2, Share } from "lucide-react";
+import ShareModal from "@/components/ui/ShareModal";
 import styles from "./PlaylistCard.module.css";
 
 interface PlaylistCardProps {
@@ -20,6 +22,7 @@ interface PlaylistCardProps {
 
 export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCardProps) {
     const router = useRouter();
+    const [isShareOpen, setIsShareOpen] = useState(false);
 
     const handleDelete = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -38,6 +41,11 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
         if (onPlay && playlist.songCount > 0) {
             onPlay(playlist._id);
         }
+    };
+
+    const handleShare = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsShareOpen(true);
     };
 
     const handleClick = () => {
@@ -89,7 +97,23 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
                     <Trash2 size={16} />
                     Delete
                 </button>
+                <button
+                    className={`${styles.actionBtn} ${styles.shareBtn}`}
+                    onClick={handleShare}
+                >
+                    <Share size={16} />
+                    Share
+                </button>
             </div>
+
+            {isShareOpen && (
+                <ShareModal
+                    contentType="playlist"
+                    contentId={playlist._id}
+                    contentName={playlist.name}
+                    onClose={() => setIsShareOpen(false)}
+                />
+            )}
         </div>
     );
 }

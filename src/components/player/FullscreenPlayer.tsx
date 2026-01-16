@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { X, SkipBack, Play, Pause, SkipForward, Volume2, Repeat, Shuffle, Heart, ListPlus, Download } from "lucide-react";
+import { X, SkipBack, Play, Pause, SkipForward, Volume2, Repeat, Shuffle, Heart, ListPlus, Download, Share } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import AddToPlaylistModal from "@/components/ui/AddToPlaylistModal";
+import ShareModal from "@/components/ui/ShareModal";
 import styles from "./FullscreenPlayer.module.css";
 
 function formatTime(seconds: number): string {
@@ -45,6 +46,7 @@ export default function FullscreenPlayer() {
 
     const [isLiked, setIsLiked] = useState(false);
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [lyrics, setLyrics] = useState<string | null>(null);
     const [lyricsLoading, setLyricsLoading] = useState(false);
     const [lyricsError, setLyricsError] = useState<string | null>(null);
@@ -363,6 +365,15 @@ export default function FullscreenPlayer() {
                         <ListPlus size={22} />
                     </button>
 
+                    <button
+                        onClick={() => setIsShareModalOpen(true)}
+                        className={styles.secondaryBtn}
+                        title="Share"
+                        disabled={!currentSong}
+                    >
+                        <Share size={22} />
+                    </button>
+
                     <a
                         href={currentSong ? `/api/stream?id=${currentSong.videoId}` : "#"}
                         download={currentSong ? `${currentSong.title}.mp3` : undefined}
@@ -393,6 +404,15 @@ export default function FullscreenPlayer() {
                         isOpen={isPlaylistModalOpen}
                         onClose={() => setIsPlaylistModalOpen(false)}
                         song={currentSong}
+                    />
+                )}
+
+                {currentSong && isShareModalOpen && (
+                    <ShareModal
+                        contentType="song"
+                        contentId={currentSong.videoId}
+                        contentName={currentSong.title}
+                        onClose={() => setIsShareModalOpen(false)}
                     />
                 )}
             </div>
