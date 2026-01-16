@@ -53,7 +53,6 @@ export default function PlaylistDetailPage() {
         onConfirm: () => {},
     });
     const [shareModal, setShareModal] = useState({ isOpen: false, contentId: "", contentName: "" });
-    const [shareModal, setShareModal] = useState({ isOpen: false, contentId: "", contentName: "" });
     
     const { setQueue, setCurrentSong, play, toggleShuffle } = usePlayerStore();
 
