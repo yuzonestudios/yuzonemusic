@@ -96,12 +96,20 @@ export const usePlayerStore = create<PlayerState>()(
                 const { queue, queueIndex, repeat, shuffle } = get();
                 if (queue.length === 0) return;
 
+                const safeIndex = Math.min(Math.max(0, queueIndex), queue.length - 1);
                 let nextIndex: number;
 
                 if (shuffle) {
-                    nextIndex = Math.floor(Math.random() * queue.length);
+                    if (queue.length === 1) {
+                        nextIndex = safeIndex;
+                    } else {
+                        // Pick a different random index to avoid replaying the same track
+                        do {
+                            nextIndex = Math.floor(Math.random() * queue.length);
+                        } while (nextIndex === safeIndex);
+                    }
                 } else {
-                    nextIndex = queueIndex + 1;
+                    nextIndex = safeIndex + 1;
                     if (nextIndex >= queue.length) {
                         if (repeat === "all") {
                             nextIndex = 0;
@@ -130,7 +138,8 @@ export const usePlayerStore = create<PlayerState>()(
                     return;
                 }
 
-                const prevIndex = queueIndex - 1;
+                const safeIndex = Math.min(Math.max(0, queueIndex), queue.length - 1);
+                const prevIndex = safeIndex - 1;
                 if (prevIndex < 0) {
                     set({ currentTime: 0 });
                     return;
@@ -145,10 +154,11 @@ export const usePlayerStore = create<PlayerState>()(
             },
 
             setQueue: (songs: Song[], startIndex = 0) => {
+                const safeIndex = Math.min(Math.max(0, startIndex), Math.max(0, songs.length - 1));
                 set({
                     queue: songs,
-                    queueIndex: startIndex,
-                    currentSong: songs[startIndex] || null,
+                    queueIndex: safeIndex,
+                    currentSong: songs[safeIndex] || null,
                     isPlaying: songs.length > 0,
                     currentTime: 0,
                 });

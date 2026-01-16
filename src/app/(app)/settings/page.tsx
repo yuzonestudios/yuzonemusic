@@ -14,6 +14,9 @@ export default function SettingsPage() {
     const [isEditingName, setIsEditingName] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState("");
+    const [suggestion, setSuggestion] = useState("");
+    const [suggestionMessage, setSuggestionMessage] = useState<string | null>(null);
+    const [isSubmittingSuggestion, setIsSubmittingSuggestion] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -65,6 +68,38 @@ export default function SettingsPage() {
             setSaveMessage("An error occurred. Please try again.");
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const submitSuggestion = async () => {
+        const text = suggestion.trim();
+        if (text.length < 5 || text.length > 500) {
+            setSuggestionMessage("Suggestion must be between 5 and 500 characters");
+            return;
+        }
+
+        setIsSubmittingSuggestion(true);
+        setSuggestionMessage(null);
+
+        try {
+            const res = await fetch("/api/feature-suggestions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ suggestion: text }),
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                setSuggestion("");
+                setSuggestionMessage("Thanks for sharing! We review every idea.");
+            } else {
+                setSuggestionMessage(data.error || "Could not submit suggestion.");
+            }
+        } catch (error) {
+            console.error("Error submitting suggestion:", error);
+            setSuggestionMessage("Something went wrong. Please try again.");
+        } finally {
+            setIsSubmittingSuggestion(false);
         }
     };
 
@@ -180,6 +215,33 @@ export default function SettingsPage() {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div className={`glass-panel ${styles.section}`}>
+                    <h2 className={styles.sectionHeader}>Feature Suggestions</h2>
+                    <p className={styles.helperText}>Tell us what you want next. We read every note.</p>
+                    <textarea
+                        value={suggestion}
+                        onChange={(e) => setSuggestion(e.target.value)}
+                        placeholder="Share a feature or improvement..."
+                        maxLength={500}
+                        className={styles.suggestionInput}
+                    />
+                    <div className={styles.suggestionActions}>
+                        <span className={styles.charCount}>{suggestion.length}/500</span>
+                        <button
+                            onClick={submitSuggestion}
+                            disabled={isSubmittingSuggestion}
+                            className={styles.submitSuggestionBtn}
+                        >
+                            {isSubmittingSuggestion ? "Sending..." : "Send suggestion"}
+                        </button>
+                    </div>
+                    {suggestionMessage && (
+                        <p className={`${styles.message} ${suggestionMessage.toLowerCase().includes("thank") ? styles.success : styles.error}`}>
+                            {suggestionMessage}
+                        </p>
+                    )}
                 </div>
 
                 <div className={`glass-panel ${styles.section}`}>

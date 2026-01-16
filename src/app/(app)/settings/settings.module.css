@@ -216,6 +216,68 @@
     font-size: 0.875rem;
 }
 
+.helperText {
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
+}
+
+.suggestionInput {
+    width: 100%;
+    min-height: 120px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 0.85rem 1rem;
+    color: var(--text-primary);
+    resize: vertical;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    transition: border var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+.suggestionInput:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+.suggestionActions {
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.submitSuggestionBtn {
+    padding: 0.55rem 1.25rem;
+    border-radius: var(--radius-md);
+    background: var(--accent-gradient);
+    color: white;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    white-space: nowrap;
+}
+
+.submitSuggestionBtn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(139, 92, 246, 0.35);
+}
+
+.submitSuggestionBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.charCount {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
 .shareDescription {
     color: rgba(255, 255, 255, 0.6);
     font-size: 0.875rem;
@@ -311,6 +373,7 @@
     padding: 0.75rem 1rem;
     text-align: center;
 }
+
 /* Display Name Editor */
 .nameInput {
     flex: 1;
