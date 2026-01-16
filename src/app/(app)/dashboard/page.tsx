@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import { Search, Heart, Music } from "lucide-react";
+import { Search, Heart, Music, Sparkles } from "lucide-react";
 import type { Song } from "@/types";
 import styles from "./dashboard.module.css";
 
 export default function DashboardPage() {
     const [recentlyPlayed, setRecentlyPlayed] = useState<Song[]>([]);
+    const [recommendations, setRecommendations] = useState<Song[]>([]);
     const [loading, setLoading] = useState(true);
     const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
 
@@ -32,6 +33,22 @@ export default function DashboardPage() {
                     if (likedData.success) {
                         const ids = new Set(likedData.data.map((s: Song) => s.videoId));
                         setLikedSongIds(ids as Set<string>);
+                    }
+                }
+
+                // Fetch recommendations
+                const recRes = await fetch("/api/recommendations");
+                if (recRes.ok) {
+                    const recData = await recRes.json();
+                    if (recData.success && recData.recommendations) {
+                        // Combine all recommendation categories and take first 10
+                        const allRecs = [
+                            ...recData.recommendations.basedOnRecent,
+                            ...recData.recommendations.moreFromArtists,
+                            ...recData.recommendations.trendingInYourStyle,
+                            ...recData.recommendations.discovery,
+                        ].slice(0, 10);
+                        setRecommendations(allRecs);
                     }
                 }
             } catch (error) {
@@ -123,6 +140,34 @@ export default function DashboardPage() {
                         <span>Liked Songs</span>
                     </Link>
                 </section>
+
+                {/* Recommended For You */}
+                {recommendations.length > 0 && (
+                    <section className={styles.section}>
+                        <div className={styles.sectionHeader}>
+                            <h3 className={styles.sectionTitle}>
+                                <Sparkles size={20} />
+                                Recommended For You
+                            </h3>
+                            <Link href="/recommendations" className={styles.seeAll}>
+                                See All
+                            </Link>
+                        </div>
+
+                        <div className={styles.songList}>
+                            {recommendations.map((song, index) => (
+                                <SongCard
+                                    key={`${song.videoId}-${index}`}
+                                    song={song}
+                                    songs={recommendations}
+                                    index={index}
+                                    onLike={handleLike}
+                                    isLiked={likedSongIds.has(song.videoId)}
+                                />
+                            ))}
+                        </div>
+                    </section>
+                )}
 
                 {/* Recently Played */}
                 <section className={styles.section}>
