@@ -85,6 +85,7 @@ export default function SongCard({
             {showActions && (
                 <div className={styles.actions}>
                     <button
+                        type="button"
                         onClick={handlePlay}
                         className={styles.playBtn}
                         title={isCurrentSong && isPlaying ? "Pause" : "Play"}

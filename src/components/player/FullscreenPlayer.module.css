@@ -73,8 +73,9 @@
 
 .albumArt {
     position: relative;
-    width: 300px;
-    height: 300px;
+    width: min(360px, 60vh);
+    height: min(360px, 60vh);
+    max-height: 60vh;
     border-radius: var(--radius-lg);
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);

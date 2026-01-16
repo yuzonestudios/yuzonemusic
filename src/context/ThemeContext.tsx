@@ -14,7 +14,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const { data: session } = useSession();
-    const [theme, setThemeState] = useState<Theme>("cyber-blue");
+    const [theme, setThemeState] = useState<Theme>("phonk-purple");
     const [mounted, setMounted] = useState(false);
 
     // Load initial theme from server setting

@@ -79,6 +79,21 @@ export async function GET(req: NextRequest) {
             .slice(0, 10)
             .map(([artist]) => artist);
 
+        // Helper: pick best available thumbnail url
+        const pickBestThumb = (item: any): string => {
+            const thumbs: Array<{ url: string; width?: number; height?: number }> = item?.thumbnails || item?.thumbnail?.contents || [];
+            if (Array.isArray(thumbs) && thumbs.length > 0) {
+                // Prefer largest by width/height, fallback to last
+                const sorted = thumbs
+                    .map(t => ({ url: t.url, width: t.width ?? 0, height: t.height ?? 0 }))
+                    .sort((a, b) => (b.width * b.height) - (a.width * a.height));
+                const url = (sorted[0]?.url || thumbs[thumbs.length - 1]?.url) || "";
+                if (!url) return "/placeholder-album.png";
+                return url.startsWith("//") ? `https:${url}` : url;
+            }
+            return item?.thumbnail || "/placeholder-album.png";
+        };
+
         // Collect recommendations from multiple sources
         const recommendations: ScoredSong[] = [];
         const seenVideoIds = new Set<string>();
@@ -106,7 +121,7 @@ export async function GET(req: NextRequest) {
                                 artist: Array.isArray(result.artists)
                                     ? result.artists.join(", ")
                                     : result.artist || result.artists || "Unknown Artist",
-                                thumbnail: result.thumbnail || result.thumbnails?.[0]?.url || "/placeholder-album.png",
+                                thumbnail: pickBestThumb(result),
                                 duration: result.duration || "",
                                 score: 0.35,
                                 reason: "You might like",
@@ -141,7 +156,7 @@ export async function GET(req: NextRequest) {
                                 artist: Array.isArray(result.artists)
                                     ? result.artists.join(", ")
                                     : result.artist || result.artists || "Unknown Artist",
-                                thumbnail: result.thumbnail || result.thumbnails?.[0]?.url || "/placeholder-album.png",
+                                thumbnail: pickBestThumb(result),
                                 duration: result.duration || "",
                                 score: 0.25,
                                 reason: `More from ${artist}`,
@@ -181,7 +196,7 @@ export async function GET(req: NextRequest) {
                                 artist: Array.isArray(result.artists)
                                     ? result.artists.join(", ")
                                     : result.artist || result.artists || "Unknown Artist",
-                                thumbnail: result.thumbnail || result.thumbnails?.[0]?.url || "/placeholder-album.png",
+                                thumbnail: pickBestThumb(result),
                                 duration: result.duration || "",
                                 score: 0.2,
                                 reason: `Because you played ${song.title}`,
@@ -212,7 +227,7 @@ export async function GET(req: NextRequest) {
                     videoId: trending.videoId,
                     title: trending.title || "Unknown Title",
                     artist: trendingArtist || "Unknown Artist",
-                    thumbnail: trending.thumbnail || "/placeholder-album.png",
+                    thumbnail: pickBestThumb(trending),
                     duration: trending.duration || "",
                     score: 0.15,
                     reason: "Trending in your style",
@@ -233,7 +248,7 @@ export async function GET(req: NextRequest) {
                     artist: Array.isArray(trending.artists)
                         ? trending.artists.join(", ")
                         : trending.artist || trending.artists || "Unknown Artist",
-                    thumbnail: trending.thumbnail || "/placeholder-album.png",
+                    thumbnail: pickBestThumb(trending),
                     duration: trending.duration || "",
                     score: 0.05,
                     reason: "Fresh discoveries",

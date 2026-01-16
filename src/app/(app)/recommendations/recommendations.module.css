@@ -65,22 +65,23 @@
 }
 
 .refreshButton {
-    background: rgba(147, 51, 234, 0.1);
-    border: 2px solid rgba(147, 51, 234, 0.3);
-    border-radius: 12px;
-    padding: 0.75rem;
+    background: linear-gradient(135deg, #1db954, #17a44a);
+    border: none;
+    border-radius: 9999px;
+    padding: 0.6rem 0.75rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, filter 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #9333ea;
+    color: #0b1a0f;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
 }
 
 .refreshButton:hover {
-    background: rgba(147, 51, 234, 0.2);
-    border-color: rgba(147, 51, 234, 0.5);
-    transform: scale(1.05);
+    transform: scale(1.07);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45);
+    filter: saturate(1.05);
 }
 
 .refreshButton:active {

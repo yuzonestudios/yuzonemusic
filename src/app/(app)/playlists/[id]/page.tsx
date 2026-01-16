@@ -315,6 +315,7 @@ export default function PlaylistDetailPage() {
 
                     <div className={styles.actions}>
                         <button
+                            type="button"
                             className={styles.playBtn}
                             onClick={handlePlayPlaylist}
                             disabled={playlist.songs.length === 0}
@@ -323,6 +324,7 @@ export default function PlaylistDetailPage() {
                             Play
                         </button>
                         <button
+                            type="button"
                             className={`${styles.secondaryBtn} ${styles.shuffleBtn}`}
                             onClick={handleShufflePlay}
                             disabled={playlist.songs.length === 0}

@@ -75,6 +75,7 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
 
             <div className={styles.playlistActions}>
                 <button
+                    type="button"
                     className={`${styles.actionBtn} ${styles.playBtn}`}
                     onClick={handlePlay}
                     disabled={playlist.songCount === 0}
