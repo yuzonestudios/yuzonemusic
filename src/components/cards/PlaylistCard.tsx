@@ -2,9 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useState } from "react";
-import { Music, Play, Trash2, Share } from "lucide-react";
-import ShareModal from "@/components/ui/ShareModal";
+import { Music, Play, Trash2 } from "lucide-react";
 import styles from "./PlaylistCard.module.css";
 
 interface PlaylistCardProps {
@@ -22,7 +20,6 @@ interface PlaylistCardProps {
 
 export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCardProps) {
     const router = useRouter();
-    const [isShareOpen, setIsShareOpen] = useState(false);
 
     const handleDelete = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -41,11 +38,6 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
         if (onPlay && playlist.songCount > 0) {
             onPlay(playlist._id);
         }
-    };
-
-    const handleShare = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setIsShareOpen(true);
     };
 
     const handleClick = () => {
@@ -67,23 +59,7 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
                         <Music size={32} className={styles.playlistIcon} />
                     )}
                 </div>
-                <div className={styles.playlistInfo}>
-                    <h3 className={styles.playlistName}>{playlist.name}</h3>
-                    <div className={styles.playlistMeta}>
-                        <span>{playlist.songCount} {playlist.songCount === 1 ? 'song' : 'songs'}</span>
-                    </div>
-                </div>
-            </div>
 
-            {playlist.description && (
-                <p className={styles.playlistDescription}>
-                    {playlist.description}
-                </p>
-            )}
-
-            <div className={styles.playlistActions}>
-                <button
-                    className={`${styles.actionBtn} ${styles.playBtn}`}
                     onClick={handlePlay}
                     disabled={playlist.songCount === 0}
                 >

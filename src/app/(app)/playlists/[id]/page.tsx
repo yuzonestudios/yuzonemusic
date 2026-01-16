@@ -374,12 +374,16 @@ export default function PlaylistDetailPage() {
                         <p>Add songs to this playlist from any song card</p>
                     </div>
                 )}
+            </div>
+
             <ConfirmDialog
                 isOpen={confirmDialog.isOpen}
                 title={confirmDialog.title}
                 message={confirmDialog.message}
                 onConfirm={confirmDialog.onConfirm}
                 onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+                onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+                variant={confirmDialog.title === "Error" ? "info" : "warning"}
             />
 
             {shareModal.isOpen && (
@@ -390,9 +394,6 @@ export default function PlaylistDetailPage() {
                     onClose={() => setShareModal({ isOpen: false, contentId: "", contentName: "" })}
                 />
             )}
-                onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
-                variant={confirmDialog.title === "Error" ? "info" : "warning"}
-            />
         </div>
     );
 }
