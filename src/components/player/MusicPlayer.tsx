@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import Image from "next/image";
-import { Download, Heart, Maximize, ListPlus } from "lucide-react";
+import { Download, Heart, Maximize, ListPlus, ListMusic, X, GripVertical } from "lucide-react";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { usePlayerStore } from "@/store/playerStore";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
@@ -33,12 +36,26 @@ export default function MusicPlayer() {
         toggleShuffle,
         openFullscreen,
         seekTo,
+        queue,
+        queueIndex,
+        setCurrentSong,
+        moveInQueue,
+        removeFromQueue,
     } = usePlayerStore();
 
     const { seek } = useAudioPlayer();
     useKeyboardShortcuts();
     const [isLiked, setIsLiked] = useState(false);
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+    const [isQueueOpen, setIsQueueOpen] = useState(false);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 6,
+            },
+        })
+    );
 
     // Store the seek function in the store for FullscreenPlayer to use
     useEffect(() => {
@@ -169,6 +186,81 @@ export default function MusicPlayer() {
     };
 
     const progress = duration ? (currentTime / duration) * 100 : 0;
+
+    const handleQueuePlay = (index: number) => {
+        if (!queue[index]) return;
+        setCurrentSong(queue[index]);
+    };
+
+    const queueIds = queue.map((item, idx) => `${item.videoId}-${idx}`);
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+
+        const fromIndex = queueIds.indexOf(String(active.id));
+        const toIndex = queueIds.indexOf(String(over.id));
+
+        if (fromIndex === -1 || toIndex === -1) return;
+        moveInQueue(fromIndex, toIndex);
+    };
+
+    const SortableQueueItem = ({
+        item,
+        idx,
+        id,
+    }: {
+        item: typeof queue[number];
+        idx: number;
+        id: string;
+    }) => {
+        const {
+            attributes,
+            listeners,
+            setNodeRef,
+            transform,
+            transition,
+            isDragging,
+        } = useSortable({ id });
+
+        const style: CSSProperties = {
+            transform: CSS.Transform.toString(transform),
+            transition,
+        };
+
+        return (
+            <div
+                ref={setNodeRef}
+                style={style}
+                className={`${styles.queueItem} ${idx === queueIndex ? styles.active : ""} ${isDragging ? styles.dragging : ""}`}
+            >
+                <button
+                    className={styles.queueHandle}
+                    aria-label="Drag to reorder"
+                    {...attributes}
+                    {...listeners}
+                >
+                    <GripVertical size={16} />
+                </button>
+                <button
+                    className={styles.queueMeta}
+                    onClick={() => handleQueuePlay(idx)}
+                    title="Play from queue"
+                >
+                    <span className={styles.queueItemTitle}>{item.title}</span>
+                    <span className={styles.queueItemArtist}>{item.artist}</span>
+                </button>
+                <div className={styles.queueItemActions}>
+                    <button
+                        onClick={() => removeFromQueue(idx)}
+                        title="Remove from queue"
+                    >
+                        <X size={14} />
+                    </button>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <footer className={styles.player}>
@@ -327,40 +419,50 @@ export default function MusicPlayer() {
                 </div>
             </div>
 
-            {/* Volume Control */}
-            <div className={styles.volumeControl}>
+            <div className={styles.sideActions}>
                 <button
-                    onClick={() => setVolume(volume > 0 ? 0 : 0.7)}
-                    className={styles.volumeBtn}
-                    title={volume > 0 ? "Mute" : "Unmute"}
+                    className={`${styles.queueToggle} ${isQueueOpen ? styles.active : ""}`}
+                    onClick={() => setIsQueueOpen((open) => !open)}
+                    title="Open Queue"
                 >
-                    {volume === 0 ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M11 5L6 9H2v6h4l5 4V5z" />
-                            <line x1="23" y1="9" x2="17" y2="15" />
-                            <line x1="17" y1="9" x2="23" y2="15" />
-                        </svg>
-                    ) : volume < 0.5 ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M11 5L6 9H2v6h4l5 4V5z" />
-                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                        </svg>
-                    ) : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M11 5L6 9H2v6h4l5 4V5z" />
-                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                        </svg>
-                    )}
+                    <ListMusic size={18} />
+                    <span className={styles.queueCount}>{queue.length}</span>
                 </button>
-                <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={volume}
-                    onChange={handleVolumeChange}
-                    className={styles.volumeSlider}
-                />
+
+                <div className={styles.volumeControl}>
+                    <button
+                        onClick={() => setVolume(volume > 0 ? 0 : 0.7)}
+                        className={styles.volumeBtn}
+                        title={volume > 0 ? "Mute" : "Unmute"}
+                    >
+                        {volume === 0 ? (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                                <line x1="23" y1="9" x2="17" y2="15" />
+                                <line x1="17" y1="9" x2="23" y2="15" />
+                            </svg>
+                        ) : volume < 0.5 ? (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                            </svg>
+                        ) : (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                            </svg>
+                        )}
+                    </button>
+                    <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={volume}
+                        onChange={handleVolumeChange}
+                        className={styles.volumeSlider}
+                    />
+                </div>
             </div>
 
             {currentSong && (
@@ -369,6 +471,39 @@ export default function MusicPlayer() {
                     onClose={() => setIsPlaylistModalOpen(false)}
                     song={currentSong}
                 />
+            )}
+
+            {queue.length > 0 && (
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <div className={`${styles.queuePanel} ${isQueueOpen ? styles.open : ""}`}>
+                        <div className={styles.queueHeader}>
+                            <div>
+                                <div className={styles.queueTitle}>Queue</div>
+                                <div className={styles.queueSubtitle}>Up next · {queue.length} item{queue.length === 1 ? "" : "s"}</div>
+                            </div>
+                            <button
+                                className={styles.closeQueue}
+                                onClick={() => setIsQueueOpen(false)}
+                                aria-label="Close queue"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+
+                        <SortableContext items={queueIds} strategy={verticalListSortingStrategy}>
+                            <div className={styles.queueList}>
+                                {queue.map((item, idx) => (
+                                    <SortableQueueItem
+                                        key={queueIds[idx]}
+                                        id={queueIds[idx]}
+                                        item={item}
+                                        idx={idx}
+                                    />
+                                ))}
+                            </div>
+                        </SortableContext>
+                    </div>
+                </DndContext>
             )}
         </footer>
     );

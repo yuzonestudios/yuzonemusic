@@ -30,6 +30,8 @@ interface PlayerState {
     previousSong: () => void;
     setQueue: (songs: Song[], startIndex?: number) => void;
     addToQueue: (song: Song) => void;
+    moveInQueue: (fromIndex: number, toIndex: number) => void;
+    removeFromQueue: (index: number) => void;
     clearQueue: () => void;
     toggleRepeat: () => void;
     toggleShuffle: () => void;
@@ -153,9 +155,86 @@ export const usePlayerStore = create<PlayerState>()(
             },
 
             addToQueue: (song: Song) => {
-                set((state) => ({
-                    queue: [...state.queue, song],
-                }));
+                set((state) => {
+                    const nextQueue = [...state.queue, song];
+                    // If nothing is set, make the queued song visible without auto-playing
+                    if (!state.currentSong) {
+                        return {
+                            queue: nextQueue,
+                            currentSong: song,
+                            queueIndex: state.queue.length,
+                        };
+                    }
+
+                    return { queue: nextQueue };
+                });
+            },
+
+            moveInQueue: (fromIndex: number, toIndex: number) => {
+                set((state) => {
+                    const queue = [...state.queue];
+                    if (
+                        fromIndex < 0 ||
+                        fromIndex >= queue.length ||
+                        toIndex < 0 ||
+                        toIndex >= queue.length
+                    ) {
+                        return state;
+                    }
+
+                    const [moved] = queue.splice(fromIndex, 1);
+                    queue.splice(toIndex, 0, moved);
+
+                    let queueIndex = state.queueIndex;
+
+                    if (fromIndex === state.queueIndex) {
+                        queueIndex = toIndex;
+                    } else if (fromIndex < state.queueIndex && toIndex >= state.queueIndex) {
+                        queueIndex -= 1;
+                    } else if (fromIndex > state.queueIndex && toIndex <= state.queueIndex) {
+                        queueIndex += 1;
+                    }
+
+                    return {
+                        queue,
+                        queueIndex,
+                        currentSong: queue[queueIndex] || null,
+                    };
+                });
+            },
+
+            removeFromQueue: (index: number) => {
+                set((state) => {
+                    if (index < 0 || index >= state.queue.length) return state;
+
+                    const queue = [...state.queue];
+                    queue.splice(index, 1);
+
+                    let queueIndex = state.queueIndex;
+
+                    if (index < state.queueIndex) {
+                        queueIndex -= 1;
+                    } else if (index === state.queueIndex) {
+                        if (queue.length === 0) {
+                            return {
+                                queue: [],
+                                queueIndex: 0,
+                                currentSong: null,
+                                isPlaying: false,
+                            };
+                        }
+                        // Stay on same physical position if possible
+                        if (queueIndex >= queue.length) {
+                            queueIndex = queue.length - 1;
+                        }
+                    }
+
+                    return {
+                        queue,
+                        queueIndex,
+                        currentSong: queue[queueIndex] || null,
+                    };
+                });
             },
 
             clearQueue: () => {
