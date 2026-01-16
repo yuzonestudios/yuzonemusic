@@ -59,7 +59,23 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
                         <Music size={32} className={styles.playlistIcon} />
                     )}
                 </div>
+                <div className={styles.playlistInfo}>
+                    <h3 className={styles.playlistName}>{playlist.name}</h3>
+                    <div className={styles.playlistMeta}>
+                        <span>{playlist.songCount} {playlist.songCount === 1 ? 'song' : 'songs'}</span>
+                    </div>
+                </div>
+            </div>
 
+            {playlist.description && (
+                <p className={styles.playlistDescription}>
+                    {playlist.description}
+                </p>
+            )}
+
+            <div className={styles.playlistActions}>
+                <button
+                    className={`${styles.actionBtn} ${styles.playBtn}`}
                     onClick={handlePlay}
                     disabled={playlist.songCount === 0}
                 >
@@ -73,23 +89,7 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
                     <Trash2 size={16} />
                     Delete
                 </button>
-                <button
-                    className={`${styles.actionBtn} ${styles.shareBtn}`}
-                    onClick={handleShare}
-                >
-                    <Share size={16} />
-                    Share
-                </button>
             </div>
-
-            {isShareOpen && (
-                <ShareModal
-                    contentType="playlist"
-                    contentId={playlist._id}
-                    contentName={playlist.name}
-                    onClose={() => setIsShareOpen(false)}
-                />
-            )}
         </div>
     );
 }
