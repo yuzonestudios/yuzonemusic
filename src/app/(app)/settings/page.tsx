@@ -74,6 +74,146 @@ export default function SettingsPage() {
                         </div>
                     </div>
                 </div>
+
+                <div className={`glass-panel ${styles.section}`}>
+                    <h2 className={styles.sectionHeader}>About Yuzone Music</h2>
+                    <div className={styles.about}>
+                        <p style={{ marginBottom: "1rem", color: "var(--text-secondary)", lineHeight: "1.6" }}>
+                            Yuzone Music is a modern music streaming platform built with cutting-edge technology, offering personalized playlists, high-quality audio streaming, and seamless integration for an immersive listening experience.
+                        </p>
+                        
+                        <div style={{ 
+                            padding: "1.5rem", 
+                            background: "rgba(139, 92, 246, 0.08)",
+                            borderRadius: "0.75rem",
+                            border: "1px solid rgba(139, 92, 246, 0.2)",
+                            marginBottom: "1rem"
+                        }}>
+                            <h3 style={{ 
+                                fontSize: "1.1rem", 
+                                fontWeight: 700, 
+                                color: "var(--accent-primary)",
+                                marginBottom: "1rem" 
+                            }}>
+                                Meet the Developers
+                            </h3>
+                            
+                            <div style={{ marginBottom: "1.5rem" }}>
+                                <h4 style={{ 
+                                    fontSize: "1rem", 
+                                    fontWeight: 600, 
+                                    color: "var(--text-primary)",
+                                    marginBottom: "0.5rem"
+                                }}>
+                                    Agnibha Mukherjee
+                                </h4>
+                                <p style={{ 
+                                    fontSize: "0.9rem", 
+                                    color: "var(--text-secondary)",
+                                    lineHeight: "1.6",
+                                    marginBottom: "0.5rem"
+                                }}>
+                                    A full-stack developer with 7+ years of experience transforming ambitious ideas into real-life scalable applications. Specializing in React, Next.js, Node.js, Python, and backend optimization, Agnibha has completed 56+ projects with a focus on quality, reliable communication, and on-time delivery. His expertise spans from building production-level web apps to integrating machine learning models and RESTful APIs.
+                                </p>
+                                <a 
+                                    href="https://agnibha.me" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        color: "var(--accent-primary)",
+                                        fontSize: "0.875rem",
+                                        textDecoration: "none",
+                                        fontWeight: 500
+                                    }}
+                                >
+                                    Visit Portfolio →
+                                </a>
+                            </div>
+
+                            <div style={{ marginBottom: "1rem" }}>
+                                <h4 style={{ 
+                                    fontSize: "1rem", 
+                                    fontWeight: 600, 
+                                    color: "var(--text-primary)",
+                                    marginBottom: "0.5rem"
+                                }}>
+                                    Pranab Saini
+                                </h4>
+                                <p style={{ 
+                                    fontSize: "0.9rem", 
+                                    color: "var(--text-secondary)",
+                                    lineHeight: "1.6",
+                                    marginBottom: "0.5rem"
+                                }}>
+                                    A passionate tech enthusiast and IoT developer with expertise in web development, programming, and leadership. Pranab has completed 15+ projects including interactive web applications, IoT solutions, and educational platforms. With a 94% academic average and 10 awards, he brings creativity and technical excellence to every project, from building typing test applications to developing smart charging systems.
+                                </p>
+                                <a 
+                                    href="https://pranab.tech" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        color: "var(--accent-primary)",
+                                        fontSize: "0.875rem",
+                                        textDecoration: "none",
+                                        fontWeight: 500
+                                    }}
+                                >
+                                    Visit Portfolio →
+                                </a>
+                            </div>
+
+                            <div style={{
+                                padding: "1rem",
+                                background: "rgba(59, 130, 246, 0.08)",
+                                borderRadius: "0.5rem",
+                                border: "1px solid rgba(59, 130, 246, 0.2)",
+                                marginTop: "1rem"
+                            }}>
+                                <p style={{ 
+                                    fontSize: "0.9rem", 
+                                    color: "var(--text-secondary)",
+                                    marginBottom: "0.75rem",
+                                    lineHeight: "1.5"
+                                }}>
+                                    Co-founders of <strong style={{ color: "var(--text-primary)" }}>RepoSphere</strong> — a platform dedicated to innovative software solutions and open-source contributions.
+                                </p>
+                                <a 
+                                    href="https://reposphere.tech" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: "0.5rem",
+                                        padding: "0.5rem 1rem",
+                                        background: "linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))",
+                                        color: "white",
+                                        textDecoration: "none",
+                                        borderRadius: "0.5rem",
+                                        fontSize: "0.875rem",
+                                        fontWeight: 600,
+                                        transition: "all 0.3s ease",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.transform = "translateY(-2px)";
+                                        e.currentTarget.style.boxShadow = "0 6px 20px rgba(139, 92, 246, 0.4)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = "translateY(0)";
+                                        e.currentTarget.style.boxShadow = "none";
+                                    }}
+                                >
+                                    Visit RepoSphere
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                        <polyline points="15 3 21 3 21 9" />
+                                        <line x1="10" y1="14" x2="21" y2="3" />
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

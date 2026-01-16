@@ -11,328 +11,336 @@
 }
 
 .header {
-    font-size: 0.9rem;
-    color: #0b1a0f;
+    margin-bottom: 2.5rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.08));
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.headerContent {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.headerIcon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2.5rem;
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+    flex-shrink: 0;
+}
+
+.headerInfo {
+    flex: 1;
+}
+
+.headerTitle {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.headerSubtitle {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+/* Welcome Section */
+.welcome {
+    display: none;
+}
+
+.welcomeTitle {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.welcomeText {
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
+    color: var(--text-secondary);
+}
+
+/* Quick Actions */
+.quickActions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.actionCard {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(59, 130, 246, 0.08));
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-normal);
     font-weight: 600;
-    transition: all var(--transition-fast);
+    color: var(--text-primary);
+    font-size: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.actionCard::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1));
+    opacity: 0;
+    transition: opacity var(--transition-normal);
+    pointer-events: none;
+}
+
+.actionCard:hover {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.15));
+    border-color: var(--accent-primary);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
+}
+
+.actionCard:hover::before {
+    opacity: 1;
+}
+
+.actionIcon {
+    font-size: 1.8rem;
+    color: var(--accent-primary);
+    flex-shrink: 0;
+}
+
+/* Section */
+.section {
+    margin-bottom: 3rem;
+}
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.seeAll {
+    font-size: 0.9rem;
+    color: white;
+    font-weight: 600;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
     text-decoration: none;
-    padding: 0.55rem 1.1rem;
+    padding: 0.5rem 1rem;
     border-radius: 9999px;
-    background: linear-gradient(135deg, #1db954, #17a44a);
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    box-shadow: 0 6px 18px rgba(139, 92, 246, 0.35);
+}
+
+.seeAll:hover {
+    transform: translateX(4px) scale(1.03);
+    box-shadow: 0 10px 24px rgba(139, 92, 246, 0.45);
+}
+
+.sectionDivider {
+    height: 2px;
+    background: linear-gradient(90deg, rgba(139, 92, 246, 0.5), transparent);
+    margin: 1.5rem 0;
+}
+
+.songList {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Compact song list for desktop */
+@media (min-width: 1024px) {
+    .songList :global(.card) {
+        flex-direction: row !important;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(139, 92, 246, 0.1);
+    }
+
+    .songList :global(.thumbnail) {
+        width: 56px !important;
+        height: 56px !important;
+        min-width: 56px;
+        aspect-ratio: auto !important;
+        flex-shrink: 0;
+    }
+
+    .songList :global(.info) {
+        flex: 1;
+        min-width: 0;
+        justify-content: center;
+    }
+
+    .songList :global(.title) {
+        font-size: 0.9rem;
+        -webkit-line-clamp: 1;
+    }
+
+    .songList :global(.artist) {
+        font-size: 0.75rem;
+    }
+
+    .songList :global(.duration) {
+        align-self: center;
+    }
+
+    .songList :global(.actions) {
+        align-self: center;
+    }
+}
+
+/* Empty State */
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    padding: 2rem;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(59, 130, 246, 0.05));
+    border: 2px dashed rgba(139, 92, 246, 0.2);
+    border-radius: var(--radius-lg);
+}
+
+.empty p {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+.emptyLink {
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    display: inline-block;
+}
+
+.emptyLink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+}
+
+@media (max-width: 768px) {
+    .content {
+        padding: 1.5rem;
+    }
+
+    .header {
+        padding: 1.5rem;
+    }
 
     .headerContent {
-        display: flex;
-        transform: translateX(4px) scale(1.03);
-        box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45);
-        margin-bottom: 1rem;
+        gap: 1.5rem;
     }
 
     .headerIcon {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-        border-radius: var(--radius-lg);
-        display: flex;
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+    }
+
+    .headerTitle {
+        font-size: 2rem;
+    }
+
+    .quickActions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .content {
+        padding: 1rem;
+        padding-bottom: 5.5rem;
+    }
+
+    .page {
+        padding-bottom: 5.5rem;
+    }
+
+    .header {
+        padding: 1.5rem 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .headerContent {
+        flex-direction: row;
+        gap: 1rem;
         align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 2.5rem;
-        box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+    }
+
+    .headerIcon {
+        width: 56px;
+        height: 56px;
+        font-size: 1.75rem;
     }
 
     .headerInfo {
         flex: 1;
+        min-width: 0;
     }
 
     .headerTitle {
-        font-size: 2.5rem;
-        font-weight: 700;
-        background: var(--accent-gradient);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 0.5rem;
+        font-size: 1.5rem;
+        line-height: 1.2;
     }
 
     .headerSubtitle {
-        color: var(--text-secondary);
-        font-size: 1rem;
+        font-size: 0.85rem;
+        line-height: 1.4;
     }
 
-    /* Welcome Section */
-    .welcome {
-        display: none;
-    }
-
-    .welcomeTitle {
-        font-size: clamp(1.5rem, 4vw, 2rem);
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 8px;
-    }
-
-    .welcomeText {
-        font-size: clamp(0.85rem, 2.5vw, 1rem);
-        color: var(--text-secondary);
-    }
-
-    /* Quick Actions */
     .quickActions {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 3rem;
+        grid-template-columns: 1fr;
+        gap: 1rem;
     }
 
     .actionCard {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        padding: 1.5rem;
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(59, 130, 246, 0.08));
-        -webkit-backdrop-filter: blur(10px);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(139, 92, 246, 0.2);
-        border-radius: var(--radius-lg);
-        transition: all var(--transition-normal);
-        font-weight: 600;
-        color: var(--text-primary);
-        font-size: 1rem;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .actionCard::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1));
-        opacity: 0;
-        transition: opacity var(--transition-normal);
-        pointer-events: none;
-    }
-
-    .actionCard:hover {
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.15));
-        border-color: var(--accent-primary);
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
-    }
-
-    .actionCard:hover::before {
-        opacity: 1;
-    }
-
-    .actionIcon {
-        font-size: 1.8rem;
-        color: var(--accent-primary);
-        flex-shrink: 0;
-    }
-
-    /* Section */
-    .section {
-        margin-bottom: 3rem;
-    }
-
-    .sectionHeader {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
+        padding: 1.25rem;
+        font-size: 0.95rem;
     }
 
     .sectionTitle {
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
+        font-size: 1.1rem;
     }
+}
 
-    .seeAll {
-        font-size: 0.9rem;
-        color: white;
-        font-weight: 600;
-        transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-        text-decoration: none;
-        padding: 0.5rem 1rem;
-        border-radius: 9999px;
-        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-        box-shadow: 0 6px 18px rgba(139, 92, 246, 0.35);
-    }
-
-    .seeAll:hover {
-        transform: translateX(4px) scale(1.03);
-        box-shadow: 0 10px 24px rgba(139, 92, 246, 0.45);
-    }
-
-    .sectionDivider {
-        height: 2px;
-        background: linear-gradient(90deg, rgba(139, 92, 246, 0.5), transparent);
-        margin: 1.5rem 0;
-    }
-
-    .songList {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-
-    /* Compact song list for desktop */
-    @media (min-width: 1024px) {
-        .songList :global(.card) {
-            flex-direction: row !important;
-            gap: 0.75rem;
-            padding: 0.75rem;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(139, 92, 246, 0.1);
-        }
-
-        .songList :global(.thumbnail) {
-            width: 56px !important;
-            height: 56px !important;
-            min-width: 56px;
-            aspect-ratio: auto !important;
-            flex-shrink: 0;
-        }
-
-        .songList :global(.info) {
-            flex: 1;
-            min-width: 0;
-            justify-content: center;
-        }
-
-        .songList :global(.title) {
-            font-size: 0.9rem;
-            -webkit-line-clamp: 1;
-        }
-
-        .songList :global(.artist) {
-            font-size: 0.75rem;
-        }
-
-        .songList :global(.duration) {
-            align-self: center;
-        }
-
-        .songList :global(.actions) {
-            align-self: center;
-        }
-    }
-
-    /* Empty State */
-    .empty {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 400px;
-        padding: 2rem;
-        text-align: center;
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(59, 130, 246, 0.05));
-        border: 2px dashed rgba(139, 92, 246, 0.2);
-        border-radius: var(--radius-lg);
-    }
-
-    .empty p {
-        color: var(--text-muted);
-        margin-bottom: 1.5rem;
-        font-size: 1rem;
-    }
-
-    .emptyLink {
-        padding: 0.75rem 1.5rem;
-        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-        color: white;
-        font-weight: 600;
-        border-radius: var(--radius-md);
-        transition: all var(--transition-fast);
-        display: inline-block;
-    }
-
-    .emptyLink:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
-    }
-
-    @media (max-width: 768px) {
-        .content {
-            padding: 1.5rem;
-        }
-
-        .header {
-            padding: 1.5rem;
-        }
-
-        .headerContent {
-            gap: 1.5rem;
-        }
-
-        .headerIcon {
-            width: 60px;
-            height: 60px;
-            font-size: 2rem;
-        }
-
-        .headerTitle {
-            font-size: 2rem;
-        }
-
-        .quickActions {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 480px) {
-        .content {
-            padding: 1rem;
-            padding-bottom: 5.5rem;
-        }
-
-        .page {
-            padding-bottom: 5.5rem;
-        }
-
-        .header {
-            padding: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .headerContent {
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .headerIcon {
-            width: 70px;
-            height: 70px;
-            font-size: 2rem;
-        }
-
-        .headerTitle {
-            font-size: 1.8rem;
-        }
-
-        .headerSubtitle {
-            font-size: 0.9rem;
-        }
-
-        .quickActions {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-
-        .actionCard {
-            padding: 1.25rem;
-            font-size: 0.95rem;
-        }
-
-        .sectionTitle {
-            font-size: 1.1rem;
-        }
-    }
-
-    /* Removed redundant overrides; song cards now default to row with thumbnails */
+/* Removed redundant overrides; song cards now default to row with thumbnails */

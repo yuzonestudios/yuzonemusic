@@ -184,13 +184,25 @@ export const usePlayerStore = create<PlayerState>()(
             ensurePlayback: () => {
                 if (typeof window === "undefined") return;
                 const audio = (window as any).__yuzoneAudio as HTMLAudioElement | undefined;
-                if (!audio) return;
+                if (!audio) {
+                    console.warn('[ensurePlayback] Audio element not found');
+                    return;
+                }
+
+                console.log('[ensurePlayback] Attempting to play audio', {
+                    src: audio.src,
+                    paused: audio.paused,
+                    readyState: audio.readyState
+                });
 
                 audio
                     .play()
+                    .then(() => {
+                        console.log('[ensurePlayback] Playback started successfully');
+                    })
                     .catch((err) => {
                         // Browser can reject when autoplay is blocked; we just log for debugging
-                        console.warn("Playback was blocked, retrying later", err?.message || err);
+                        console.warn("[ensurePlayback] Playback was blocked or failed:", err?.message || err);
                     });
             },
         }),
