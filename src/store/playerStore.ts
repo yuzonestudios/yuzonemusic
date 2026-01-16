@@ -195,9 +195,7 @@ export const usePlayerStore = create<PlayerState>()(
                         console.error("[ensurePlayback] Playback failed:", err?.message || err);
                     });
             },
-        }),
-        {
-            name: "yuzone-player",
+
             setPlaybackSpeed: (speed: number) => {
                 set({ playbackSpeed: speed });
                 if (typeof window !== "undefined") {
@@ -207,6 +205,9 @@ export const usePlayerStore = create<PlayerState>()(
                     }
                 }
             },
+        }),
+        {
+            name: "yuzone-player",
             partialize: (state) => ({
                 currentSong: state.currentSong,
                 queue: state.queue,
