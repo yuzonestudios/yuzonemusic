@@ -150,6 +150,17 @@ export default function TopSongsPage() {
     return (
         <div className={styles.topSongs}>
             <div className={styles.header}>
+                {songs.length > 0 && (
+                    <div className={styles.featuredSong}>
+                        <div className={styles.featuredThumbnail}>
+                            <img src={songs[0].thumbnail} alt={songs[0].title} />
+                            <div className={styles.featuredOverlay}>
+                                <Zap className={styles.featuredIcon} size={32} />
+                            </div>
+                        </div>
+                        <div className={styles.featuredGradient}></div>
+                    </div>
+                )}
                 <div className={styles.headerContent}>
                     <div className={styles.headerIcon}>
                         <Zap size={48} />
@@ -157,6 +168,13 @@ export default function TopSongsPage() {
                     <div className={styles.headerInfo}>
                         <span className={styles.badge}>TRENDING NOW</span>
                         <h1 className={styles.title}>Top 20 Songs</h1>
+                        {songs.length > 0 && (
+                            <div className={styles.featuredInfo}>
+                                <span className={styles.featuredLabel}>#1 Right Now:</span>
+                                <p className={styles.featuredTitle}>{songs[0].title}</p>
+                                <p className={styles.featuredArtist}>{songs[0].artist}</p>
+                            </div>
+                        )}
                         <p className={styles.subtitle}>
                             Most popular tracks on Yuzone Music right now
                         </p>
@@ -179,6 +197,7 @@ export default function TopSongsPage() {
                 <div className={styles.grid}>
                     {songs.map((song, index) => (
                         <div key={`${song.videoId}-${index}`} className={styles.songCardWrapper}>
+                            <div className={styles.rankBadge}>#{index + 1}</div>
                             <SongCard 
                                 song={song}
                                 songs={songs}
