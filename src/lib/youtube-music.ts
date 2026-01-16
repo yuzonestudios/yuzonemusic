@@ -252,27 +252,36 @@ export async function getTopCharts(country: string = "US"): Promise<YTMusicSong[
 // Stream using standard fetch but with strict Android headers
 export async function getProxyStream(videoId: string, headers?: Record<string, string>): Promise<Response | null> {
     try {
+        console.log(`[getProxyStream] Getting stream URL for ${videoId}`);
         const url = await getStreamUrl(videoId);
 
-        if (!url) return null;
+        if (!url) {
+            console.error(`[getProxyStream] No URL found for ${videoId}`);
+            return null;
+        }
+
+        console.log(`[getProxyStream] Got URL, fetching stream...`);
 
         // Use standard fetch without specific mobile client headers to see if it bypasses 403
-        return fetch(url, {
+        const response = await fetch(url, {
             headers: {
                 ...headers,
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             }
         });
-    } catch (error) {
-        console.error("Error creating proxy stream:", error);
+
+        console.log(`[getProxyStream] Fetch response status: ${response.status}`);
+        return response;
+    } catch (error: any) {
+        console.error("[getProxyStream] Error:", error.message);
         return null;
     }
 }
 
 export async function getStreamUrl(videoId: string): Promise<string | null> {
     try {
+        console.log(`[getStreamUrl] Getting basic info for ${videoId}`);
         const yt = await getInnertube();
-        // Use default 'WEB' client which is often more stable for signature extraction
         const info = await yt.getBasicInfo(videoId);
 
         // Get the best audio format
@@ -280,10 +289,14 @@ export async function getStreamUrl(videoId: string): Promise<string | null> {
             (f) => f.has_audio && !f.has_video
         );
 
+        console.log(`[getStreamUrl] Found ${audioFormats?.length || 0} audio formats`);
+
         if (audioFormats && audioFormats.length > 0) {
             // Sort by bitrate and get the best quality
             audioFormats.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
             const bestFormat = audioFormats[0];
+
+            console.log(`[getStreamUrl] Best format: bitrate=${bestFormat.bitrate}, has_url=${!!bestFormat.url}`);
 
             // If URL is already present (unencrypted), return it
             if (bestFormat.url) {
@@ -292,9 +305,12 @@ export async function getStreamUrl(videoId: string): Promise<string | null> {
 
             // Otherwise, decipher it
             if (bestFormat.decipher) {
-                return bestFormat.decipher(yt.session.player);
+                const decipheredUrl = bestFormat.decipher(yt.session.player);
+                console.log(`[getStreamUrl] Deciphered URL successfully`);
+                return decipheredUrl;
             }
 
+            console.error(`[getStreamUrl] No URL or decipher method available`);
             return null;
         }
 
