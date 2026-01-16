@@ -123,6 +123,45 @@ export default function SharePage() {
         );
     }
 
+    if (content.type === "song") {
+        const song = content.data;
+        return (
+            <div className={`${styles.container}`}>
+                <div className={`${styles.header} glass-panel`}>
+                    {song.thumbnail && (
+                        <img
+                            src={song.thumbnail}
+                            alt={song.title || "Song thumbnail"}
+                            className={styles.thumbnail}
+                        />
+                    )}
+                    <div className={styles.info}>
+                        <h1 className={styles.title}>{song.title || "Shared song"}</h1>
+                        {song.artist && <p className={styles.description}>{song.artist}</p>}
+                        <p className={styles.meta}>{song.duration || ""}</p>
+                        <div className={styles.actionsRow}>
+                            <a
+                                className={styles.primaryLink}
+                                href={`/api/stream?id=${song.videoId}`}
+                                rel="noopener noreferrer"
+                            >
+                                Play
+                            </a>
+                            <a
+                                className={styles.secondaryLink}
+                                href={`https://www.youtube.com/watch?v=${song.videoId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Open on YouTube
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className={`${styles.container}`}>
             <div className={`${styles.errorCard} glass-panel`}>

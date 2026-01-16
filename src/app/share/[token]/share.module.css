@@ -46,6 +46,50 @@
     color: rgba(255, 255, 255, 0.5);
 }
 
+.actionsRow {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.primaryLink,
+.secondaryLink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.primaryLink {
+    background: linear-gradient(135deg, #ec4899 0%, #d946a6 100%);
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(236, 72, 153, 0.25);
+}
+
+.primaryLink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(236, 72, 153, 0.3);
+}
+
+.secondaryLink {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.secondaryLink:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
 .songs {
     padding: 2rem;
     border-radius: 16px;

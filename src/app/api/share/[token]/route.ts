@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Share from "@/models/Share";
 import Playlist from "@/models/Playlist";
+import { getSongInfo } from "@/lib/youtube-music";
 
 // GET - Access shared content without authentication
 export async function GET(
@@ -71,14 +72,24 @@ export async function GET(
                 viewCount: share.viewCount,
             });
         } else if (share.contentType === "song") {
-            // For songs, we return the song metadata
-            // In a full implementation, you'd fetch this from your database or cache
+            // Try to fetch song metadata for a nicer shared view
+            let songData = null;
+            try {
+                songData = await getSongInfo(share.contentId);
+            } catch (err) {
+                console.error("Failed to fetch song info for shared link", err);
+            }
+
             return NextResponse.json({
                 success: true,
                 content: {
                     type: "song",
-                    data: {
+                    data: songData || {
                         videoId: share.contentId,
+                        title: "Unknown Title",
+                        artist: "Unknown Artist",
+                        thumbnail: "/placeholder-album.png",
+                        duration: "",
                     },
                 },
                 viewCount: share.viewCount,
