@@ -6,10 +6,10 @@ import Playlist from "@/models/Playlist";
 // GET - Access shared content without authentication
 export async function GET(
     req: NextRequest,
-    { params }: { params: { token: string } }
+    { params }: { params: Promise<{ token: string }> }
 ) {
     try {
-        const { token } = params;
+        const { token } = await params;
 
         if (!token) {
             return NextResponse.json(
