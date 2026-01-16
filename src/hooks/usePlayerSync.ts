@@ -13,36 +13,23 @@ export function usePlayerSync() {
         let applyingRemote = false;
 
         // Broadcast relevant player state on changes
-        const unsubscribe = usePlayerStore.subscribe(
-            (state) => {
-                if (applyingRemote) return;
-                channel.postMessage({
-                    sourceId,
-                    payload: {
-                        currentSong: state.currentSong,
-                        queue: state.queue,
-                        queueIndex: state.queueIndex,
-                        isPlaying: state.isPlaying,
-                        currentTime: state.currentTime,
-                        volume: state.volume,
-                        repeat: state.repeat,
-                        shuffle: state.shuffle,
-                        playbackSpeed: state.playbackSpeed,
-                    },
-                });
-            },
-            (state) => ({
-                currentSong: state.currentSong,
-                queue: state.queue,
-                queueIndex: state.queueIndex,
-                isPlaying: state.isPlaying,
-                currentTime: state.currentTime,
-                volume: state.volume,
-                repeat: state.repeat,
-                shuffle: state.shuffle,
-                playbackSpeed: state.playbackSpeed,
-            })
-        );
+        const selector = (state: any) => ({
+            currentSong: state.currentSong,
+            queue: state.queue,
+            queueIndex: state.queueIndex,
+            isPlaying: state.isPlaying,
+            currentTime: state.currentTime,
+            volume: state.volume,
+            repeat: state.repeat,
+            shuffle: state.shuffle,
+            playbackSpeed: state.playbackSpeed,
+        });
+
+        const unsubscribe = usePlayerStore.subscribe((state) => {
+            if (applyingRemote) return;
+            const snapshot = selector(state);
+            channel.postMessage({ sourceId, payload: snapshot });
+        });
 
         // Apply incoming state from other tabs
         channel.onmessage = (event) => {
