@@ -8,6 +8,7 @@ export interface IUser extends Document {
     image?: string;
     googleId: string;
     theme: string;
+    audioQuality?: 1 | 2 | 3;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -37,6 +38,11 @@ const UserSchema = new Schema<IUser>(
         theme: {
             type: String,
             default: "cyber-blue",
+        },
+        audioQuality: {
+            type: Number,
+            enum: [1, 2, 3],
+            default: 2,
         },
     },
     {

@@ -20,7 +20,8 @@ export interface Song {
 
 // Artist type
 export interface Artist {
-    id: string;
+    id?: string;
+    browseId: string;
     name: string;
     thumbnail: string;
     subscribers?: string;
@@ -28,9 +29,10 @@ export interface Artist {
 
 // Album type
 export interface Album {
-    id: string;
+    id?: string;
+    browseId: string;
     title: string;
-    artist: string;
+    artists: string[];
     thumbnail: string;
     year?: string;
     trackCount?: number;
