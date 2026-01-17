@@ -38,7 +38,17 @@ export default function SearchPage() {
             const data = await res.json();
 
             if (data.success) {
-                setSongs(data.data.songs || []);
+                // Normalize songs to `Song` type (ensure single `artist` string)
+                const normalizedSongs: Song[] = (data.data.songs || []).map((s: any) => ({
+                    videoId: s.videoId,
+                    title: s.title,
+                    artist: Array.isArray(s.artists) ? (s.artists[0] || s.artists.filter(Boolean).join(", ")) : (s.artist || "Unknown Artist"),
+                    thumbnail: s.thumbnail,
+                    duration: s.duration,
+                    album: s.album,
+                }));
+
+                setSongs(normalizedSongs);
                 setArtists(data.data.artists || []);
                 setAlbums(data.data.albums || []);
             } else {

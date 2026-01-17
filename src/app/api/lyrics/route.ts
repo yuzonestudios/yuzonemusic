@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { videoId } = body;
+        const { videoId, title, artist } = body;
 
         if (!videoId) {
             return Response.json(
@@ -31,13 +31,17 @@ export async function POST(request: Request) {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ videoId }),
+            // Pass optional title/artist to improve hit rate
+            body: JSON.stringify({ videoId, title, artist }),
         });
 
         if (!response.ok) {
+            // Gracefully return empty lyrics to avoid client errors
+            let details: any = null;
+            try { details = await response.json(); } catch {}
             return Response.json(
-                { error: "Failed to fetch lyrics" },
-                { status: response.status }
+                { lyrics: "", error: details?.error || "Failed to fetch lyrics" },
+                { status: 200, headers: { 'X-Error-Status': String(response.status) } }
             );
         }
 
@@ -54,9 +58,10 @@ export async function POST(request: Request) {
         });
     } catch (error) {
         console.error("Lyrics API error:", error);
+        // Gracefully return empty lyrics on internal errors
         return Response.json(
-            { error: "Internal server error" },
-            { status: 500 }
+            { lyrics: "", error: "Internal server error" },
+            { status: 200, headers: { 'X-Error-Status': '500' } }
         );
     }
 }

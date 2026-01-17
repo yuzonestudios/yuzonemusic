@@ -50,12 +50,19 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { videoId, title, artist, thumbnail, duration, listenDuration } = body;
+        const { videoId, title, artist, thumbnail, duration, listenDuration, artists } = body;
 
-        if (!videoId || !title || !artist) {
-            console.error("Missing required fields:", { videoId, title, artist, body });
+        // Accept either `artist` (string) or `artists` (string[]) from clients
+        const artistStr = (typeof artist === "string" && artist.trim().length > 0)
+            ? artist
+            : (Array.isArray(artists)
+                ? (artists[0] || artists.filter(Boolean).join(", "))
+                : undefined);
+
+        if (!videoId || !title || !artistStr) {
+            console.error("Missing required fields:", { videoId, title, artist, artists, body });
             return NextResponse.json(
-                { success: false, error: `Missing required fields. videoId: ${!!videoId}, title: ${!!title}, artist: ${!!artist}` },
+                { success: false, error: `Missing required fields. videoId: ${!!videoId}, title: ${!!title}, artist: ${!!artistStr}` },
                 { status: 400 }
             );
         }
@@ -75,7 +82,7 @@ export async function POST(request: NextRequest) {
             { userId: session.user.id, videoId },
             {
                 title,
-                artist,
+                artist: artistStr,
                 thumbnail: thumbnail || "/placeholder-album.png",
                 duration: duration || "0:00",
                 playedAt: new Date(),
@@ -100,7 +107,7 @@ export async function POST(request: NextRequest) {
             userId: session.user.id,
             videoId,
             title,
-            artist,
+            artist: artistStr,
             thumbnail: thumbnail || "/placeholder-album.png",
             duration: duration || "0:00",
             listenDuration: listenDuration || 0,
