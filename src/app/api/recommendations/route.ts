@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
             if (trendingRes.ok) {
                 const trendingData = await trendingRes.json();
                 if (trendingData.success && trendingData.songs) {
-                    trendingSongs = trendingData.songs.slice(0, 30);
+                    trendingSongs = trendingData.songs.slice(0, 50);
                     console.log(`✅ Fetched ${trendingSongs.length} trending songs`);
                 }
             } else {
@@ -63,6 +63,23 @@ export async function GET(req: NextRequest) {
             }
         } catch (error) {
             console.error("❌ Failed to fetch trending songs:", error);
+        }
+
+        // If no trending songs, try to search for popular artists
+        if (trendingSongs.length === 0) {
+            console.log("⚠️ No trending songs - searching for popular songs...");
+            try {
+                const popSearch = await fetch("https://api.yuzone.me/search?q=popular");
+                if (popSearch.ok) {
+                    const popData = await popSearch.json();
+                    if (Array.isArray(popData) && popData.length > 0) {
+                        trendingSongs = popData.slice(0, 50);
+                        console.log(`✅ Found ${trendingSongs.length} popular songs from search`);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to search popular songs:", error);
+            }
         }
 
         console.log(`📊 User stats - History: ${history.length}, Liked: ${likedSongs.length}, Trending: ${trendingSongs.length}`);
@@ -408,42 +425,48 @@ export async function GET(req: NextRequest) {
         console.log(`📊 Total recommendations generated: ${totalRecommendations}`);
 
         // 🆕 FALLBACK: If no recommendations generated, use trending songs
-        if (totalRecommendations === 0 && trendingSongs.length > 0) {
-            console.log("📝 No recommendations generated - showing trending songs as fallback");
+        if (totalRecommendations === 0) {
+            console.log("📝 No recommendations generated - using fallback strategy");
             
-            const trendingRecommendations = trendingSongs.map((song: any) => ({
-                videoId: song.videoId,
-                title: song.title || "Unknown Title",
-                artist: Array.isArray(song.artists)
-                    ? song.artists.join(", ")
-                    : song.artist || song.artists || "Unknown Artist",
-                thumbnail: pickBestThumb(song),
-                duration: song.duration || "3:30",
-                score: 1,
-                reason: "Popular right now",
-            }));
+            if (trendingSongs.length > 0) {
+                console.log(`✅ Showing ${trendingSongs.length} trending songs as fallback`);
+                
+                const trendingRecommendations = trendingSongs.map((song: any) => ({
+                    videoId: song.videoId,
+                    title: song.title || "Unknown Title",
+                    artist: Array.isArray(song.artists)
+                        ? song.artists.join(", ")
+                        : song.artist || song.artists || "Unknown Artist",
+                    thumbnail: pickBestThumb(song),
+                    duration: song.duration || "3:30",
+                    score: 1,
+                    reason: "Popular right now",
+                }));
 
-            return NextResponse.json({
-                success: true,
-                recommendations: {
-                    suggested: trendingRecommendations.slice(0, 24),
-                    artistsYouMightLike: [],
-                    basedOnRecent: [],
-                    trendingInYourStyle: [],
-                    freshDiscoveries: trendingRecommendations.slice(24, 50),
-                },
-                topArtists: topArtists.slice(0, 5),
-            });
+                return NextResponse.json({
+                    success: true,
+                    recommendations: {
+                        suggested: trendingRecommendations.slice(0, 15),
+                        artistsYouMightLike: [],
+                        basedOnRecent: [],
+                        trendingInYourStyle: [],
+                        freshDiscoveries: trendingRecommendations.slice(15, 50),
+                    },
+                    topArtists: topArtists.slice(0, 5),
+                });
+            } else {
+                console.error("❌ No recommendations and no trending songs available!");
+            }
         }
 
         // If very few recommendations, pad with trending songs
-        if (totalRecommendations < 10 && trendingSongs.length > 0) {
+        if (totalRecommendations < 15 && trendingSongs.length > 0) {
             console.log(`⚠️ Only ${totalRecommendations} recommendations - padding with trending songs`);
             
             const existingIds = new Set(sortedRecommendations.map(r => r.videoId));
             const trendingToAdd = trendingSongs
                 .filter((song: any) => !existingIds.has(song.videoId))
-                .slice(0, 30)
+                .slice(0, 40)
                 .map((song: any) => ({
                     videoId: song.videoId,
                     title: song.title || "Unknown Title",
@@ -459,7 +482,7 @@ export async function GET(req: NextRequest) {
             groupedRecommendations.freshDiscoveries = [
                 ...groupedRecommendations.freshDiscoveries,
                 ...trendingToAdd
-            ].slice(0, 30);
+            ].slice(0, 40);
         }
 
         return NextResponse.json({
