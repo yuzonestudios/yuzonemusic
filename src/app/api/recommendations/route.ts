@@ -452,6 +452,7 @@ export async function GET(req: NextRequest) {
                         : song.artist || song.artists || "Unknown Artist",
                     thumbnail: pickBestThumb(song),
                     duration: song.duration || "3:30",
+                    score: 0.5,
                     reason: "Fresh discoveries",
                 }));
 
