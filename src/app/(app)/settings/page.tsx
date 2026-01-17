@@ -19,6 +19,37 @@ export default function SettingsPage() {
     const [suggestionMessage, setSuggestionMessage] = useState<string | null>(null);
     const [isSubmittingSuggestion, setIsSubmittingSuggestion] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [audioQuality, setAudioQuality] = useState<1 | 2 | 3>(2);
+    const [isSavingQuality, setIsSavingQuality] = useState(false);
+    const [qualityMessage, setQualityMessage] = useState("");
+
+    const handleSaveQuality = async (quality: 1 | 2 | 3) => {
+        setIsSavingQuality(true);
+        setQualityMessage("");
+        
+        try {
+            const res = await fetch("/api/user/profile", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ audioQuality: quality }),
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                setAudioQuality(quality);
+                setQualityMessage("Audio quality preference saved!");
+                setTimeout(() => setQualityMessage(""), 3000);
+            } else {
+                setQualityMessage(data.error || "Failed to save quality preference");
+            }
+        } catch (error) {
+            console.error("Error saving quality preference:", error);
+            setQualityMessage("An error occurred. Please try again.");
+        } finally {
+            setIsSavingQuality(false);
+        }
+    };
 
     const fetchProfile = useCallback(async () => {
         try {
@@ -29,6 +60,9 @@ export default function SettingsPage() {
                     const name = data.user.displayName || data.user.name;
                     setDisplayName(name);
                     setSavedDisplayName(name);
+                    if (data.user.audioQuality) {
+                        setAudioQuality(data.user.audioQuality);
+                    }
                 }
             }
         } catch (error) {
@@ -213,8 +247,38 @@ export default function SettingsPage() {
                 <div className={`glass-panel ${styles.section}`}>
                     <h2 className={styles.sectionHeader}>Preferences</h2>
                     <div className={styles.preferences}>
-                        <div className={styles.preferenceItem} style={{ flexDirection: "column", alignItems: "flex-start", gap: "1rem" }}>
-                            <span className={styles.label}>Theme</span>
+                        <div className={styles.preferenceItem} style={{ flexDirection: "column", alignItems: "flex-start", gap: "2rem", width: "100%" }}>
+                            <div style={{ width: "100%" }}>
+                                <span className={styles.label}>Audio Quality</span>
+                                <p className={styles.helperText} style={{ marginTop: "0.5rem", marginBottom: "1rem" }}>Choose your preferred download and streaming quality</p>
+                                <div className={styles.qualityGrid}>
+                                    {[
+                                        { level: 1, label: "Low", bitrate: "96 kbps", description: "Mobile optimized", size: "~0.7 MB/min" },
+                                        { level: 2, label: "Medium", bitrate: "128 kbps", description: "Balanced (Default)", size: "~1 MB/min" },
+                                        { level: 3, label: "High", bitrate: "320 kbps", description: "High quality", size: "~2.4 MB/min" },
+                                    ].map((q) => (
+                                        <button
+                                            key={q.level}
+                                            onClick={() => handleSaveQuality(q.level as 1 | 2 | 3)}
+                                            disabled={isSavingQuality}
+                                            className={`${styles.qualityOption} ${audioQuality === q.level ? styles.qualityActive : ""}`}
+                                        >
+                                            <div className={styles.qualityLabel}>{q.label}</div>
+                                            <div className={styles.qualityBitrate}>{q.bitrate}</div>
+                                            <div className={styles.qualityDesc}>{q.description}</div>
+                                            <div className={styles.qualitySize}>{q.size}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                                {qualityMessage && (
+                                    <p className={`${styles.message} ${qualityMessage.includes("saved") ? styles.success : styles.error}`} style={{ marginTop: "1rem" }}>
+                                        {qualityMessage}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div style={{ width: "100%", borderTop: "1px solid rgba(139, 92, 246, 0.2)", paddingTop: "2rem" }}>
+                                <span className={styles.label}>Theme</span>
                             <div className={styles.themeGrid}>
                                 {[
                                     { id: "blood-red", label: "Blood Red", gradient: "linear-gradient(135deg, #dc2626 0%, #7f1d1d 100%)" },
@@ -242,6 +306,7 @@ export default function SettingsPage() {
                                         <span className={styles.themeName}>{t.label}</span>
                                     </div>
                                 ))}
+                            </div>
                             </div>
                         </div>
                     </div>

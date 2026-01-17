@@ -92,6 +92,8 @@ export const CACHE_TTL = {
     TOP_CHARTS: 30 * 60 * 1000,   // 30 minutes
     PLAYLISTS: 2 * 60 * 1000,     // 2 minutes
     STREAM_URL: 3 * 60 * 60 * 1000, // 3 hours (URLs expire after ~6 hours)
+    ARTIST_DETAILS: 24 * 60 * 60 * 1000, // 24 hours (artist info doesn't change often)
+    ALBUM_DETAILS: 24 * 60 * 60 * 1000,  // 24 hours (album info doesn't change)
 } as const;
 
 // Periodic cleanup every 10 minutes
