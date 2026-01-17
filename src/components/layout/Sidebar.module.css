@@ -119,7 +119,8 @@
     padding: 16px 12px;
     border-top: 1px solid var(--border-color);
     background: rgba(0, 0, 0, 0.1);
-    margin-top: auto; /* Push to bottom */
+    margin-top: auto;
+    /* Push to bottom */
 }
 
 .userProfile {
@@ -154,6 +155,12 @@
 
 @media (max-width: 768px) {
     .sidebar {
-        display: none;
+        display: none !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .sidebar {
+        display: none !important;
     }
 }

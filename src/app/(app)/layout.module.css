@@ -13,20 +13,22 @@
 
 @media (max-width: 1024px) {
     .main {
-        margin-left: 0;
-        margin-bottom: calc(var(--mobile-nav-height) + var(--player-height));
+        margin-left: 0 !important;
+        margin-bottom: calc(var(--mobile-nav-height) + var(--player-height)) !important;
     }
 }
 
 @media (max-width: 768px) {
     .main {
-        margin-left: 0;
-        margin-bottom: calc(var(--mobile-nav-height) + var(--player-height));
+        margin-left: 0 !important;
+        margin-bottom: calc(var(--mobile-nav-height) + var(--player-height)) !important;
     }
 }
 
 @media (max-width: 480px) {
     .main {
+        margin-left: 0 !important;
+        margin-bottom: calc(var(--mobile-nav-height) + var(--player-height) + env(safe-area-inset-bottom)) !important;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
     }
