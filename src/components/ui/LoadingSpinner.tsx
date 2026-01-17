@@ -9,16 +9,14 @@ export default function LoadingSpinner({ size = "medium", text }: LoadingSpinner
     return (
         <div className={styles.container}>
             <div className={`${styles.spinner} ${styles[size]}`}>
-                <svg viewBox="0 0 50 50" className={styles.svg}>
-                    <circle
-                        className={styles.circle}
-                        cx="25"
-                        cy="25"
-                        r="20"
-                        fill="none"
-                        strokeWidth="4"
-                    />
-                </svg>
+                {/* Music-themed loading animation with bars */}
+                <div className={styles.musicBars}>
+                    <div className={styles.bar}></div>
+                    <div className={styles.bar}></div>
+                    <div className={styles.bar}></div>
+                    <div className={styles.bar}></div>
+                    <div className={styles.bar}></div>
+                </div>
             </div>
             {text && <span className={styles.text}>{text}</span>}
         </div>

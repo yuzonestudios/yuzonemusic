@@ -12,8 +12,22 @@ export default function LoadingOverlay() {
         <div className={styles.overlay}>
             <div className={styles.content}>
                 <div className={styles.spinner}>
-                    <div className={styles.spinnerTrack} />
-                    <div className={styles.spinnerIndicator} />
+                    {/* Vinyl record loading animation */}
+                    <div className={styles.vinyl}>
+                        <div className={styles.vinylGroove}></div>
+                        <div className={styles.vinylLabel}>
+                            <div className={styles.vinylCenter}></div>
+                        </div>
+                    </div>
+                    {/* Sound wave particles */}
+                    <div className={styles.particles}>
+                        <div className={styles.particle}></div>
+                        <div className={styles.particle}></div>
+                        <div className={styles.particle}></div>
+                        <div className={styles.particle}></div>
+                        <div className={styles.particle}></div>
+                        <div className={styles.particle}></div>
+                    </div>
                 </div>
                 {loadingMessage && <p className={styles.message}>{loadingMessage}</p>}
             </div>
