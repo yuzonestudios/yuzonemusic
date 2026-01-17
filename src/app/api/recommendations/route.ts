@@ -143,6 +143,7 @@ export async function GET(req: NextRequest) {
         };
 
         // 1. Suggested Songs You Might Like (35% weight) - Based on liked songs
+        console.log(`🔍 Fetching suggestions based on ${likedSongs.length} liked songs...`);
         for (const liked of likedSongs.slice(0, 15)) {
             try {
                 // Search for songs similar to liked ones
@@ -186,6 +187,7 @@ export async function GET(req: NextRequest) {
         }
 
         // 2. Artists You Might Like (25% weight) - Discover new artists
+        console.log(`🎤 Fetching songs from ${topArtists.length} top artists...`);
         for (const artist of topArtists.slice(0, 6)) {
             try {
                 const searchQuery = artist;
@@ -195,6 +197,7 @@ export async function GET(req: NextRequest) {
                 
                 if (searchRes.ok) {
                     const results = await searchRes.json();
+                    console.log(`  Found ${results.length} results for artist: ${artist}`);
                     for (const result of results.slice(0, 3)) {
                         const recArtist = Array.isArray(result.artists)
                             ? result.artists.join(", ")
@@ -220,11 +223,14 @@ export async function GET(req: NextRequest) {
                             bumpArtist(recArtist);
                         }
                     }
+                } else {
+                    console.warn(`⚠️ Search API failed for artist "${artist}": ${searchRes.status}`);
                 }
             } catch (error) {
                 console.error("Failed to fetch artist songs:", error);
             }
         }
+        console.log(`✅ Added ${recommendations.length} recommendations so far`);
 
         // 3. Based on Recent Plays (20% weight) - Less weight now
         const recentSongs = history.slice(0, 12);
@@ -391,10 +397,19 @@ export async function GET(req: NextRequest) {
             freshDiscoveries: sortedRecommendations.filter(r => r.reason === "Fresh discoveries").slice(0, 20),
         };
 
-        // 🆕 NEW USER FALLBACK: If no recommendations, show trending songs
-        const totalRecs = sortedRecommendations.length;
-        if (totalRecs === 0 && trendingSongs.length > 0) {
-            console.log("📝 New user detected - showing trending songs as initial recommendations");
+        // Calculate total recommendations
+        const totalRecommendations = 
+            groupedRecommendations.suggested.length +
+            groupedRecommendations.artistsYouMightLike.length +
+            groupedRecommendations.basedOnRecent.length +
+            groupedRecommendations.trendingInYourStyle.length +
+            groupedRecommendations.freshDiscoveries.length;
+
+        console.log(`📊 Total recommendations generated: ${totalRecommendations}`);
+
+        // 🆕 FALLBACK: If no recommendations generated, use trending songs
+        if (totalRecommendations === 0 && trendingSongs.length > 0) {
+            console.log("📝 No recommendations generated - showing trending songs as fallback");
             
             const trendingRecommendations = trendingSongs.map((song: any) => ({
                 videoId: song.videoId,
@@ -411,14 +426,39 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({
                 success: true,
                 recommendations: {
-                    suggested: [],
+                    suggested: trendingRecommendations.slice(0, 24),
                     artistsYouMightLike: [],
                     basedOnRecent: [],
                     trendingInYourStyle: [],
-                    freshDiscoveries: trendingRecommendations.slice(0, 40),
+                    freshDiscoveries: trendingRecommendations.slice(24, 50),
                 },
-                topArtists: [],
+                topArtists: topArtists.slice(0, 5),
             });
+        }
+
+        // If very few recommendations, pad with trending songs
+        if (totalRecommendations < 10 && trendingSongs.length > 0) {
+            console.log(`⚠️ Only ${totalRecommendations} recommendations - padding with trending songs`);
+            
+            const existingIds = new Set(sortedRecommendations.map(r => r.videoId));
+            const trendingToAdd = trendingSongs
+                .filter((song: any) => !existingIds.has(song.videoId))
+                .slice(0, 30)
+                .map((song: any) => ({
+                    videoId: song.videoId,
+                    title: song.title || "Unknown Title",
+                    artist: Array.isArray(song.artists)
+                        ? song.artists.join(", ")
+                        : song.artist || song.artists || "Unknown Artist",
+                    thumbnail: pickBestThumb(song),
+                    duration: song.duration || "3:30",
+                    reason: "Fresh discoveries",
+                }));
+
+            groupedRecommendations.freshDiscoveries = [
+                ...groupedRecommendations.freshDiscoveries,
+                ...trendingToAdd
+            ].slice(0, 30);
         }
 
         return NextResponse.json({
