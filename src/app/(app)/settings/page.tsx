@@ -76,8 +76,7 @@ export default function SettingsPage() {
         }
     }, [session, fetchProfile]);
 
-    const handleSaveDisplayName = async (e?: FormEvent) => {
-        if (e) e.preventDefault();
+    const handleSaveDisplayName = async () => {
         if (!displayName.trim() || displayName.length < 2 || displayName.length > 50) {
             setSaveMessage("Display name must be between 2 and 50 characters");
             return;
@@ -173,7 +172,10 @@ export default function SettingsPage() {
                         />
                         <div className={styles.profileInfo}>
                             <form
-                                onSubmit={handleSaveDisplayName}
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleSaveDisplayName();
+                                }}
                                 style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem", width: "100%" }}
                             >
                                 {isEditingName ? (
@@ -187,9 +189,20 @@ export default function SettingsPage() {
                                             maxLength={50}
                                             inputMode="text"
                                             autoComplete="off"
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") {
+                                                    e.preventDefault();
+                                                    handleSaveDisplayName();
+                                                } else if (e.key === "Escape") {
+                                                    setIsEditingName(false);
+                                                    setDisplayName(savedDisplayName);
+                                                    setSaveMessage("");
+                                                }
+                                            }}
                                         />
                                         <button 
-                                            type="submit"
+                                            type="button"
+                                            onClick={() => handleSaveDisplayName()}
                                             disabled={isSaving}
                                             className={styles.saveBtn}
                                         >

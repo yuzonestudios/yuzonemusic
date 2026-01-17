@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
                 displayName: user.displayName || user.name,
                 email: user.email,
                 image: user.image,
+                audioQuality: user.audioQuality || 2,
             },
         });
     } catch (error) {
@@ -55,19 +56,48 @@ export async function PATCH(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { displayName } = body;
+        const { displayName, audioQuality } = body;
 
-        if (!displayName || typeof displayName !== "string") {
-            return NextResponse.json(
-                { success: false, error: "Display name is required" },
-                { status: 400 }
-            );
+        // Validate displayName if provided
+        if (displayName !== undefined) {
+            if (typeof displayName !== "string") {
+                return NextResponse.json(
+                    { success: false, error: "Display name must be a string" },
+                    { status: 400 }
+                );
+            }
+            const trimmedName = displayName.trim();
+            if (trimmedName.length < 2 || trimmedName.length > 50) {
+                return NextResponse.json(
+                    { success: false, error: "Display name must be between 2 and 50 characters" },
+                    { status: 400 }
+                );
+            }
         }
 
-        const trimmedName = displayName.trim();
-        if (trimmedName.length < 2 || trimmedName.length > 50) {
+        // Validate audioQuality if provided
+        if (audioQuality !== undefined) {
+            if (![1, 2, 3].includes(audioQuality)) {
+                return NextResponse.json(
+                    { success: false, error: "Audio quality must be 1, 2, or 3" },
+                    { status: 400 }
+                );
+            }
+        }
+
+        // Build update object with provided fields
+        const updateData: any = {};
+        if (displayName !== undefined) {
+            updateData.displayName = displayName.trim();
+        }
+        if (audioQuality !== undefined) {
+            updateData.audioQuality = audioQuality;
+        }
+
+        // Ensure at least one field is being updated
+        if (Object.keys(updateData).length === 0) {
             return NextResponse.json(
-                { success: false, error: "Display name must be between 2 and 50 characters" },
+                { success: false, error: "No fields to update" },
                 { status: 400 }
             );
         }
@@ -75,7 +105,7 @@ export async function PATCH(req: NextRequest) {
         await connectDB();
         const user = await User.findOneAndUpdate(
             { email: session.user.email },
-            { displayName: trimmedName },
+            updateData,
             { new: true }
         );
 
@@ -92,6 +122,7 @@ export async function PATCH(req: NextRequest) {
                 name: user.name,
                 displayName: user.displayName || user.name,
                 email: user.email,
+                audioQuality: user.audioQuality || 2,
             },
         });
     } catch (error) {
