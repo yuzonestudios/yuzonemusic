@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, type CSSProperties, type MouseEvent } from "react";
 import Image from "next/image";
-import { Download, Heart, Maximize, ListPlus, ListMusic, X, GripVertical } from "lucide-react";
+import { Download, Heart, Maximize, ListPlus, ListMusic, X, GripVertical, ChevronUp, ChevronDown } from "lucide-react";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -56,9 +56,9 @@ export default function MusicPlayer() {
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
-            activationConstraint: {
-                distance: 6,
-            },
+            activationConstraint: isMobile
+                ? { delay: 180, tolerance: 8 }
+                : { distance: 4 },
         })
     );
 
@@ -283,12 +283,14 @@ export default function MusicPlayer() {
                 ref={setNodeRef}
                 style={style}
                 className={`${styles.queueItem} ${idx === queueIndex ? styles.active : ""} ${isDragging ? styles.dragging : ""}`}
+                // On mobile, allow dragging from the whole row with long-press
+                {...(isMobile ? { ...attributes, ...listeners } : {})}
             >
                 <button
                     className={styles.queueHandle}
                     aria-label="Drag to reorder"
-                    {...attributes}
-                    {...listeners}
+                    // Desktop: drag via handle; Mobile: whole row already has listeners
+                    {...(!isMobile ? { ...attributes, ...listeners } : {})}
                 >
                     <GripVertical size={16} />
                 </button>
@@ -301,6 +303,21 @@ export default function MusicPlayer() {
                     <span className={styles.queueItemArtist}>{item.artist}</span>
                 </button>
                 <div className={styles.queueItemActions}>
+                    {/* Move Up/Down for touch-friendly reordering */}
+                    <button
+                        onClick={() => moveInQueue(idx, Math.max(0, idx - 1))}
+                        title="Move up"
+                        disabled={idx === 0}
+                    >
+                        <ChevronUp size={14} />
+                    </button>
+                    <button
+                        onClick={() => moveInQueue(idx, Math.min(queue.length - 1, idx + 1))}
+                        title="Move down"
+                        disabled={idx === queue.length - 1}
+                    >
+                        <ChevronDown size={14} />
+                    </button>
                     <button
                         onClick={() => removeFromQueue(idx)}
                         title="Remove from queue"

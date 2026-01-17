@@ -603,4 +603,15 @@
         bottom: calc(var(--mobile-nav-height) + 70px);
         max-height: 40vh;
     }
+
+    .queueHandle {
+        width: 36px;
+        height: 36px;
+    }
+
+    .queueItem {
+        /* Improve touch gesture recognition */
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
 }

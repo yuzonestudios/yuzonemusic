@@ -5,6 +5,15 @@
     animation: fadeIn 0.4s ease-in;
 }
 
+/* Center loading state content */
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 140px);
+    text-align: center;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
