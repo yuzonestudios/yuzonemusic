@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect, useCallback, type FormEvent } from "react";
 import { LogOut } from "lucide-react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTheme } from "@/context/ThemeContext";
@@ -11,6 +11,7 @@ export default function SettingsPage() {
     const { data: session, status } = useSession();
     const { theme, setTheme } = useTheme();
     const [displayName, setDisplayName] = useState("");
+    const [savedDisplayName, setSavedDisplayName] = useState("");
     const [isEditingName, setIsEditingName] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState("");
@@ -19,25 +20,27 @@ export default function SettingsPage() {
     const [isSubmittingSuggestion, setIsSubmittingSuggestion] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-    const fetchProfile = async () => {
+    const fetchProfile = useCallback(async () => {
         try {
             const res = await fetch("/api/user/profile");
             if (res.ok) {
                 const data = await res.json();
                 if (data.success) {
-                    setDisplayName(data.user.displayName || data.user.name);
+                    const name = data.user.displayName || data.user.name;
+                    setDisplayName(name);
+                    setSavedDisplayName(name);
                 }
             }
         } catch (error) {
             console.error("Failed to fetch profile:", error);
         }
-    };
+    }, []);
 
     useEffect(() => {
         if (session) {
             fetchProfile();
         }
-    }, [session]);
+    }, [session, fetchProfile]);
 
     const handleSaveDisplayName = async (e?: FormEvent) => {
         if (e) e.preventDefault();
@@ -61,6 +64,7 @@ export default function SettingsPage() {
             if (data.success) {
                 const updated = displayName.trim();
                 setDisplayName(updated);
+                setSavedDisplayName(updated);
                 setSaveMessage("Display name updated successfully!");
                 setIsEditingName(false);
                 setTimeout(() => setSaveMessage(""), 3000);
@@ -161,9 +165,8 @@ export default function SettingsPage() {
                                             type="button"
                                             onClick={() => {
                                                 setIsEditingName(false);
+                                                setDisplayName(savedDisplayName);
                                                 setSaveMessage("");
-                                                // Reset to current saved value from session
-                                                fetchProfile();
                                             }}
                                             className={styles.cancelBtn}
                                         >
