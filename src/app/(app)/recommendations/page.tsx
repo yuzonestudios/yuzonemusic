@@ -48,17 +48,22 @@ export default function RecommendationsPage() {
             setLoading(true);
             setError("");
             
+            console.log("🔄 Fetching recommendations...");
             const res = await fetch("/api/recommendations");
             const data = await res.json();
+            
+            console.log("📦 Recommendations response:", data);
 
             if (data.success) {
                 setRecommendations(data.recommendations);
                 setTopArtists(data.topArtists || []);
+                console.log("✅ Recommendations loaded successfully");
             } else {
+                console.error("❌ Recommendations failed:", data.error);
                 setError(data.error || "Failed to load recommendations");
             }
         } catch (err) {
-            console.error("Error fetching recommendations:", err);
+            console.error("❌ Error fetching recommendations:", err);
             setError("Failed to load recommendations");
         } finally {
             setLoading(false);

@@ -56,11 +56,16 @@ export async function GET(req: NextRequest) {
                 const trendingData = await trendingRes.json();
                 if (trendingData.success && trendingData.songs) {
                     trendingSongs = trendingData.songs.slice(0, 30);
+                    console.log(`✅ Fetched ${trendingSongs.length} trending songs`);
                 }
+            } else {
+                console.error("❌ Failed to fetch trending songs - API returned error");
             }
         } catch (error) {
-            console.error("Failed to fetch trending songs:", error);
+            console.error("❌ Failed to fetch trending songs:", error);
         }
+
+        console.log(`📊 User stats - History: ${history.length}, Liked: ${likedSongs.length}, Trending: ${trendingSongs.length}`);
 
         // Extract recently played song IDs to avoid repetition
         const recentlyPlayedIds = new Set(
@@ -385,6 +390,36 @@ export async function GET(req: NextRequest) {
             trendingInYourStyle: sortedRecommendations.filter(r => r.reason === "Trending in your style").slice(0, 12),
             freshDiscoveries: sortedRecommendations.filter(r => r.reason === "Fresh discoveries").slice(0, 20),
         };
+
+        // 🆕 NEW USER FALLBACK: If no recommendations, show trending songs
+        const totalRecs = sortedRecommendations.length;
+        if (totalRecs === 0 && trendingSongs.length > 0) {
+            console.log("📝 New user detected - showing trending songs as initial recommendations");
+            
+            const trendingRecommendations = trendingSongs.map((song: any) => ({
+                videoId: song.videoId,
+                title: song.title || "Unknown Title",
+                artist: Array.isArray(song.artists)
+                    ? song.artists.join(", ")
+                    : song.artist || song.artists || "Unknown Artist",
+                thumbnail: pickBestThumb(song),
+                duration: song.duration || "3:30",
+                score: 1,
+                reason: "Popular right now",
+            }));
+
+            return NextResponse.json({
+                success: true,
+                recommendations: {
+                    suggested: [],
+                    artistsYouMightLike: [],
+                    basedOnRecent: [],
+                    trendingInYourStyle: [],
+                    freshDiscoveries: trendingRecommendations.slice(0, 40),
+                },
+                topArtists: [],
+            });
+        }
 
         return NextResponse.json({
             success: true,
