@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
             return successResponse(cached);
         }
 
-        // Use the user's external API
-        const externalApiUrl = `https://api.yuzone.me/search?q=${encodeURIComponent(query)}`;
+        // Use the user's external API with type parameter
+        const externalApiUrl = `https://api.yuzone.me/search?q=${encodeURIComponent(query)}&type=${type}`;
 
         const response = await fetch(externalApiUrl);
 
@@ -32,53 +32,44 @@ export async function GET(request: NextRequest) {
 
         const data = await response.json();
 
-        // Parse songs from external API response
-        // Handle both array and object responses
-        const songsData = Array.isArray(data) ? data : data.songs || data.results || [];
-        
-        const songs: SearchSongResult[] = songsData.map((song: any) => ({
-            type: "song" as const,
-            videoId: song.videoId || song.id || "",
-            title: song.title || "Unknown Title",
-            artists: Array.isArray(song.artists)
-                ? song.artists
-                : [song.artist || song.artists || "Unknown Artist"],
-            thumbnail: song.thumbnail || song.thumbnails?.[0]?.url || "/placeholder-album.png",
-            duration: song.duration || "0:00",
-        }));
-
-        // Build response based on type filter
+        // Parse response based on type
         let result: SearchResponse = {};
 
         if (type === "all" || type === "songs") {
+            const songsData = Array.isArray(data) ? data : data.songs || data.results || [];
+            const songs: SearchSongResult[] = songsData.map((song: any) => ({
+                type: "song" as const,
+                videoId: song.videoId || song.id || "",
+                title: song.title || "Unknown Title",
+                artists: Array.isArray(song.artists)
+                    ? song.artists
+                    : [song.artist || song.artists || "Unknown Artist"],
+                thumbnail: song.thumbnail || song.thumbnails?.[0]?.url || "/placeholder-album.png",
+                duration: song.duration || "0:00",
+            }));
             result.songs = songs;
         }
 
-        // For artists and albums, we would need additional logic
-        // Since the external API returns songs, we can extract artist info from songs
         if (type === "all" || type === "artists") {
-            // Extract unique artists from songs
-            const artistMap = new Map<string, { name: string; browseId: string; thumbnail: string }>();
-            songs.forEach((song) => {
-                song.artists.forEach((artist) => {
-                    if (!artistMap.has(artist)) {
-                        artistMap.set(artist, {
-                            name: artist,
-                            browseId: `artist-${artist.replace(/\s+/g, "-").toLowerCase()}`,
-                            thumbnail: song.thumbnail,
-                        });
-                    }
-                });
-            });
-            result.artists = Array.from(artistMap.values()).slice(0, 10).map((artist) => ({
+            const artistsData = Array.isArray(data) ? data : data.artists || [];
+            result.artists = artistsData.map((artist: any) => ({
                 type: "artist" as const,
-                ...artist,
+                name: artist.name || "Unknown Artist",
+                browseId: artist.browseId || "",
+                thumbnail: artist.thumbnail || "/placeholder-artist.png",
             }));
         }
 
-        // For albums, extract from songs if available
         if (type === "all" || type === "albums") {
-            result.albums = [];
+            const albumsData = Array.isArray(data) ? data : data.albums || [];
+            result.albums = albumsData.map((album: any) => ({
+                type: "album" as const,
+                title: album.title || "Unknown Album",
+                artists: Array.isArray(album.artists) ? album.artists : [album.artist || "Unknown Artist"],
+                year: album.year,
+                thumbnail: album.thumbnail || "/placeholder-album.png",
+                browseId: album.browseId || "",
+            }));
         }
 
         // Cache the result
