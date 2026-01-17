@@ -65,27 +65,7 @@ export async function GET(req: NextRequest) {
             console.error("❌ Failed to fetch trending songs:", error);
         }
 
-        // If no trending songs, try to search for songs from top artists
-        if (trendingSongs.length === 0 && topArtists.length > 0) {
-            console.log("⚠️ No trending songs - searching for songs from top artists...");
-            try {
-                const topArtist = topArtists[0];
-                const artistSearch = await fetch(
-                    `https://api.yuzone.me/search?q=${encodeURIComponent(topArtist)}`
-                );
-                if (artistSearch.ok) {
-                    const searchData = await artistSearch.json();
-                    if (Array.isArray(searchData) && searchData.length > 0) {
-                        trendingSongs = searchData.slice(0, 50);
-                        console.log(`✅ Found ${trendingSongs.length} songs from top artist: ${topArtist}`);
-                    }
-                }
-            } catch (error) {
-                console.error("Failed to search for top artist songs:", error);
-            }
-        }
-
-        console.log(`📊 User stats - History: ${history.length}, Liked: ${likedSongs.length}, Trending: ${trendingSongs.length}`);
+        console.log(`📊 User stats - History: ${history.length}, Liked: ${likedSongs.length}, Trending (initial): ${trendingSongs.length}`);
 
         // Extract recently played song IDs to avoid repetition
         const recentlyPlayedIds = new Set(
@@ -112,6 +92,26 @@ export async function GET(req: NextRequest) {
             .sort((a, b) => b[1] - a[1])
             .slice(0, 10)
             .map(([artist]) => artist);
+
+        // If no trending songs, try to search for songs from top artists
+        if (trendingSongs.length === 0 && topArtists.length > 0) {
+            console.log("⚠️ No trending songs - searching for songs from top artists...");
+            try {
+                const topArtist = topArtists[0];
+                const artistSearch = await fetch(
+                    `https://api.yuzone.me/search?q=${encodeURIComponent(topArtist)}`
+                );
+                if (artistSearch.ok) {
+                    const searchData = await artistSearch.json();
+                    if (Array.isArray(searchData) && searchData.length > 0) {
+                        trendingSongs = searchData.slice(0, 50);
+                        console.log(`✅ Found ${trendingSongs.length} songs from top artist: ${topArtist}`);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to search for top artist songs:", error);
+            }
+        }
 
         // Extract genres from listening history (basic inference)
         const genreKeywords = new Map<string, number>();
