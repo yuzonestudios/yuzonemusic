@@ -140,11 +140,71 @@
     margin-top: 2rem;
 }
 
+.songsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+}
+
 .sectionTitle {
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 1.5rem;
+    margin: 0;
+}
+
+.searchContainer {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    transition: all var(--transition-fast);
+}
+
+.searchInput::placeholder {
+    color: var(--text-muted);
+}
+
+.searchInput:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    background: rgba(139, 92, 246, 0.05);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.noResults {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+    gap: 1rem;
+}
+
+.noResults p {
+    color: var(--text-secondary);
+    font-size: 1rem;
 }
 
 .songGrid {
@@ -279,6 +339,15 @@
     .container {
         padding: 1rem;
         padding-bottom: calc(var(--player-height) + var(--mobile-nav-height) + 1rem);
+    }
+
+    .songsHeader {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .searchContainer {
+        max-width: 100%;
     }
 
     .backBtn {

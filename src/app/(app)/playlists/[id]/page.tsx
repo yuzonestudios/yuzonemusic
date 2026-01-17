@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
-import { Play, Trash2, Music, ArrowLeft, User, Share2, Shuffle } from "lucide-react";
+import { Play, Trash2, Music, ArrowLeft, User, Share2, Shuffle, Search } from "lucide-react";
 import SongCard from "@/components/cards/SongCard";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { usePlayerStore } from "@/store/playerStore";
@@ -40,6 +40,7 @@ export default function PlaylistDetailPage() {
     
     const [playlist, setPlaylist] = useState<Playlist | null>(null);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
     const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;
@@ -355,11 +356,41 @@ export default function PlaylistDetailPage() {
             <div className={styles.content}>
                 {playlist.songs.length > 0 ? (
                     <>
-                        <h2 className={styles.sectionTitle}>Songs</h2>
+                        <div className={styles.songsHeader}>
+                            <h2 className={styles.sectionTitle}>Songs</h2>
+                            <div className={styles.searchContainer}>
+                                <Search size={18} className={styles.searchIcon} />
+                                <input
+                                    type="text"
+                                    placeholder="Search in playlist..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className={styles.searchInput}
+                                />
+                            </div>
+                        </div>
                         <div className={styles.songGrid}>
                             {(() => {
                                 const sortedSongs = [...playlist.songs]
-                                    .sort((a, b) => (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase()));
+                                    .sort((a, b) => (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase()))
+                                    .filter((song) => {
+                                        if (!searchQuery) return true;
+                                        const query = searchQuery.toLowerCase();
+                                        return (
+                                            song.title.toLowerCase().includes(query) ||
+                                            song.artist.toLowerCase().includes(query)
+                                        );
+                                    });
+                                
+                                if (sortedSongs.length === 0) {
+                                    return (
+                                        <div className={styles.noResults}>
+                                            <Search size={32} />
+                                            <p>No songs match &quot;{searchQuery}&quot;</p>
+                                        </div>
+                                    );
+                                }
+                                
                                 return sortedSongs.map((song, index) => (
                                     <SongCard
                                         key={`${song.videoId}-${index}`}
