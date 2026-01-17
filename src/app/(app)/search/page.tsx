@@ -9,7 +9,7 @@ import { usePlayerStore } from "@/store/playerStore";
 import type { Song, Artist, Album } from "@/types";
 import styles from "./search.module.css";
 
-type SearchType = "all" | "song" | "artist" | "album";
+type SearchType = "all" | "songs" | "artists" | "albums";
 
 export default function SearchPage() {
     const { setLoading: setGlobalLoading } = usePlayerStore();
@@ -210,14 +210,13 @@ export default function SearchPage() {
 
                 {/* Search Type Tabs */}
                 <div className={styles.tabs}>
-                    {(["all", "song", "artist", "album"] as SearchType[]).map((type) => (
+                    {(["all", "songs", "artists", "albums"] as SearchType[]).map((type) => (
                         <button
                             key={type}
                             onClick={() => setSearchType(type)}
                             className={`${styles.tab} ${searchType === type ? styles.active : ""}`}
                         >
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                            {type === "all" ? "" : "s"}
+                            {type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1)}
                         </button>
                     ))}
                 </div>
@@ -242,7 +241,7 @@ export default function SearchPage() {
                     ) : (
                         <>
                             {/* Songs */}
-                            {songs.length > 0 && (searchType === "all" || searchType === "song") && (
+                            {songs.length > 0 && (searchType === "all" || searchType === "songs") && (
                                 <section className={styles.section}>
                                     <h3 className={styles.sectionTitle}>Songs</h3>
                                     <div className={styles.songList}>
@@ -261,23 +260,18 @@ export default function SearchPage() {
                             )}
 
                             {/* Artists */}
-                            {artists.length > 0 && (searchType === "all" || searchType === "artist") && (
+                            {artists.length > 0 && (searchType === "all" || searchType === "artists") && (
                                 <section className={styles.section}>
                                     <h3 className={styles.sectionTitle}>Artists</h3>
                                     <div className={styles.cardGrid}>
                                         {artists.map((artist) => (
-                                            <div key={artist.id} className={styles.artistCard}>
+                                            <div key={artist.browseId} className={styles.artistCard}>
                                                 <img
                                                     src={artist.thumbnail}
                                                     alt={artist.name}
                                                     className={styles.artistImg}
                                                 />
                                                 <span className={styles.artistName}>{artist.name}</span>
-                                                {artist.subscribers && (
-                                                    <span className={styles.artistSubs}>
-                                                        {artist.subscribers}
-                                                    </span>
-                                                )}
                                             </div>
                                         ))}
                                     </div>
@@ -285,19 +279,24 @@ export default function SearchPage() {
                             )}
 
                             {/* Albums */}
-                            {albums.length > 0 && (searchType === "all" || searchType === "album") && (
+                            {albums.length > 0 && (searchType === "all" || searchType === "albums") && (
                                 <section className={styles.section}>
                                     <h3 className={styles.sectionTitle}>Albums</h3>
                                     <div className={styles.cardGrid}>
                                         {albums.map((album) => (
-                                            <div key={album.id} className={styles.albumCard}>
+                                            <div key={album.browseId} className={styles.albumCard}>
                                                 <img
                                                     src={album.thumbnail}
                                                     alt={album.title}
                                                     className={styles.albumImg}
                                                 />
                                                 <span className={styles.albumTitle}>{album.title}</span>
-                                                <span className={styles.albumArtist}>{album.artist}</span>
+                                                <span className={styles.albumArtist}>
+                                                    {Array.isArray(album.artists) ? album.artists.join(", ") : "Unknown"}
+                                                </span>
+                                                {album.year && (
+                                                    <span className={styles.albumYear}>{album.year}</span>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
