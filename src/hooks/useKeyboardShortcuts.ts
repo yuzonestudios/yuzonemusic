@@ -24,16 +24,12 @@ export function useKeyboardShortcuts() {
                     }
                     break;
                 case "ArrowRight":
-                    if (e.shiftKey) {
-                        e.preventDefault();
-                        nextSong();
-                    }
+                    e.preventDefault();
+                    nextSong();
                     break;
                 case "ArrowLeft":
-                    if (e.shiftKey) {
-                        e.preventDefault();
-                        previousSong();
-                    }
+                    e.preventDefault();
+                    previousSong();
                     break;
                 case "ArrowUp":
                     if (e.shiftKey) {
@@ -51,10 +47,61 @@ export function useKeyboardShortcuts() {
                     e.preventDefault();
                     setVolume(volume > 0 ? 0 : 0.7);
                     break;
+                case "KeyN":
+                    if (e.ctrlKey || e.metaKey) {
+                        e.preventDefault();
+                        nextSong();
+                    }
+                    break;
+                case "KeyP":
+                    if (e.ctrlKey || e.metaKey) {
+                        e.preventDefault();
+                        previousSong();
+                    }
+                    break;
             }
         };
 
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [currentSong, togglePlay, nextSong, previousSong, setVolume, volume]);
+
+    // Handle media keys (headphone controls)
+    useEffect(() => {
+        const handleMediaControl = (details: any) => {
+            if (details.action === "play" || details.action === "play-pause") {
+                togglePlay();
+            } else if (details.action === "nexttrack") {
+                nextSong();
+            } else if (details.action === "previoustrack") {
+                previousSong();
+            }
+        };
+
+        // Use MediaSession API if available (most modern browsers)
+        if (navigator.mediaSession) {
+            navigator.mediaSession.setActionHandler("play", () => {
+                if (currentSong) togglePlay();
+            });
+            navigator.mediaSession.setActionHandler("pause", () => {
+                togglePlay();
+            });
+            navigator.mediaSession.setActionHandler("nexttrack", () => {
+                nextSong();
+            });
+            navigator.mediaSession.setActionHandler("previoustrack", () => {
+                previousSong();
+            });
+        }
+
+        return () => {
+            // Clean up media session handlers
+            if (navigator.mediaSession) {
+                navigator.mediaSession.setActionHandler("play", null);
+                navigator.mediaSession.setActionHandler("pause", null);
+                navigator.mediaSession.setActionHandler("nexttrack", null);
+                navigator.mediaSession.setActionHandler("previoustrack", null);
+            }
+        };
+    }, [currentSong, togglePlay, nextSong, previousSong]);
 }
