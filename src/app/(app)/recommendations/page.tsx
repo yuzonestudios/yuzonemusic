@@ -79,7 +79,7 @@ export default function RecommendationsPage() {
     if (loading) {
         return (
             <div className={styles.container}>
-                <LoadingSpinner />
+                <LoadingSpinner text="Curating your personalized music recommendations..." />
             </div>
         );
     }
