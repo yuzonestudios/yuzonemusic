@@ -319,63 +319,10 @@ export async function GET(req: NextRequest) {
 
         // Sort by score and return top recommendations
         // Normalize scores for variety and add slight jitter for dynamism
-        let sortedRecommendations = recommendations
+        const sortedRecommendations = recommendations
             .map(rec => ({ ...rec, score: rec.score * (0.95 + Math.random() * 0.1) }))
             .sort((a, b) => b.score - a.score)
             .slice(0, 90);
-
-        // 🤖 AI-POWERED ENHANCEMENT: Use Gemini to refine recommendations
-        if (process.env.GEMINI_API_KEY && sortedRecommendations.length > 20) {
-            try {
-                console.log("🤖 Enhancing recommendations with Gemini AI...");
-                
-                const aiResult = await generateAIRecommendations({
-                    userProfile: {
-                        topArtists,
-                        topGenres,
-                        likedSongs: likedSongs.slice(0, 20).map((s: any) => ({
-                            title: s.title,
-                            artist: s.artist
-                        })),
-                        recentlyPlayed: history.slice(0, 15).map((s: any) => ({
-                            title: s.title,
-                            artist: s.artist
-                        })),
-                        listeningPatterns: {
-                            frequency: history.length,
-                            diversity: topArtists.length / Math.max(history.length, 1),
-                        },
-                    },
-                    availableSongs: sortedRecommendations.map(r => ({
-                        videoId: r.videoId,
-                        title: r.title,
-                        artist: r.artist
-                    })),
-                    contextMessage: "User is exploring their personalized For You page",
-                });
-
-                // Merge AI insights with existing recommendations
-                if (aiResult.recommendations.length > 0) {
-                    const aiMap = new Map(aiResult.recommendations.map(r => [r.videoId, r]));
-                    
-                    sortedRecommendations = sortedRecommendations.map(rec => {
-                        const aiRec = aiMap.get(rec.videoId);
-                        if (aiRec) {
-                            return {
-                                ...rec,
-                                reason: aiRec.reason,
-                                score: (rec.score * 0.4) + (aiRec.relevanceScore * 0.6), // Blend scores
-                            };
-                        }
-                        return rec;
-                    }).sort((a, b) => b.score - a.score);
-
-                    console.log("✨ AI enhancement complete! Recommendations personalized.");
-                }
-            } catch (error) {
-                console.error("⚠️ AI enhancement failed, using standard recommendations:", error);
-            }
-        }
 
         // Group by reason with better distribution
         const groupedRecommendations = {

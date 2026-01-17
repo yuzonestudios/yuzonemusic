@@ -283,28 +283,29 @@
 
 @media (max-width: 768px) {
     .card {
-        padding: 0.85rem;
-        gap: 0.85rem;
+        padding: 0.75rem;
+        gap: 0.75rem;
         align-items: center;
     }
 
     .thumbnail {
-        width: 88px;
-        height: 88px;
+        width: 80px;
+        height: 80px;
     }
 
     .title {
-        font-size: 0.92rem;
+        font-size: 0.85rem;
         -webkit-line-clamp: 1;
+        font-weight: 500;
     }
 
     .artist {
-        font-size: 0.78rem;
+        font-size: 0.72rem;
     }
 
     .duration {
-        font-size: 0.72rem;
-        padding: 0.25rem 0.55rem;
+        font-size: 0.68rem;
+        padding: 0.2rem 0.5rem;
     }
 
     .actionBtn {
@@ -320,25 +321,27 @@
 
 @media (max-width: 480px) {
     .card {
-        padding: 0.75rem;
-        gap: 0.75rem;
+        padding: 0.65rem;
+        gap: 0.65rem;
     }
 
     .thumbnail {
-        width: 76px;
-        height: 76px;
+        width: 70px;
+        height: 70px;
     }
 
     .title {
-        font-size: 0.88rem;
+        font-size: 0.8rem;
+        font-weight: 500;
     }
 
     .artist {
-        font-size: 0.72rem;
+        font-size: 0.68rem;
     }
 
     .duration {
-        font-size: 0.7rem;
+        font-size: 0.65rem;
+        padding: 0.18rem 0.45rem;
     }
 
     .actionBtn {

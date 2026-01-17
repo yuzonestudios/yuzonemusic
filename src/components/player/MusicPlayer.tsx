@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties, type MouseEvent } from "react";
+import { useEffect, useState, useRef, type CSSProperties, type MouseEvent } from "react";
 import Image from "next/image";
 import { Download, Heart, Maximize, ListPlus, ListMusic, X, GripVertical } from "lucide-react";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -51,6 +51,8 @@ export default function MusicPlayer() {
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
     const [isQueueOpen, setIsQueueOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const queuePanelRef = useRef<HTMLDivElement>(null);
+    const queueToggleRef = useRef<HTMLButtonElement>(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -68,6 +70,35 @@ export default function MusicPlayer() {
         media.addEventListener("change", handleChange);
         return () => media.removeEventListener("change", handleChange);
     }, []);
+
+    // Close queue when clicking outside
+    useEffect(() => {
+        if (!isQueueOpen) return;
+
+        const handleClickOutside = (event: MouseEvent | Event) => {
+            const target = event.target as Node;
+            
+            // Check if click is outside queue panel and not on the toggle button
+            if (
+                queuePanelRef.current &&
+                !queuePanelRef.current.contains(target) &&
+                queueToggleRef.current &&
+                !queueToggleRef.current.contains(target)
+            ) {
+                setIsQueueOpen(false);
+            }
+        };
+
+        // Add listener with a small delay to prevent immediate closing
+        const timeoutId = setTimeout(() => {
+            document.addEventListener("mousedown", handleClickOutside);
+        }, 0);
+
+        return () => {
+            clearTimeout(timeoutId);
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isQueueOpen]);
 
     // Store the seek function in the store for FullscreenPlayer to use
     useEffect(() => {
@@ -440,6 +471,7 @@ export default function MusicPlayer() {
 
             <div className={styles.sideActions}>
                 <button
+                    ref={queueToggleRef}
                     className={`${styles.queueToggle} ${isQueueOpen ? styles.active : ""}`}
                     onClick={() => setIsQueueOpen((open) => !open)}
                     title="Open Queue"
@@ -494,7 +526,7 @@ export default function MusicPlayer() {
 
             {queue.length > 0 && (
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                    <div className={`${styles.queuePanel} ${isQueueOpen ? styles.open : ""}`}>
+                    <div ref={queuePanelRef} className={`${styles.queuePanel} ${isQueueOpen ? styles.open : ""}`}>
                         <div className={styles.queueHeader}>
                             <div>
                                 <div className={styles.queueTitle}>Queue</div>
