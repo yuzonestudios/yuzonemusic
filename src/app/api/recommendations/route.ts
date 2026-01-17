@@ -65,20 +65,23 @@ export async function GET(req: NextRequest) {
             console.error("❌ Failed to fetch trending songs:", error);
         }
 
-        // If no trending songs, try to search for popular artists
-        if (trendingSongs.length === 0) {
-            console.log("⚠️ No trending songs - searching for popular songs...");
+        // If no trending songs, try to search for songs from top artists
+        if (trendingSongs.length === 0 && topArtists.length > 0) {
+            console.log("⚠️ No trending songs - searching for songs from top artists...");
             try {
-                const popSearch = await fetch("https://api.yuzone.me/search?q=popular");
-                if (popSearch.ok) {
-                    const popData = await popSearch.json();
-                    if (Array.isArray(popData) && popData.length > 0) {
-                        trendingSongs = popData.slice(0, 50);
-                        console.log(`✅ Found ${trendingSongs.length} popular songs from search`);
+                const topArtist = topArtists[0];
+                const artistSearch = await fetch(
+                    `https://api.yuzone.me/search?q=${encodeURIComponent(topArtist)}`
+                );
+                if (artistSearch.ok) {
+                    const searchData = await artistSearch.json();
+                    if (Array.isArray(searchData) && searchData.length > 0) {
+                        trendingSongs = searchData.slice(0, 50);
+                        console.log(`✅ Found ${trendingSongs.length} songs from top artist: ${topArtist}`);
                     }
                 }
             } catch (error) {
-                console.error("Failed to search popular songs:", error);
+                console.error("Failed to search for top artist songs:", error);
             }
         }
 
