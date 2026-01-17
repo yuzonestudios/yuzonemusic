@@ -33,7 +33,10 @@ export async function GET(request: NextRequest) {
         const data = await response.json();
 
         // Parse songs from external API response
-        const songs: SearchSongResult[] = data.map((song: any) => ({
+        // Handle both array and object responses
+        const songsData = Array.isArray(data) ? data : data.songs || data.results || [];
+        
+        const songs: SearchSongResult[] = songsData.map((song: any) => ({
             type: "song" as const,
             videoId: song.videoId || song.id || "",
             title: song.title || "Unknown Title",
