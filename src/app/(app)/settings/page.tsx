@@ -1,8 +1,8 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect, type FormEvent } from "react";
-
+import { LogOut } from "lucide-react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTheme } from "@/context/ThemeContext";
 import styles from "./settings.module.css";
@@ -17,22 +17,23 @@ export default function SettingsPage() {
     const [suggestion, setSuggestion] = useState("");
     const [suggestionMessage, setSuggestionMessage] = useState<string | null>(null);
     const [isSubmittingSuggestion, setIsSubmittingSuggestion] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    const fetchProfile = async () => {
+        try {
+            const res = await fetch("/api/user/profile");
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    setDisplayName(data.user.displayName || data.user.name);
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch profile:", error);
+        }
+    };
 
     useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const res = await fetch("/api/user/profile");
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.success) {
-                        setDisplayName(data.user.displayName || data.user.name);
-                    }
-                }
-            } catch (error) {
-                console.error("Failed to fetch profile:", error);
-            }
-        };
-
         if (session) {
             fetchProfile();
         }
@@ -106,6 +107,11 @@ export default function SettingsPage() {
         }
     };
 
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        await signOut({ redirect: true, callbackUrl: "/login" });
+    };
+
     if (status === "loading") {
         return <div className="flex justify-center p-12"><LoadingSpinner size="large" /></div>;
     }
@@ -130,7 +136,7 @@ export default function SettingsPage() {
                         <div className={styles.profileInfo}>
                             <form
                                 onSubmit={handleSaveDisplayName}
-                                style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem", width: "100%" }}
+                                style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem", width: "100%" }}
                             >
                                 {isEditingName ? (
                                     <>
@@ -142,7 +148,7 @@ export default function SettingsPage() {
                                             placeholder="Enter display name"
                                             maxLength={50}
                                             inputMode="text"
-                                            autoComplete="name"
+                                            autoComplete="off"
                                         />
                                         <button 
                                             type="submit"
@@ -155,8 +161,9 @@ export default function SettingsPage() {
                                             type="button"
                                             onClick={() => {
                                                 setIsEditingName(false);
-                                                setDisplayName(session.user?.name || "");
                                                 setSaveMessage("");
+                                                // Reset to current saved value from session
+                                                fetchProfile();
                                             }}
                                             className={styles.cancelBtn}
                                         >
@@ -186,6 +193,16 @@ export default function SettingsPage() {
                                 </p>
                             )}
                             <p className={styles.email}>{session.user?.email}</p>
+                            
+                            <button
+                                onClick={handleLogout}
+                                disabled={isLoggingOut}
+                                className={styles.logoutBtn}
+                                title="Log out of your account"
+                            >
+                                <LogOut size={18} />
+                                {isLoggingOut ? "Logging out..." : "Log Out"}
+                            </button>
                         </div>
                     </div>
                 </div>
