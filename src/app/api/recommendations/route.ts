@@ -99,12 +99,13 @@ export async function GET(req: NextRequest) {
             try {
                 const topArtist = topArtists[0];
                 const artistSearch = await fetch(
-                    `https://api.yuzone.me/search?q=${encodeURIComponent(topArtist)}`
+                    `https://api.yuzone.me/search?q=${encodeURIComponent(topArtist)}&type=songs`
                 );
                 if (artistSearch.ok) {
                     const searchData = await artistSearch.json();
-                    if (Array.isArray(searchData) && searchData.length > 0) {
-                        trendingSongs = searchData.slice(0, 50);
+                    const songsArray = Array.isArray(searchData) ? searchData : searchData.songs || [];
+                    if (songsArray.length > 0) {
+                        trendingSongs = songsArray.slice(0, 50);
                         console.log(`✅ Found ${trendingSongs.length} songs from top artist: ${topArtist}`);
                     }
                 }
@@ -169,11 +170,12 @@ export async function GET(req: NextRequest) {
                 // Search for songs similar to liked ones
                 const searchQuery = `${liked.title} ${liked.artist}`.substring(0, 50);
                 const searchRes = await fetch(
-                    `https://api.yuzone.me/search?q=${encodeURIComponent(searchQuery)}`
+                    `https://api.yuzone.me/search?q=${encodeURIComponent(searchQuery)}&type=songs`
                 );
                 
                 if (searchRes.ok) {
-                    const results = await searchRes.json();
+                    const response = await searchRes.json();
+                    const results = Array.isArray(response) ? response : response.songs || [];
                     for (const result of results.slice(1, 4)) { // Skip first as it's likely the same song
                         const artist = Array.isArray(result.artists)
                             ? result.artists.join(", ")
@@ -212,11 +214,12 @@ export async function GET(req: NextRequest) {
             try {
                 const searchQuery = artist;
                 const searchRes = await fetch(
-                    `https://api.yuzone.me/search?q=${encodeURIComponent(searchQuery)}`
+                    `https://api.yuzone.me/search?q=${encodeURIComponent(searchQuery)}&type=songs`
                 );
                 
                 if (searchRes.ok) {
-                    const results = await searchRes.json();
+                    const response = await searchRes.json();
+                    const results = Array.isArray(response) ? response : response.songs || [];
                     console.log(`  Found ${results.length} results for artist: ${artist}`);
                     for (const result of results.slice(0, 3)) {
                         const recArtist = Array.isArray(result.artists)
@@ -261,11 +264,12 @@ export async function GET(req: NextRequest) {
             try {
                 const searchQuery = `${song.artist}`.substring(0, 30); // Search by artist only for more variety
                 const searchRes = await fetch(
-                    `https://api.yuzone.me/search?q=${encodeURIComponent(searchQuery)}`
+                    `https://api.yuzone.me/search?q=${encodeURIComponent(searchQuery)}&type=songs`
                 );
                 
                 if (searchRes.ok) {
-                    const results = await searchRes.json();
+                    const response = await searchRes.json();
+                    const results = Array.isArray(response) ? response : response.songs || [];
                     for (const result of results.slice(0, 3)) {
                         const artist = Array.isArray(result.artists)
                             ? result.artists.join(", ")
