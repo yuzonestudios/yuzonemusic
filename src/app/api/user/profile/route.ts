@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
+import { cache, CACHE_TTL } from "@/lib/cache";
 
 // GET - Get user profile
 export async function GET(req: NextRequest) {
@@ -15,6 +16,13 @@ export async function GET(req: NextRequest) {
             );
         }
 
+        // Check cache first
+        const cacheKey = `user:profile:${session.user.email}`;
+        const cached = cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
+
         await connectDB();
         const user = await User.findOne({ email: session.user.email }).lean();
         
@@ -25,7 +33,7 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        return NextResponse.json({
+        const response = {
             success: true,
             user: {
                 name: user.name,
@@ -34,7 +42,12 @@ export async function GET(req: NextRequest) {
                 image: user.image,
                 audioQuality: user.audioQuality || 2,
             },
-        });
+        };
+
+        // Cache the result
+        cache.set(cacheKey, response, CACHE_TTL.USER_PROFILE);
+
+        return NextResponse.json(response);
     } catch (error) {
         console.error("Error fetching user profile:", error);
         return NextResponse.json(
@@ -115,6 +128,9 @@ export async function PATCH(req: NextRequest) {
                 { status: 404 }
             );
         }
+
+        // Invalidate cache after update
+        cache.delete(`user:profile:${session.user.email}`);
 
         return NextResponse.json({
             success: true,

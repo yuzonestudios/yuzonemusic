@@ -37,11 +37,13 @@ export default function AddToPlaylistModal({
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+    const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
 
     useEffect(() => {
         if (isOpen) {
             fetchPlaylists();
             setMessage(null);
+            setSelectedPlaylistId(null);
         }
     }, [isOpen]);
 
@@ -61,7 +63,9 @@ export default function AddToPlaylistModal({
     };
 
     const handleAddToPlaylist = async (playlistId: string) => {
-        if (!song) return;
+        if (!song || selectedPlaylistId) return;
+
+        setSelectedPlaylistId(playlistId);
 
         try {
             const res = await fetch(`/api/playlists/${playlistId}/songs`, {
@@ -78,10 +82,12 @@ export default function AddToPlaylistModal({
                 }, 1500);
             } else {
                 setMessage({ type: "error", text: data.error || "Failed to add song to playlist" });
+                setSelectedPlaylistId(null);
             }
         } catch (error) {
             console.error("Error adding song to playlist:", error);
             setMessage({ type: "error", text: "Failed to add song to playlist" });
+            setSelectedPlaylistId(null);
         }
     };
 
@@ -126,6 +132,10 @@ export default function AddToPlaylistModal({
                                 key={playlist._id}
                                 className={styles.playlistItem}
                                 onClick={() => handleAddToPlaylist(playlist._id)}
+                                style={{ 
+                                    pointerEvents: selectedPlaylistId ? "none" : "auto",
+                                    opacity: selectedPlaylistId && selectedPlaylistId !== playlist._id ? 0.5 : 1
+                                }}
                             >
                                 <div className={styles.playlistItemThumbnail}>
                                     {playlist.thumbnail ? (

@@ -90,7 +90,7 @@ export default function Sidebar() {
                             className={styles.avatar}
                         />
                         <div className={styles.userInfo}>
-                            <span className={styles.userName}>{session.user.email || "User"}</span>
+                            <span className={styles.userName}>{(session.user as any).displayName || session.user.name || "User"}</span>
                             <span className={styles.premiumBadge}>Premium User</span>
                         </div>
                     </div>

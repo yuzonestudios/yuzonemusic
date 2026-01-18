@@ -6,6 +6,7 @@ import { X, SkipBack, Play, Pause, SkipForward, Volume2, Repeat, Shuffle, Heart,
 import { usePlayerStore } from "@/store/playerStore";
 import AddToPlaylistModal from "@/components/ui/AddToPlaylistModal";
 import ShareModal from "@/components/ui/ShareModal";
+import { browserCache, BROWSER_CACHE_TTL } from "@/lib/browser-cache";
 import styles from "./FullscreenPlayer.module.css";
 
 function formatTime(seconds: number): string {
@@ -95,6 +96,15 @@ export default function FullscreenPlayer() {
             setLyricsLoading(true);
             setLyricsError(null);
 
+            // Check browser cache first
+            const cacheKey = `lyrics:${currentSong.videoId}`;
+            const cachedLyrics = browserCache.get<string>(cacheKey);
+            if (cachedLyrics) {
+                setLyrics(cachedLyrics);
+                setLyricsLoading(false);
+                return;
+            }
+
             try {
                 const res = await fetch("/api/lyrics", {
                     method: "POST",
@@ -111,7 +121,14 @@ export default function FullscreenPlayer() {
 
                 const data = await res.json();
                 const text = (data && data.lyrics) ? String(data.lyrics) : "";
-                setLyrics(text.trim() || null);
+                const lyricsText = text.trim() || null;
+                
+                setLyrics(lyricsText);
+                
+                // Cache the lyrics if we got them
+                if (lyricsText) {
+                    browserCache.set(cacheKey, lyricsText, BROWSER_CACHE_TTL.LYRICS);
+                }
             } catch (error) {
                 if (controller.signal.aborted) return;
                 console.error("Failed to fetch lyrics", error);

@@ -87,13 +87,18 @@ export const cache = new MemoryCache();
 
 // Cache TTL constants (in milliseconds)
 export const CACHE_TTL = {
-    SEARCH: 5 * 60 * 1000,        // 5 minutes
-    LYRICS: 24 * 60 * 60 * 1000,  // 24 hours (lyrics don't change)
-    TOP_CHARTS: 30 * 60 * 1000,   // 30 minutes
-    PLAYLISTS: 2 * 60 * 1000,     // 2 minutes
-    STREAM_URL: 3 * 60 * 60 * 1000, // 3 hours (URLs expire after ~6 hours)
-    ARTIST_DETAILS: 24 * 60 * 60 * 1000, // 24 hours (artist info doesn't change often)
-    ALBUM_DETAILS: 24 * 60 * 60 * 1000,  // 24 hours (album info doesn't change)
+    SEARCH: 10 * 60 * 1000,        // 10 minutes (increased from 5)
+    LYRICS: 7 * 24 * 60 * 60 * 1000,  // 7 days (lyrics don't change)
+    TOP_CHARTS: 60 * 60 * 1000,   // 60 minutes (increased from 30)
+    PLAYLISTS: 5 * 60 * 1000,     // 5 minutes (increased from 2)
+    PLAYLIST_SONGS: 3 * 60 * 1000, // 3 minutes for individual playlist songs
+    STREAM_URL: 5 * 60 * 60 * 1000, // 5 hours (increased from 3, URLs expire after ~6 hours)
+    ARTIST_DETAILS: 7 * 24 * 60 * 60 * 1000, // 7 days (artist info doesn't change often)
+    ALBUM_DETAILS: 7 * 24 * 60 * 60 * 1000,  // 7 days (album info doesn't change)
+    USER_PROFILE: 30 * 60 * 1000, // 30 minutes (user settings)
+    LIKED_SONGS: 5 * 60 * 1000,    // 5 minutes (changes frequently but safe to cache)
+    RECOMMENDATIONS: 60 * 60 * 1000, // 60 minutes (recommendations are expensive)
+    HISTORY: 10 * 60 * 1000,       // 10 minutes
 } as const;
 
 // Periodic cleanup every 10 minutes

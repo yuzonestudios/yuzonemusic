@@ -80,6 +80,11 @@ export const authOptions: NextAuthOptions = {
                     // Prefer cached uid set in JWT
                     if (token.uid) {
                         session.user.id = token.uid as string;
+                        // Fetch displayName from DB
+                        const dbUser = await User.findOne({ _id: token.uid });
+                        if (dbUser) {
+                            (session.user as any).displayName = dbUser.displayName || dbUser.name;
+                        }
                         return session;
                     }
 
@@ -93,6 +98,7 @@ export const authOptions: NextAuthOptions = {
                         }
 
                         session.user.id = dbUser._id.toString();
+                        (session.user as any).displayName = dbUser.displayName || dbUser.name;
                     }
                 } catch (error) {
                     console.error("Error fetching user in session:", error);

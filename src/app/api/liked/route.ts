@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import connectDB from "@/lib/mongodb";
 import LikedSong from "@/models/LikedSong";
 import User from "@/models/User";
+import { cache, CACHE_TTL } from "@/lib/cache";
 
 // Get liked songs
 export async function GET(request: NextRequest) {
@@ -19,19 +20,35 @@ export async function GET(request: NextRequest) {
 
         const searchParams = request.nextUrl.searchParams;
         const checkId = searchParams.get("check");
+        const page = parseInt(searchParams.get("page") || "1");
+        const limit = parseInt(searchParams.get("limit") || "50");
 
-        // Optimization: Check existence of specific song
+        // Optimization: Check existence of specific song with caching
         if (checkId) {
+            const cacheKey = `liked:check:${session.user.id}:${checkId}`;
+            const cached = cache.get<boolean>(cacheKey);
+            if (cached !== null) {
+                return NextResponse.json({ success: true, isLiked: cached });
+            }
+            
             await connectDB();
             const exists = await LikedSong.exists({
                 userId: session.user.id,
                 videoId: checkId
             });
-            return NextResponse.json({ success: true, isLiked: !!exists });
+            
+            const isLiked = !!exists;
+            cache.set(cacheKey, isLiked, CACHE_TTL.LIKED_SONGS);
+            return NextResponse.json({ success: true, isLiked });
         }
 
-        const page = parseInt(searchParams.get("page") || "1");
-        const limit = parseInt(searchParams.get("limit") || "50");
+        // Cache liked songs list
+        const cacheKey = `liked:${session.user.id}:page:${page}:limit:${limit}`;
+        const cached = cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
+
         const skip = (page - 1) * limit;
 
         await connectDB();
@@ -45,7 +62,7 @@ export async function GET(request: NextRequest) {
             LikedSong.countDocuments({ userId: session.user.id })
         ]);
 
-        return NextResponse.json({
+        const response = {
             success: true,
             data: likedSongs,
             pagination: {
@@ -54,7 +71,12 @@ export async function GET(request: NextRequest) {
                 total,
                 pages: Math.ceil(total / limit)
             }
-        });
+        };
+
+        // Cache the result
+        cache.set(cacheKey, response, CACHE_TTL.LIKED_SONGS);
+
+        return NextResponse.json(response);
     } catch (error) {
         console.error("Error fetching liked songs:", error);
         return NextResponse.json(
@@ -111,6 +133,13 @@ export async function POST(request: NextRequest) {
             duration: duration || "0:00",
         });
 
+        // Invalidate cache when adding liked song
+        cache.delete(`liked:check:${session.user.id}:${videoId}`);
+        // Clear all pagination caches for this user
+        for (let i = 1; i <= 10; i++) {
+            cache.delete(`liked:${session.user.id}:page:${i}:limit:50`);
+        }
+
         return NextResponse.json({ success: true, data: likedSong });
     } catch (error: any) {
         console.error("Error adding liked song:", error);
@@ -150,6 +179,13 @@ export async function DELETE(request: NextRequest) {
             userId: session.user.id,
             videoId,
         });
+
+        // Invalidate cache when removing liked song
+        cache.delete(`liked:check:${session.user.id}:${videoId}`);
+        // Clear all pagination caches for this user
+        for (let i = 1; i <= 10; i++) {
+            cache.delete(`liked:${session.user.id}:page:${i}:limit:50`);
+        }
 
         return NextResponse.json({ success: true });
     } catch (error) {

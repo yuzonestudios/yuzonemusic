@@ -6,6 +6,7 @@ import User from "@/models/User";
 import PlaybackHistory from "@/models/PlaybackHistory";
 import LikedSong from "@/models/LikedSong";
 import { generateAIRecommendations, analyzeUserMusicTaste } from "@/lib/gemini";
+import { cache, CACHE_TTL } from "@/lib/cache";
 
 interface ScoredSong {
     videoId: string;
@@ -25,6 +26,13 @@ export async function GET(req: NextRequest) {
                 { success: false, error: "Unauthorized" },
                 { status: 401 }
             );
+        }
+
+        // Check cache first (recommendations are expensive to generate)
+        const cacheKey = `recommendations:${session.user.email}`;
+        const cached = cache.get(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
         }
 
         await connectDB();
@@ -492,11 +500,17 @@ export async function GET(req: NextRequest) {
             ].slice(0, 40);
         }
 
-        return NextResponse.json({
+        const response = {
             success: true,
             recommendations: groupedRecommendations,
             topArtists: topArtists.slice(0, 5),
-        });
+        };
+
+        // Cache recommendations (they're expensive to generate)
+        const cacheKey = `recommendations:${session.user.email}`;
+        cache.set(cacheKey, response, CACHE_TTL.RECOMMENDATIONS);
+
+        return NextResponse.json(response);
 
     } catch (error) {
         console.error("Error generating recommendations:", error);
