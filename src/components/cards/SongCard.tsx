@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ListPlus, Play, Pause, Check, ListMusic } from "lucide-react";
+import { ListPlus, Play, Pause, Check, ListMusic, Trash2 } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import AddToPlaylistModal from "@/components/ui/AddToPlaylistModal";
 import type { Song } from "@/types";
@@ -17,6 +17,7 @@ interface SongCardProps {
     isLiked?: boolean;
     hideAddToPlaylist?: boolean;
     hideAddToQueue?: boolean;
+    onRemoveFromPlaylist?: (videoId: string) => void;
 }
 
 export default function SongCard({
@@ -28,6 +29,7 @@ export default function SongCard({
     isLiked = false,
     hideAddToPlaylist = false,
     hideAddToQueue = false,
+    onRemoveFromPlaylist,
 }: SongCardProps) {
     const { currentSong, setQueue, isPlaying, togglePlay, setCurrentSong, play, ensurePlayback, addToQueue } = usePlayerStore();
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
@@ -126,6 +128,15 @@ export default function SongCard({
                             title={addedToPlaylist ? "Added to Playlist" : "Add to Playlist"}
                         >
                             {addedToPlaylist ? <Check size={20} /> : <ListPlus size={20} />}
+                        </button>
+                    )}
+                    {onRemoveFromPlaylist && (
+                        <button
+                            onClick={() => onRemoveFromPlaylist(song.videoId)}
+                            className={styles.actionBtn}
+                            title="Remove from Playlist"
+                        >
+                            <Trash2 size={20} />
                         </button>
                     )}
                 </div>
