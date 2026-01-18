@@ -130,6 +130,29 @@
     background: rgba(139, 92, 246, 0.3);
 }
 
+.clearBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-lg);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #ef4444;
+    transition: all var(--transition-normal);
+    white-space: nowrap;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.clearBtn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #dc2626;
+}
+
 /* Content */
 .libraryContent {
     min-height: 300px;

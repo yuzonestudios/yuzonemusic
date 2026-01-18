@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import { Heart, Clock, Music } from "lucide-react";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { Heart, Clock, Music, Trash2 } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import type { Song } from "@/types";
 import styles from "./library.module.css";
@@ -17,6 +18,7 @@ export default function LibraryPage() {
     const [recentSongs, setRecentSongs] = useState<Song[]>([]);
     const [loading, setLoading] = useState(true);
     const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
+    const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", onConfirm: () => {} });
 
     const [totalLiked, setTotalLiked] = useState(0);
 
@@ -174,6 +176,32 @@ export default function LibraryPage() {
         }
     };
 
+    const handleClearHistory = () => {
+        setConfirmDialog({
+            isOpen: true,
+            title: "Clear History",
+            message: "Are you sure you want to clear your listening history? This action cannot be undone.",
+            onConfirm: async () => {
+                try {
+                    setGlobalLoading(true, "Clearing history...");
+                    const res = await fetch("/api/history", { method: "DELETE" });
+                    
+                    if (res.ok) {
+                        setRecentSongs([]);
+                        setConfirmDialog({ ...confirmDialog, isOpen: false });
+                    } else {
+                        alert("Failed to clear history");
+                    }
+                } catch (error) {
+                    console.error("Failed to clear history:", error);
+                    alert("Error clearing history");
+                } finally {
+                    setGlobalLoading(false);
+                }
+            }
+        });
+    };
+
     const currentSongs = activeTab === "liked" ? likedSongs : recentSongs;
 
     return (
@@ -212,6 +240,16 @@ export default function LibraryPage() {
                         Recently Played
                         <span className={styles.count}>{recentSongs.length}</span>
                     </button>
+                    {activeTab === "recent" && recentSongs.length > 0 && (
+                        <button
+                            onClick={handleClearHistory}
+                            className={styles.clearBtn}
+                            title="Clear history"
+                        >
+                            <Trash2 size={18} />
+                            Clear History
+                        </button>
+                    )}
                 </div>
 
                 {/* Content */}
@@ -270,6 +308,15 @@ export default function LibraryPage() {
                     )}
                 </div>
             </div>
+
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+                variant="warning"
+            />
         </div>
     );
 }
