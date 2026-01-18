@@ -29,7 +29,7 @@ export default function ArtistModal({
             setError(null);
             try {
                 // Search for artist first to get browseId
-                const searchResponse = await fetch(`/api/search?query=${encodeURIComponent(artistName)}&type=artists`);
+                const searchResponse = await fetch(`/api/search?q=${encodeURIComponent(artistName)}&type=artists`);
                 if (!searchResponse.ok) throw new Error("Failed to search for artist");
 
                 const searchData = await searchResponse.json();
