@@ -507,7 +507,6 @@ export async function GET(req: NextRequest) {
         };
 
         // Cache recommendations (they're expensive to generate)
-        const cacheKey = `recommendations:${session.user.email}`;
         cache.set(cacheKey, response, CACHE_TTL.RECOMMENDATIONS);
 
         return NextResponse.json(response);

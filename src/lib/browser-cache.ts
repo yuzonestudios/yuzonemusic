@@ -112,4 +112,5 @@ export const BROWSER_CACHE_TTL = {
     RECOMMENDATIONS: 60 * 60 * 1000, // 60 minutes
     TOP_CHARTS: 30 * 60 * 1000,     // 30 minutes
     SEARCH: 10 * 60 * 1000,         // 10 minutes
+    LYRICS: 7 * 24 * 60 * 60 * 1000, // 7 days
 } as const;
