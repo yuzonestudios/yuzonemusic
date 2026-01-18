@@ -113,6 +113,21 @@ export async function POST(request: NextRequest) {
             listenDuration: listenDuration || 0,
         });
 
+        // Check if playback history count exceeds 50 and delete oldest if needed
+        const historyCount = await PlaybackHistory.countDocuments({ userId: session.user.id });
+        if (historyCount > 50) {
+            // Delete oldest entries to keep only the latest 50
+            const entriesToDelete = await PlaybackHistory.find({ userId: session.user.id })
+                .sort({ playedAt: 1 })
+                .limit(historyCount - 50)
+                .lean();
+            
+            if (entriesToDelete.length > 0) {
+                const idsToDelete = entriesToDelete.map((entry: any) => entry._id);
+                await PlaybackHistory.deleteMany({ _id: { $in: idsToDelete } });
+            }
+        }
+
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error("Error adding to history:", error);
