@@ -6,6 +6,7 @@ import { X, SkipBack, Play, Pause, SkipForward, Volume2, Repeat, Shuffle, Heart,
 import { usePlayerStore } from "@/store/playerStore";
 import AddToPlaylistModal from "@/components/ui/AddToPlaylistModal";
 import ShareModal from "@/components/ui/ShareModal";
+import ArtistModal from "@/components/ui/ArtistModal";
 import { browserCache, BROWSER_CACHE_TTL } from "@/lib/browser-cache";
 import styles from "./FullscreenPlayer.module.css";
 
@@ -50,6 +51,7 @@ export default function FullscreenPlayer() {
     const [isLiked, setIsLiked] = useState(false);
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [isArtistModalOpen, setIsArtistModalOpen] = useState(false);
     const [lyrics, setLyrics] = useState<string | null>(null);
     const [lyricsLoading, setLyricsLoading] = useState(false);
     const [lyricsError, setLyricsError] = useState<string | null>(null);
@@ -257,7 +259,19 @@ export default function FullscreenPlayer() {
                 {currentSong && (
                     <div className={styles.songInfo}>
                         <h1 className={styles.title}>{currentSong.title}</h1>
-                        <p className={styles.artist}>{currentSong.artist}</p>
+                        <p 
+                            className={styles.artist}
+                            onClick={() => setIsArtistModalOpen(true)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    setIsArtistModalOpen(true);
+                                }
+                            }}
+                        >
+                            {currentSong.artist}
+                        </p>
                         <div className={styles.metaRow}>
                             <button
                                 className={`${styles.lyricsToggle} ${showLyrics ? styles.active : ""}`}
@@ -448,11 +462,18 @@ export default function FullscreenPlayer() {
                 </div>
 
                 {currentSong && (
-                    <AddToPlaylistModal
-                        isOpen={isPlaylistModalOpen}
-                        onClose={() => setIsPlaylistModalOpen(false)}
-                        song={currentSong}
-                    />
+                    <>
+                        <AddToPlaylistModal
+                            isOpen={isPlaylistModalOpen}
+                            onClose={() => setIsPlaylistModalOpen(false)}
+                            song={currentSong}
+                        />
+                        <ArtistModal
+                            isOpen={isArtistModalOpen}
+                            artistName={currentSong.artist}
+                            onClose={() => setIsArtistModalOpen(false)}
+                        />
+                    </>
                 )}
 
                 {currentSong && isShareModalOpen && (

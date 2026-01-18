@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { AlertTriangle, Info } from "lucide-react";
 import styles from "./ConfirmDialog.module.css";
 
@@ -24,12 +25,20 @@ export default function ConfirmDialog({
     onCancel,
     variant = "warning",
 }: ConfirmDialogProps) {
+    const [isConfirming, setIsConfirming] = useState(false);
+
     if (!isOpen) return null;
 
     const handleOverlayClick = (e: React.MouseEvent) => {
-        if (e.target === e.currentTarget) {
+        if (e.target === e.currentTarget && !isConfirming) {
             onCancel();
         }
+    };
+
+    const handleConfirm = () => {
+        if (isConfirming) return;
+        setIsConfirming(true);
+        onConfirm();
     };
 
     return (
@@ -53,12 +62,14 @@ export default function ConfirmDialog({
                     <button
                         className={`${styles.btn} ${styles.cancelBtn}`}
                         onClick={onCancel}
+                        disabled={isConfirming}
                     >
                         {cancelText}
                     </button>
                     <button
                         className={`${styles.btn} ${styles.confirmBtn} ${variant === "info" ? styles.primary : ""}`}
-                        onClick={onConfirm}
+                        onClick={handleConfirm}
+                        disabled={isConfirming}
                     >
                         {confirmText}
                     </button>

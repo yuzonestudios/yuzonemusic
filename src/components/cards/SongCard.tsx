@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ListPlus, Play, Pause, Check, ListMusic, Trash2 } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import AddToPlaylistModal from "@/components/ui/AddToPlaylistModal";
+import ArtistModal from "@/components/ui/ArtistModal";
 import type { Song } from "@/types";
 import styles from "./SongCard.module.css";
 
@@ -35,6 +36,7 @@ export default function SongCard({
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
     const [addedToPlaylist, setAddedToPlaylist] = useState(false);
     const [queued, setQueued] = useState(false);
+    const [isArtistModalOpen, setIsArtistModalOpen] = useState(false);
 
     const isCurrentSong = currentSong?.videoId === song.videoId;
 
@@ -93,7 +95,19 @@ export default function SongCard({
 
             <div className={styles.info}>
                 <span className={styles.title}>{song.title}</span>
-                <span className={styles.artist}>{song.artist}</span>
+                <span 
+                    className={styles.artist}
+                    onClick={() => setIsArtistModalOpen(true)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            setIsArtistModalOpen(true);
+                        }
+                    }}
+                >
+                    {song.artist}
+                </span>
             </div>
 
             <span className={styles.duration}>{song.duration}</span>
@@ -146,6 +160,12 @@ export default function SongCard({
                 isOpen={isPlaylistModalOpen}
                 onClose={() => setIsPlaylistModalOpen(false)}
                 song={song}
+            />
+
+            <ArtistModal
+                isOpen={isArtistModalOpen}
+                artistName={song.artist}
+                onClose={() => setIsArtistModalOpen(false)}
             />
         </div>
     );

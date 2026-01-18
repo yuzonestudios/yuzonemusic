@@ -63,6 +63,14 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: pointer;
+    transition: color var(--transition-fast);
+    display: inline-block;
+}
+
+.songArtist:hover {
+    color: var(--accent-primary);
+    text-decoration: underline;
 }
 
 .likeBtn {

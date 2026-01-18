@@ -228,11 +228,18 @@
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     transition: all var(--transition-fast);
+    cursor: pointer;
 }
 
 .artistCard:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(139, 92, 246, 0.1);
     transform: translateY(-4px);
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+.artistCard:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
 }
 
 .artistImg {

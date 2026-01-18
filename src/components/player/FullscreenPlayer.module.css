@@ -188,6 +188,14 @@
 .artist {
     font-size: clamp(1rem, 3vw, 1.25rem);
     color: var(--text-secondary);
+    cursor: pointer;
+    transition: color var(--transition-fast);
+    display: inline-block;
+}
+
+.artist:hover {
+    color: var(--accent-primary);
+    text-decoration: underline;
 }
 
 .metaRow {

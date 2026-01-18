@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ErrorState from "@/components/ui/ErrorState";
+import ArtistModal from "@/components/ui/ArtistModal";
 import { Music, X } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import type { Song, Artist, Album } from "@/types";
@@ -22,6 +23,7 @@ export default function SearchPage() {
     const [error, setError] = useState<string | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
     const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
+    const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
 
     const handleSearch = useCallback(async () => {
         if (!query.trim()) return;
@@ -275,7 +277,18 @@ export default function SearchPage() {
                                     <h3 className={styles.sectionTitle}>Artists</h3>
                                     <div className={styles.cardGrid}>
                                         {artists.map((artist) => (
-                                            <div key={artist.browseId} className={styles.artistCard}>
+                                            <div 
+                                                key={artist.browseId} 
+                                                className={styles.artistCard}
+                                                onClick={() => setSelectedArtist(artist.name)}
+                                                role="button"
+                                                tabIndex={0}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        setSelectedArtist(artist.name);
+                                                    }
+                                                }}
+                                            >
                                                 <img
                                                     src={artist.thumbnail}
                                                     alt={artist.name}
@@ -316,6 +329,12 @@ export default function SearchPage() {
                     )}
                 </div>
             </div>
+
+            <ArtistModal
+                isOpen={!!selectedArtist}
+                artistName={selectedArtist || ""}
+                onClose={() => setSelectedArtist(null)}
+            />
         </div>
     );
 }

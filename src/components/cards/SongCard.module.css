@@ -170,6 +170,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
     transition: color var(--transition-fast);
+    cursor: pointer;
+    display: inline-block;
+}
+
+.artist:hover {
+    color: var(--accent-primary);
+    text-decoration: underline;
 }
 
 .duration {
