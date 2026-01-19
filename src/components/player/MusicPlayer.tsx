@@ -11,7 +11,6 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { usePlayerSync } from "@/hooks/usePlayerSync";
 import AddToPlaylistModal from "@/components/ui/AddToPlaylistModal";
-import ArtistModal from "@/components/ui/ArtistModal";
 import styles from "./MusicPlayer.module.css";
 
 function formatTime(seconds: number): string {
@@ -50,7 +49,6 @@ export default function MusicPlayer() {
     usePlayerSync();
     const [isLiked, setIsLiked] = useState(false);
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
-    const [isArtistModalOpen, setIsArtistModalOpen] = useState(false);
     const [isQueueOpen, setIsQueueOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const queuePanelRef = useRef<HTMLDivElement>(null);
@@ -348,19 +346,7 @@ export default function MusicPlayer() {
                         </div>
                         <div className={styles.songDetails}>
                             <span className={styles.songTitle}>{currentSong.title}</span>
-                            <span 
-                                className={styles.songArtist}
-                                onClick={() => setIsArtistModalOpen(true)}
-                                role="button"
-                                tabIndex={0}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        setIsArtistModalOpen(true);
-                                    }
-                                }}
-                            >
-                                {currentSong.artist}
-                            </span>
+                            <span className={styles.songArtist}>{currentSong.artist}</span>
                         </div>
                         <button
                             onClick={toggleLike}
@@ -553,11 +539,6 @@ export default function MusicPlayer() {
                         isOpen={isPlaylistModalOpen}
                         onClose={() => setIsPlaylistModalOpen(false)}
                         song={currentSong}
-                    />
-                    <ArtistModal
-                        isOpen={isArtistModalOpen}
-                        artistName={currentSong.artist}
-                        onClose={() => setIsArtistModalOpen(false)}
                     />
                 </>
             )}
