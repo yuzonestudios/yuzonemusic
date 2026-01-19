@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
     images: {
+        // Disable Next image optimizer to avoid 402s from the hosted optimizer service.
+        unoptimized: true,
         remotePatterns: [
             {
                 protocol: "https",
