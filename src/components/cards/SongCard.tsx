@@ -65,7 +65,7 @@ export default function SongCard({
     return (
         <div className={`${styles.card} ${isCurrentSong ? styles.playing : ""}`}>
             <div className={styles.thumbnail} onClick={handlePlay}>
-                {song.thumbnail ? (
+                {song.thumbnail && song.thumbnail.trim() !== "" ? (
                     <Image
                         src={song.thumbnail.replace(/=w\d+-h\d+/, '=w240-h240')}
                         alt={song.title}

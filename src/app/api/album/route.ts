@@ -24,9 +24,11 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
+    console.log("Raw API response:", JSON.stringify(data, null, 2));
 
-    // Extract album thumbnail to use as fallback for songs
-    const albumThumbnail = data.thumbnail || data.thumbnails?.[0]?.url || "";
+    // Extract album thumbnail to use as fallback for songs - try multiple possible fields
+    const albumThumbnail = data.thumbnail || data.thumbnails?.[0]?.url || data.image || data.cover || data.albumArt || "";
+    console.log("Extracted album thumbnail:", albumThumbnail);
 
     // Normalize the response to ensure songs have thumbnails
     if (data.songs && Array.isArray(data.songs)) {
@@ -45,12 +47,16 @@ export async function GET(request: NextRequest) {
           artists = [{ name: "Unknown Artist" }];
         }
 
+        // Use album thumbnail if song doesn't have one
+        const finalThumbnail = song.thumbnail || song.thumbnails?.[0]?.url || song.image || albumThumbnail;
+        console.log(`Song "${song.title}" thumbnail:`, finalThumbnail);
+
         return {
           videoId: song.videoId || song.id || "",
           title: song.title || "Unknown Title",
           artists: artists,
           duration: song.duration || song.durationSeconds || "0:00",
-          thumbnail: song.thumbnail || song.thumbnails?.[0]?.url || albumThumbnail || "",
+          thumbnail: finalThumbnail,
         };
       });
     }
