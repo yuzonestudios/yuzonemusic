@@ -70,6 +70,19 @@
     object-fit: cover;
 }
 
+.placeholderThumbnail {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.3));
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-align: center;
+    padding: 0.5rem;
+}
+
 .overlay {
     position: absolute;
     inset: 0;

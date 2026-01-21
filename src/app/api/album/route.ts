@@ -25,7 +25,34 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
 
-    // Return the data as-is if it matches the expected format, or normalize it
+    // Normalize the response to ensure songs have thumbnails
+    if (data.songs && Array.isArray(data.songs)) {
+      data.songs = data.songs.map((song: any) => {
+        // Normalize artists to array of objects with name property
+        let artists = [];
+        if (Array.isArray(song.artists)) {
+          // If it's an array, check if items are strings or objects
+          artists = song.artists.map((a: any) => 
+            typeof a === 'string' ? { name: a } : (a.name ? a : { name: String(a) })
+          );
+        } else if (song.artist) {
+          // If single artist string
+          artists = [{ name: song.artist }];
+        } else {
+          artists = [{ name: "Unknown Artist" }];
+        }
+
+        return {
+          videoId: song.videoId || song.id || "",
+          title: song.title || "Unknown Title",
+          artists: artists,
+          duration: song.duration || song.durationSeconds || "0:00",
+          thumbnail: song.thumbnail || song.thumbnails?.[0]?.url || "/logo.png",
+        };
+      });
+    }
+
+    // Return the normalized data
     return NextResponse.json(data, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(

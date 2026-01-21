@@ -65,14 +65,20 @@ export default function SongCard({
     return (
         <div className={`${styles.card} ${isCurrentSong ? styles.playing : ""}`}>
             <div className={styles.thumbnail} onClick={handlePlay}>
-                <Image
-                    src={song.thumbnail ? song.thumbnail.replace(/=w\d+-h\d+/, '=w240-h240') : '/placeholder.png'}
-                    alt={song.title}
-                    width={120}
-                    height={120}
-                    quality={80}
-                    className={styles.thumbnailImg}
-                />
+                {song.thumbnail ? (
+                    <Image
+                        src={song.thumbnail.replace(/=w\d+-h\d+/, '=w240-h240')}
+                        alt={song.title}
+                        width={120}
+                        height={120}
+                        quality={80}
+                        className={styles.thumbnailImg}
+                    />
+                ) : (
+                    <div className={styles.placeholderThumbnail}>
+                        <span>No Image</span>
+                    </div>
+                )}
                 <div className={styles.overlay}>
                     {isCurrentSong && isPlaying ? (
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="white">

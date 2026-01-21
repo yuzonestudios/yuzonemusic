@@ -187,9 +187,12 @@ export default function SearchPage() {
             const res = await fetch(`/api/album?browseId=${encodeURIComponent(browseId)}`);
             if (!res.ok) throw new Error("Failed to fetch album");
             const data = await res.json();
+            console.log("Album API Response:", data);
+            console.log("Album Songs:", data.songs);
             setAlbumSongs(data.songs || []);
             setSelectedAlbumTitle(title);
         } catch (e) {
+            console.error("Error fetching album:", e);
             setError("Failed to load album songs");
         } finally {
             setLoading(false);
