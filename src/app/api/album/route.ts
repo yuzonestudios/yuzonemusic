@@ -25,6 +25,9 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
 
+    // Extract album thumbnail to use as fallback for songs
+    const albumThumbnail = data.thumbnail || data.thumbnails?.[0]?.url || "";
+
     // Normalize the response to ensure songs have thumbnails
     if (data.songs && Array.isArray(data.songs)) {
       data.songs = data.songs.map((song: any) => {
@@ -47,7 +50,7 @@ export async function GET(request: NextRequest) {
           title: song.title || "Unknown Title",
           artists: artists,
           duration: song.duration || song.durationSeconds || "0:00",
-          thumbnail: song.thumbnail || song.thumbnails?.[0]?.url || "/logo.png",
+          thumbnail: song.thumbnail || song.thumbnails?.[0]?.url || albumThumbnail || "",
         };
       });
     }
