@@ -5,7 +5,6 @@ import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ErrorState from "@/components/ui/ErrorState";
 import ArtistModal from "@/components/ui/ArtistModal";
-import AlbumModal from "@/components/ui/AlbumModal";
 import { Music, X } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import type { Song, Artist, Album } from "@/types";
@@ -20,7 +19,8 @@ export default function SearchPage() {
     const [songs, setSongs] = useState<Song[]>([]);
     const [artists, setArtists] = useState<Artist[]>([]);
     const [albums, setAlbums] = useState<Album[]>([]);
-    const [selectedAlbumBrowseId, setSelectedAlbumBrowseId] = useState<string | null>(null);
+    const [albumSongs, setAlbumSongs] = useState<Array<{ videoId: string; title: string; artists: Array<{ name: string }>; duration: string; thumbnail: string }>>([]);
+    const [selectedAlbumTitle, setSelectedAlbumTitle] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
@@ -180,6 +180,22 @@ export default function SearchPage() {
         }
     };
 
+    const handleAlbumClick = async (browseId: string, title: string) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await fetch(`/api/album?browseId=${encodeURIComponent(browseId)}`);
+            if (!res.ok) throw new Error("Failed to fetch album");
+            const data = await res.json();
+            setAlbumSongs(data.songs || []);
+            setSelectedAlbumTitle(title);
+        } catch (e) {
+            setError("Failed to load album songs");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className={styles.page}>
             <div className={styles.content}>
@@ -241,11 +257,37 @@ export default function SearchPage() {
                         <LoadingSpinner text="Searching..." />
                     ) : error ? (
                         <ErrorState message={error} onRetry={handleSearch} />
-                    ) : !hasSearched ? (
+                    ) : !hasSearched && selectedAlbumTitle === null ? (
                         <div className={styles.placeholder}>
                             <div className={styles.placeholderIcon}><Music size={48} /></div>
                             <h3>Search for music</h3>
                             <p>Find your favorite songs, artists, and albums</p>
+                        </div>
+                    ) : selectedAlbumTitle && albumSongs.length > 0 ? (
+                        <div>
+                            <button onClick={() => setSelectedAlbumTitle(null)} className={styles.backBtn}>← Back to results</button>
+                            <h2 className={styles.sectionTitle}>{selectedAlbumTitle}</h2>
+                            <div className={styles.songList}>
+                                {albumSongs.map((song, index) => {
+                                    const normalizedSong: Song = {
+                                        videoId: song.videoId,
+                                        title: song.title,
+                                        artist: song.artists?.map(a => a.name).join(", ") || "Unknown Artist",
+                                        thumbnail: song.thumbnail,
+                                        duration: song.duration,
+                                    };
+                                    return (
+                                        <SongCard
+                                            key={song.videoId}
+                                            song={normalizedSong}
+                                            songs={albumSongs.map(s => ({ videoId: s.videoId, title: s.title, artist: s.artists?.map(a => a.name).join(", ") || "Unknown", thumbnail: s.thumbnail, duration: s.duration }))}
+                                            index={index}
+                                            onLike={handleLike}
+                                            isLiked={likedSongIds.has(song.videoId)}
+                                        />
+                                    );
+                                })}
+                            </div>
                         </div>
                     ) : songs.length === 0 && artists.length === 0 && albums.length === 0 ? (
                         <div className={styles.noResults}>
@@ -312,12 +354,12 @@ export default function SearchPage() {
                                             <div
                                                 key={album.browseId}
                                                 className={styles.albumCard}
-                                                onClick={() => setSelectedAlbumBrowseId(album.browseId)}
+                                                onClick={() => handleAlbumClick(album.browseId, album.title)}
                                                 role="button"
                                                 tabIndex={0}
                                                 onKeyDown={(e) => {
                                                     if (e.key === 'Enter' || e.key === ' ') {
-                                                        setSelectedAlbumBrowseId(album.browseId);
+                                                        handleAlbumClick(album.browseId, album.title);
                                                     }
                                                 }}
                                             >
@@ -348,13 +390,6 @@ export default function SearchPage() {
                 artistName={selectedArtist || ""}
                 onClose={() => setSelectedArtist(null)}
             />
-            {selectedAlbumBrowseId && (
-                <AlbumModal
-                    isOpen={!!selectedAlbumBrowseId}
-                    browseId={selectedAlbumBrowseId}
-                    onClose={() => setSelectedAlbumBrowseId(null)}
-                />
-            )}
         </div>
     );
 }

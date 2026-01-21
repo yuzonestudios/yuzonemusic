@@ -1,7 +1,7 @@
 .overlay {
     position: fixed;
     inset: 0;
-    background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(26, 26, 37, 0.95) 100%);
+    background: linear-gradient(135deg, rgba(10, 10, 20, 0.98) 0%, rgba(20, 20, 35, 0.98) 100%);
     -webkit-backdrop-filter: blur(40px);
     backdrop-filter: blur(40px);
     z-index: 9999;
@@ -26,10 +26,12 @@
     position: fixed !important;
     inset: 0 !important;
     object-fit: cover !important;
-    filter: blur(40px);
+    filter: blur(50px) brightness(0.2) saturate(0.8);
     transform: scale(1.08);
     opacity: 0.35;
     z-index: 0;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 @keyframes fadeIn {
@@ -95,13 +97,14 @@
 
 .albumArt {
     position: relative;
-    width: min(520px, 70vh);
-    height: min(520px, 70vh);
-    max-height: 70vh;
+    width: min(480px, 65vh);
+    height: min(480px, 65vh);
+    max-height: 65vh;
     border-radius: var(--radius-lg);
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 20px 80px rgba(0, 0, 0, 0.6);
     animation: slideUp 0.5s ease-out;
+    z-index: 10;
 }
 
 @keyframes slideUp {
