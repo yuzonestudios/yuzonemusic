@@ -227,7 +227,7 @@ export default function FullscreenPlayer() {
 
     return (
         <div className={styles.overlay}>
-            {currentSong && (
+            {currentSong && currentSong.thumbnail && (
                 <Image
                     src={currentSong.thumbnail.replace(/=w\d+-h\d+/, '=w1280-h720')}
                     alt=""
@@ -244,7 +244,7 @@ export default function FullscreenPlayer() {
 
                 {/* Album Art */}
                 <div className={styles.albumArtContainer}>
-                    {currentSong ? (
+                    {currentSong && currentSong.thumbnail ? (
                         <div className={styles.albumArt}>
                             <Image
                                 src={currentSong.thumbnail.replace(/=w\d+-h\d+/, '=w720-h720')}
