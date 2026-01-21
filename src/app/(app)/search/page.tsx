@@ -76,7 +76,7 @@ export default function SearchPage() {
         }
     }, [query, searchType, setGlobalLoading]);
 
-    // Debounced search effect
+    // Debounced search effect - 2 second delay
     useEffect(() => {
         const timer = setTimeout(() => {
             if (query.trim()) {
@@ -87,7 +87,7 @@ export default function SearchPage() {
                 setAlbums([]);
                 setHasSearched(false);
             }
-        }, 500);
+        }, 2000);
 
         return () => clearTimeout(timer);
     }, [query, handleSearch]);

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAlbumByBrowseId } from "@/lib/youtube-music";
 
 /**
  * GET /api/album?browseId=MPREb_...
  * Returns album details and songs (flat JSON) matching the requested format
+ * Proxies to external API: https://api.yuzone.me/album?browseId=
  */
 export async function GET(request: NextRequest) {
   try {
@@ -12,30 +12,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ detail: "browseId query parameter is required" }, { status: 400 });
     }
 
-    const album = await getAlbumByBrowseId(browseId.trim());
+    // Call external API
+    const externalApiUrl = `https://api.yuzone.me/album?browseId=${encodeURIComponent(browseId.trim())}`;
+    const response = await fetch(externalApiUrl);
 
-    if (!album || !album.title || (album.songs?.length ?? 0) === 0) {
-      return NextResponse.json({ detail: "Album not found" }, { status: 404 });
+    if (!response.ok) {
+      if (response.status === 404) {
+        return NextResponse.json({ detail: "Album not found" }, { status: 404 });
+      }
+      throw new Error(`External API returned ${response.status}`);
     }
 
-    const response = {
-      browseId: album.browseId,
-      title: album.title,
-      artists: album.artists.map(a => ({ name: a.name, browseId: a.browseId || "" })),
-      songs: album.songs.map(s => ({
-        videoId: s.videoId,
-        title: s.title,
-        artists: s.artists.map(a => ({ name: a.name, id: a.id || "" })),
-        album: s.album || album.title,
-        duration: s.duration,
-        thumbnail: s.thumbnail,
-        isExplicit: Boolean(s.isExplicit),
-        isAvailable: s.isAvailable !== false,
-      })),
-      totalSongs: album.songs.length,
-    };
+    const data = await response.json();
 
-    return NextResponse.json(response, { status: 200 });
+    // Return the data as-is if it matches the expected format, or normalize it
+    return NextResponse.json(data, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(
       { detail: `Failed to fetch album songs: ${error?.message || "Unknown error"}` },
