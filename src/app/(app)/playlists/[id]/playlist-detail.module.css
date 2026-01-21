@@ -161,6 +161,32 @@
     max-width: 320px;
 }
 
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.sortContainer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sortLabel {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.sortSelect {
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
 .searchIcon {
     position: absolute;
     left: 1rem;
@@ -190,6 +216,21 @@
     border-color: var(--accent-primary);
     background: rgba(139, 92, 246, 0.05);
     box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.searchBtn {
+    padding: 0.6rem 1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: all var(--transition-fast);
+}
+
+.searchBtn:hover {
+    border-color: var(--accent-primary);
+    background: rgba(139, 92, 246, 0.08);
 }
 
 .noResults {
@@ -348,6 +389,20 @@
 
     .searchContainer {
         max-width: 100%;
+    }
+
+    .controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .sortSelect {
+        width: 160px;
+    }
+
+    .searchBtn {
+        margin-top: 0.5rem;
+        width: 100%;
     }
 
     .backBtn {

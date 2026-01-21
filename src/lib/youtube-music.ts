@@ -172,6 +172,79 @@ export async function searchAlbums(query: string, limit = 10): Promise<YTMusicAl
     }
 }
 
+/**
+ * Fetch album details and tracks from YouTube Music by browseId
+ */
+export async function getAlbumByBrowseId(browseId: string): Promise<{
+    browseId: string;
+    title: string;
+    artists: Array<{ name: string; browseId?: string }>;
+    thumbnail: string;
+    songs: Array<{
+        videoId: string;
+        title: string;
+        artists: Array<{ name: string; id?: string }>;
+        album?: string;
+        duration: string;
+        thumbnail: string;
+        isExplicit?: boolean;
+        isAvailable?: boolean;
+    }>;
+}> {
+    const yt = await getInnertube();
+    const album: any = await yt.music.getAlbum(browseId);
+
+    // Title and artists from header if available
+    const title: string = album?.header?.title?.text || album?.header?.title || album?.title || "Album";
+    const headerArtists: Array<{ name: string; id?: string }> = Array.isArray(album?.header?.artists)
+        ? album.header.artists.map((a: any) => ({ name: a.name || a.text || "Unknown Artist", id: a.id || a.channel_id }))
+        : [];
+
+    const artists = headerArtists.map(a => ({ name: a.name, browseId: a.id }));
+
+    // Thumbnail
+    const thumbCandidates = album?.header?.thumbnail?.contents || album?.thumbnail?.contents || [];
+    const thumbnail = extractThumbnail(thumbCandidates as Array<{ url: string }>);
+
+    // Tracks
+    const items: any[] = (album?.contents?.items || album?.tracks || []);
+    const songs = items
+        .filter((item: any) => item && (item.type === "MusicResponsiveListItem" || item.id))
+        .map((item: any) => {
+            const vid = item.id || item.video_id || "";
+            const tTitle = item.title?.text || item.title || "Unknown Title";
+            const tArtists = Array.isArray(item.artists)
+                ? item.artists.map((a: any) => ({ name: a.name || a.text || "Unknown Artist", id: a.id || a.channel_id }))
+                : (item.flex_columns && item.flex_columns[1]?.title?.runs
+                    ? item.flex_columns[1].title.runs.map((r: any) => ({ name: r.text }))
+                    : [{ name: "Unknown Artist" }]);
+            const tAlbum = item.album?.name || title;
+            const tDuration = formatDuration(item.duration?.seconds);
+            const tThumb = extractThumbnail(item.thumbnail?.contents);
+            const isExplicit = Boolean(item.is_explicit);
+            const isAvailable = item.is_available !== false; // default true
+
+            return {
+                videoId: vid,
+                title: tTitle,
+                artists: tArtists,
+                album: tAlbum,
+                duration: tDuration,
+                thumbnail: tThumb,
+                isExplicit,
+                isAvailable,
+            };
+        });
+
+    return {
+        browseId,
+        title,
+        artists,
+        thumbnail,
+        songs,
+    };
+}
+
 
 export async function getTopCharts(country: string = "US"): Promise<YTMusicSong[]> {
     try {

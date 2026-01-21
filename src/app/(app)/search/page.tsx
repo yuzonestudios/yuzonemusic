@@ -5,6 +5,7 @@ import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ErrorState from "@/components/ui/ErrorState";
 import ArtistModal from "@/components/ui/ArtistModal";
+import AlbumModal from "@/components/ui/AlbumModal";
 import { Music, X } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import type { Song, Artist, Album } from "@/types";
@@ -19,6 +20,7 @@ export default function SearchPage() {
     const [songs, setSongs] = useState<Song[]>([]);
     const [artists, setArtists] = useState<Artist[]>([]);
     const [albums, setAlbums] = useState<Album[]>([]);
+    const [selectedAlbumBrowseId, setSelectedAlbumBrowseId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
@@ -307,7 +309,18 @@ export default function SearchPage() {
                                     <h3 className={styles.sectionTitle}>Albums</h3>
                                     <div className={styles.cardGrid}>
                                         {albums.map((album) => (
-                                            <div key={album.browseId} className={styles.albumCard}>
+                                            <div
+                                                key={album.browseId}
+                                                className={styles.albumCard}
+                                                onClick={() => setSelectedAlbumBrowseId(album.browseId)}
+                                                role="button"
+                                                tabIndex={0}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        setSelectedAlbumBrowseId(album.browseId);
+                                                    }
+                                                }}
+                                            >
                                                 <img
                                                     src={album.thumbnail}
                                                     alt={album.title}
@@ -335,6 +348,13 @@ export default function SearchPage() {
                 artistName={selectedArtist || ""}
                 onClose={() => setSelectedArtist(null)}
             />
+            {selectedAlbumBrowseId && (
+                <AlbumModal
+                    isOpen={!!selectedAlbumBrowseId}
+                    browseId={selectedAlbumBrowseId}
+                    onClose={() => setSelectedAlbumBrowseId(null)}
+                />
+            )}
         </div>
     );
 }

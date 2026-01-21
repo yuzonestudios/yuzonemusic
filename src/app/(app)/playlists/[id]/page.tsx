@@ -41,6 +41,8 @@ export default function PlaylistDetailPage() {
     const [playlist, setPlaylist] = useState<Playlist | null>(null);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [committedQuery, setCommittedQuery] = useState("");
+    const [sortBy, setSortBy] = useState<"alphabetical" | "dateAdded">("alphabetical");
     const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;
@@ -153,9 +155,20 @@ export default function PlaylistDetailPage() {
         }
     };
 
+    const sortSongs = (songs: Song[]) => {
+        if (sortBy === "dateAdded") {
+            return [...songs].sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime());
+        }
+        return [...songs].sort((a, b) => (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase()));
+    };
+
+    const commitSearch = () => {
+        setCommittedQuery(searchQuery.trim());
+    };
+
     const handlePlayPlaylist = () => {
         if (playlist && playlist.songs.length > 0) {
-            const sorted = [...playlist.songs].sort((a, b) => (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase()));
+            const sorted = sortSongs(playlist.songs);
             setQueue(sorted);
             setCurrentSong(sorted[0]);
             play();
@@ -165,7 +178,7 @@ export default function PlaylistDetailPage() {
 
     const handleShufflePlay = () => {
         if (playlist && playlist.songs.length > 0) {
-            const sorted = [...playlist.songs].sort((a, b) => (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase()));
+            const sorted = sortSongs(playlist.songs);
             setQueue(sorted);
             setCurrentSong(sorted[0]);
             toggleShuffle();
@@ -358,24 +371,47 @@ export default function PlaylistDetailPage() {
                     <>
                         <div className={styles.songsHeader}>
                             <h2 className={styles.sectionTitle}>Songs</h2>
-                            <div className={styles.searchContainer}>
-                                <Search size={18} className={styles.searchIcon} />
-                                <input
-                                    type="text"
-                                    placeholder="Search in playlist..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className={styles.searchInput}
-                                />
+                            <div className={styles.controls}>
+                                <div className={styles.searchContainer}>
+                                    <Search size={18} className={styles.searchIcon} />
+                                    <input
+                                        type="text"
+                                        placeholder="Search in playlist..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") commitSearch();
+                                        }}
+                                        className={styles.searchInput}
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    className={styles.searchBtn}
+                                    onClick={commitSearch}
+                                >
+                                    Search
+                                </button>
+                                <div className={styles.sortContainer}>
+                                    <label htmlFor="sort" className={styles.sortLabel}>Sort</label>
+                                    <select
+                                        id="sort"
+                                        value={sortBy}
+                                        onChange={(e) => setSortBy(e.target.value as "alphabetical" | "dateAdded")}
+                                        className={styles.sortSelect}
+                                    >
+                                        <option value="alphabetical">Alphabetical</option>
+                                        <option value="dateAdded">Date Added</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <div className={styles.songGrid}>
                             {(() => {
-                                const sortedSongs = [...playlist.songs]
-                                    .sort((a, b) => (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase()))
+                                const sortedSongs = sortSongs(playlist.songs)
                                     .filter((song) => {
-                                        if (!searchQuery) return true;
-                                        const query = searchQuery.toLowerCase();
+                                        if (!committedQuery) return true;
+                                        const query = committedQuery.toLowerCase();
                                         return (
                                             song.title.toLowerCase().includes(query) ||
                                             song.artist.toLowerCase().includes(query)
@@ -386,7 +422,7 @@ export default function PlaylistDetailPage() {
                                     return (
                                         <div className={styles.noResults}>
                                             <Search size={32} />
-                                            <p>No songs match &quot;{searchQuery}&quot;</p>
+                                            <p>No songs match &quot;{committedQuery}&quot;</p>
                                         </div>
                                     );
                                 }

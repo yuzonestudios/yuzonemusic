@@ -227,6 +227,15 @@ export default function FullscreenPlayer() {
 
     return (
         <div className={styles.overlay}>
+            {currentSong && (
+                <Image
+                    src={currentSong.thumbnail.replace(/=w\d+-h\d+/, '=w1280-h720')}
+                    alt=""
+                    fill
+                    priority
+                    className={styles.bgImgEl}
+                />
+            )}
             <div className={styles.container}>
                 {/* Close Button */}
                 <button onClick={closeFullscreen} className={styles.closeBtn} title="Close">
