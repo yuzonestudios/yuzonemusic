@@ -93,6 +93,8 @@
     align-items: center;
     justify-content: center;
     margin-top: 0;
+    padding-top: 2rem;
+    /* Mandatory top spacing for album image */
 }
 
 .albumArt {
@@ -692,6 +694,7 @@
 
     .albumArtContainer {
         margin-top: 3rem;
+        padding-top: 2rem;
     }
 
     .secondaryControls {

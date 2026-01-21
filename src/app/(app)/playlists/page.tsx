@@ -33,7 +33,7 @@ export default function PlaylistsPage() {
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-    const { setQueue, setCurrentSong, play, ensurePlayback } = usePlayerStore();
+    const { setQueue, setCurrentSong, play, ensurePlayback, setQueueSource } = usePlayerStore();
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -105,6 +105,7 @@ export default function PlaylistsPage() {
             if (data.success && data.playlist.songs.length > 0) {
                 setQueue(data.playlist.songs);
                 setCurrentSong(data.playlist.songs[0]);
+                setQueueSource({ type: "playlist", id: playlistId, name: data.playlist.name });
                 play();
                 ensurePlayback();
             }

@@ -21,6 +21,7 @@ export default function SearchPage() {
     const [albums, setAlbums] = useState<Album[]>([]);
     const [albumSongs, setAlbumSongs] = useState<Array<{ videoId: string; title: string; artists: Array<{ name: string }>; duration: string; thumbnail: string }>>([]);
     const [selectedAlbumTitle, setSelectedAlbumTitle] = useState<string | null>(null);
+    const [selectedAlbumThumbnail, setSelectedAlbumThumbnail] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
@@ -190,6 +191,9 @@ export default function SearchPage() {
             console.log("Album API Response:", data);
             console.log("Album Songs:", data.songs);
             setAlbumSongs(data.songs || []);
+            // Prefer explicit album thumbnail fields; fall back to first song/array entries if needed
+            const albumThumb = data.thumbnail || data.thumbnails?.[0]?.url || data.image || data.cover || null;
+            setSelectedAlbumThumbnail(albumThumb);
             setSelectedAlbumTitle(title);
         } catch (e) {
             console.error("Error fetching album:", e);
@@ -276,14 +280,15 @@ export default function SearchPage() {
                                         videoId: song.videoId,
                                         title: song.title,
                                         artist: song.artists?.map(a => a.name).join(", ") || "Unknown Artist",
-                                        thumbnail: song.thumbnail,
+                                        // Force album artwork for album songs view
+                                        thumbnail: selectedAlbumThumbnail || song.thumbnail,
                                         duration: song.duration,
                                     };
                                     return (
                                         <SongCard
                                             key={song.videoId}
                                             song={normalizedSong}
-                                            songs={albumSongs.map(s => ({ videoId: s.videoId, title: s.title, artist: s.artists?.map(a => a.name).join(", ") || "Unknown", thumbnail: s.thumbnail, duration: s.duration }))}
+                                            songs={albumSongs.map(s => ({ videoId: s.videoId, title: s.title, artist: s.artists?.map(a => a.name).join(", ") || "Unknown", thumbnail: selectedAlbumThumbnail || s.thumbnail, duration: s.duration }))}
                                             index={index}
                                             onLike={handleLike}
                                             isLiked={likedSongIds.has(song.videoId)}

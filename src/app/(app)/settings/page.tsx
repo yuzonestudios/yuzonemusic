@@ -22,6 +22,7 @@ export default function SettingsPage() {
     const [audioQuality, setAudioQuality] = useState<1 | 2 | 3>(2);
     const [isSavingQuality, setIsSavingQuality] = useState(false);
     const [qualityMessage, setQualityMessage] = useState("");
+    const [defaultSort, setDefaultSort] = useState<"alphabetical" | "dateAdded">("alphabetical");
 
     const handleSaveQuality = async (quality: 1 | 2 | 3) => {
         setIsSavingQuality(true);
@@ -320,6 +321,27 @@ export default function SettingsPage() {
                                     </div>
                                 ))}
                             </div>
+                            </div>
+
+                            {/* Default Sort - Responsive */}
+                            <div style={{ width: "100%", borderTop: "1px solid rgba(139, 92, 246, 0.2)", paddingTop: "2rem" }}>
+                                <span className={styles.label}>Default Sort</span>
+                                <p className={styles.helperText} style={{ marginTop: "0.5rem", marginBottom: "1rem" }}>Choose how lists are sorted by default</p>
+                                <div className={styles.sortGrid}>
+                                    {[
+                                        { id: "alphabetical", label: "Alphabetical", desc: "A → Z" },
+                                        { id: "dateAdded", label: "Date Added", desc: "Newest first" },
+                                    ].map((opt) => (
+                                        <button
+                                            key={opt.id}
+                                            onClick={() => setDefaultSort(opt.id as "alphabetical" | "dateAdded")}
+                                            className={`${styles.sortOption} ${defaultSort === opt.id ? styles.sortActive : ""}`}
+                                        >
+                                            <div className={styles.sortLabel}>{opt.label}</div>
+                                            <div className={styles.sortDesc}>{opt.desc}</div>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>

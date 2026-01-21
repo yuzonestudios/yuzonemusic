@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Music, Play, Trash2 } from "lucide-react";
 import styles from "./PlaylistCard.module.css";
+import { usePlayerStore } from "@/store/playerStore";
 
 interface PlaylistCardProps {
     playlist: {
@@ -20,6 +21,10 @@ interface PlaylistCardProps {
 
 export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCardProps) {
     const router = useRouter();
+    const { isPlaying, queueSource } = usePlayerStore();
+
+    const isPlayingFromThisPlaylist =
+        isPlaying && queueSource?.type === "playlist" && queueSource?.id === playlist._id;
 
     const handleDelete = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -45,7 +50,7 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
     };
 
     return (
-        <div className={styles.playlistCard} onClick={handleClick}>
+        <div className={`${styles.playlistCard} ${isPlayingFromThisPlaylist ? styles.playing : ""}`} onClick={handleClick}>
             <div className={styles.playlistHeader}>
                 <div className={styles.playlistThumbnail}>
                     {playlist.thumbnail ? (
@@ -57,6 +62,9 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
                         />
                     ) : (
                         <Music size={32} className={styles.playlistIcon} />
+                    )}
+                    {isPlayingFromThisPlaylist && (
+                        <span className={styles.playingBadge}>Playing</span>
                     )}
                 </div>
                 <div className={styles.playlistInfo}>
