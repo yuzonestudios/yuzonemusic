@@ -43,13 +43,14 @@ export default function RecommendationsPage() {
         }
     }, [status, router]);
 
-    const fetchRecommendations = async () => {
+    const fetchRecommendations = async (forceRefresh = false) => {
         try {
             setLoading(true);
             setError("");
             
             console.log("🔄 Fetching recommendations...");
-            const res = await fetch("/api/recommendations");
+            const url = forceRefresh ? "/api/recommendations?refresh=1" : "/api/recommendations";
+            const res = await fetch(url, { cache: "no-store" });
             const data = await res.json();
             
             console.log("📦 Recommendations response:", data);
@@ -73,7 +74,7 @@ export default function RecommendationsPage() {
 
     const handleRefresh = () => {
         setRefreshing(true);
-        fetchRecommendations();
+        fetchRecommendations(true);
     };
 
     if (loading) {

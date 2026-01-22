@@ -28,11 +28,18 @@ export async function GET(req: NextRequest) {
             );
         }
 
+        const refreshParam = req.nextUrl.searchParams.get("refresh");
+        const forceRefresh = refreshParam === "1" || refreshParam === "true";
+
         // Check cache first (recommendations are expensive to generate)
         const cacheKey = `recommendations:${session.user.email}`;
-        const cached = cache.get(cacheKey);
-        if (cached) {
-            return NextResponse.json(cached);
+        if (forceRefresh) {
+            cache.delete(cacheKey);
+        } else {
+            const cached = cache.get(cacheKey);
+            if (cached) {
+                return NextResponse.json(cached);
+            }
         }
 
         await connectDB();
