@@ -72,6 +72,7 @@ export default function SongCard({
                         width={120}
                         height={120}
                         quality={80}
+                        sizes="(max-width: 640px) 100px, 120px"
                         className={styles.thumbnailImg}
                     />
                 ) : (

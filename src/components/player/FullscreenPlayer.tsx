@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { X, SkipBack, Play, Pause, SkipForward, Volume2, Repeat, Shuffle, Heart, ListPlus, Download, Share } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
-import AddToPlaylistModal from "@/components/ui/AddToPlaylistModal";
-import ShareModal from "@/components/ui/ShareModal";
-import ArtistModal from "@/components/ui/ArtistModal";
 import { browserCache, BROWSER_CACHE_TTL } from "@/lib/browser-cache";
 import styles from "./FullscreenPlayer.module.css";
+
+const AddToPlaylistModal = dynamic(() => import("@/components/ui/AddToPlaylistModal"), { ssr: false });
+const ShareModal = dynamic(() => import("@/components/ui/ShareModal"), { ssr: false });
+const ArtistModal = dynamic(() => import("@/components/ui/ArtistModal"), { ssr: false });
 
 function formatTime(seconds: number): string {
     if (!seconds || isNaN(seconds)) return "0:00";

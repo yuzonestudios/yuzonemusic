@@ -47,6 +47,7 @@ export default function MobileNav() {
                 <Link
                     key={item.href}
                     href={item.href}
+                    prefetch={false}
                     className={`${styles.navItem} ${pathname === item.href ? styles.active : ""}`}
                 >
                     <span className={styles.icon}>{item.icon}</span>

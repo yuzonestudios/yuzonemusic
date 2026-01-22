@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
@@ -9,8 +10,10 @@ import SongCard from "@/components/cards/SongCard";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { usePlayerStore } from "@/store/playerStore";
 import type { Song as GlobalSong } from "@/types";
-import ShareModal from "@/components/ui/ShareModal";
+import { debounce } from "@/lib/debounce";
 import styles from "./playlist-detail.module.css";
+
+const ShareModal = dynamic(() => import("@/components/ui/ShareModal"), { ssr: false });
 
 interface Song {
     videoId: string;
@@ -44,6 +47,9 @@ export default function PlaylistDetailPage() {
     const [committedQuery, setCommittedQuery] = useState("");
     const [sortBy, setSortBy] = useState<"alphabetical" | "dateAdded">("alphabetical");
     const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
+    const debouncedCommitRef = useRef(debounce((query: string) => {
+        setCommittedQuery(query.trim());
+    }, 300));
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;
         title: string;
@@ -162,8 +168,10 @@ export default function PlaylistDetailPage() {
         return [...songs].sort((a, b) => (a.title || "").toLowerCase().localeCompare((b.title || "").toLowerCase()));
     };
 
-    const commitSearch = () => {
-        setCommittedQuery(searchQuery.trim());
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearchQuery(value);
+        debouncedCommitRef.current(value);
     };
 
     const handlePlayPlaylist = () => {
@@ -378,20 +386,10 @@ export default function PlaylistDetailPage() {
                                         type="text"
                                         placeholder="Search in playlist..."
                                         value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === "Enter") commitSearch();
-                                        }}
+                                        onChange={handleSearchChange}
                                         className={styles.searchInput}
                                     />
                                 </div>
-                                <button
-                                    type="button"
-                                    className={styles.searchBtn}
-                                    onClick={commitSearch}
-                                >
-                                    Search
-                                </button>
                                 <div className={styles.sortContainer}>
                                     <label htmlFor="sort" className={styles.sortLabel}>Sort</label>
                                     <select

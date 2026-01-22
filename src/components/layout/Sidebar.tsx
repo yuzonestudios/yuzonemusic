@@ -70,6 +70,7 @@ export default function Sidebar() {
                         <li key={item.href}>
                             <Link
                                 href={item.href}
+                                prefetch={false}
                                 className={`${styles.navItem} ${pathname === item.href ? styles.active : ""
                                     }`}
                             >

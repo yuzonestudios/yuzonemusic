@@ -24,6 +24,7 @@
     "nextjs-toploader": "^3.9.17",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "swr": "^2.3.8",
     "three": "^0.182.0",
     "youtubei.js": "^13.1.0",
     "zustand": "^5.0.2"

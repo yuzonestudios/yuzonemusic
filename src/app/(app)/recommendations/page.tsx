@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import useSWR from "swr";
 import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ErrorState from "@/components/ui/ErrorState";
 import { Sparkles, RefreshCw } from "lucide-react";
 import styles from "./recommendations.module.css";
+
+const fetcher = (url: string) => fetch(url, { cache: "no-store" }).then(r => r.json());
 
 interface Song {
     videoId: string;
@@ -29,55 +32,37 @@ interface RecommendationsData {
 export default function RecommendationsPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
-    const [recommendations, setRecommendations] = useState<RecommendationsData | null>(null);
-    const [topArtists, setTopArtists] = useState<string[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
     const [refreshing, setRefreshing] = useState(false);
+    const refreshKeyRef = useRef(0);
+
+    const { data, error, mutate, isLoading } = useSWR(
+        status === "authenticated" ? `/api/recommendations?refresh=${refreshKeyRef.current}` : null,
+        fetcher,
+        {
+            revalidateOnFocus: false,
+            revalidateOnReconnect: true,
+            dedupingInterval: 60000,
+            focusThrottleInterval: 300000,
+            onError: () => setRefreshing(false),
+            onSuccess: () => setRefreshing(false),
+        }
+    );
 
     useEffect(() => {
         if (status === "unauthenticated") {
             router.push("/login");
         } else if (status === "authenticated") {
-            fetchRecommendations();
+            mutate();
         }
-    }, [status, router]);
-
-    const fetchRecommendations = async (forceRefresh = false) => {
-        try {
-            setLoading(true);
-            setError("");
-            
-            console.log("🔄 Fetching recommendations...");
-            const url = forceRefresh ? "/api/recommendations?refresh=1" : "/api/recommendations";
-            const res = await fetch(url, { cache: "no-store" });
-            const data = await res.json();
-            
-            console.log("📦 Recommendations response:", data);
-
-            if (data.success) {
-                setRecommendations(data.recommendations);
-                setTopArtists(data.topArtists || []);
-                console.log("✅ Recommendations loaded successfully");
-            } else {
-                console.error("❌ Recommendations failed:", data.error);
-                setError(data.error || "Failed to load recommendations");
-            }
-        } catch (err) {
-            console.error("❌ Error fetching recommendations:", err);
-            setError("Failed to load recommendations");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
+    }, [status, router, mutate]);
 
     const handleRefresh = () => {
         setRefreshing(true);
-        fetchRecommendations(true);
+        refreshKeyRef.current += 1;
+        mutate();
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className={`${styles.container} ${styles.loading}`}>
                 <LoadingSpinner text="Curating your personalized music recommendations..." />
@@ -85,16 +70,19 @@ export default function RecommendationsPage() {
         );
     }
 
-    if (error) {
+    if (error || !data?.success) {
         return (
             <div className={styles.container}>
                 <ErrorState
-                    message={error}
-                    onRetry={fetchRecommendations}
+                    message={error?.message || data?.error || "Failed to load recommendations"}
+                    onRetry={() => mutate()}
                 />
             </div>
         );
     }
+
+    const recommendations = data?.recommendations as RecommendationsData | undefined;
+    const topArtists = data?.topArtists || [];
 
     const hasRecommendations = recommendations && (
         recommendations.suggested.length > 0 ||

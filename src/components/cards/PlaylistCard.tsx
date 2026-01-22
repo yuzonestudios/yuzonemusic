@@ -59,6 +59,7 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
                             alt={playlist.name}
                             width={80}
                             height={80}
+                            sizes="80px"
                         />
                     ) : (
                         <Music size={32} className={styles.playlistIcon} />
