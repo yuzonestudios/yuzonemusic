@@ -22,25 +22,25 @@ const COOKIE_KEY = "yuz_recommendations";
 const COOKIE_MAX_AGE = 60 * 60; // 1 hour in seconds
 
 const trimForCookie = (data: any) => {
-    const clampSongs = (list: any[] = [], size = 8) => list.slice(0, size).map(item => ({
-        videoId: item.videoId,
-        title: item.title,
-        artist: item.artist,
-        thumbnail: item.thumbnail,
-        duration: item.duration,
-        reason: item.reason,
-    }));
+    // Minimal payload: only videoId, title, artist (no thumbnails, no durations, no reasons)
+    // This keeps total payload well under 4KB browser limit
+    const clampSongs = (list: any[] = [], size = 5) => 
+        list.slice(0, size).map(item => ({
+            videoId: item.videoId,
+            title: item.title,
+            artist: item.artist,
+        }));
 
     return {
         success: true,
         recommendations: {
-            suggested: clampSongs(data.recommendations?.suggested, 10),
-            artistsYouMightLike: clampSongs(data.recommendations?.artistsYouMightLike, 8),
-            basedOnRecent: clampSongs(data.recommendations?.basedOnRecent, 8),
-            trendingInYourStyle: clampSongs(data.recommendations?.trendingInYourStyle, 8),
-            freshDiscoveries: clampSongs(data.recommendations?.freshDiscoveries, 10),
+            suggested: clampSongs(data.recommendations?.suggested, 5),
+            artistsYouMightLike: clampSongs(data.recommendations?.artistsYouMightLike, 4),
+            basedOnRecent: clampSongs(data.recommendations?.basedOnRecent, 4),
+            trendingInYourStyle: clampSongs(data.recommendations?.trendingInYourStyle, 4),
+            freshDiscoveries: clampSongs(data.recommendations?.freshDiscoveries, 5),
         },
-        topArtists: (data.topArtists || []).slice(0, 5),
+        topArtists: (data.topArtists || []).slice(0, 3),
     };
 };
 
