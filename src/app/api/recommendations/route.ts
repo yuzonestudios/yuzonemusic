@@ -21,31 +21,6 @@ interface ScoredSong {
 const COOKIE_KEY = "yuz_recommendations";
 const COOKIE_MAX_AGE = 60 * 60; // 1 hour in seconds
 
-const trimForCookie = (data: any) => {
-    // Minimal payload: only videoId, title, artist, thumbnail (compressed), duration
-    // This keeps total payload well under 4KB browser limit
-    const clampSongs = (list: any[] = [], size = 5) => 
-        list.slice(0, size).map(item => ({
-            videoId: item.videoId,
-            title: item.title,
-            artist: item.artist,
-            thumbnail: item.thumbnail || "",
-            duration: item.duration || "",
-        }));
-
-    return {
-        success: true,
-        recommendations: {
-            suggested: clampSongs(data.recommendations?.suggested, 5),
-            artistsYouMightLike: clampSongs(data.recommendations?.artistsYouMightLike, 4),
-            basedOnRecent: clampSongs(data.recommendations?.basedOnRecent, 4),
-            trendingInYourStyle: clampSongs(data.recommendations?.trendingInYourStyle, 4),
-            freshDiscoveries: clampSongs(data.recommendations?.freshDiscoveries, 5),
-        },
-        topArtists: (data.topArtists || []).slice(0, 3),
-    };
-};
-
 export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
@@ -59,32 +34,14 @@ export async function GET(req: NextRequest) {
         const refreshParam = req.nextUrl.searchParams.get("refresh");
         const forceRefresh = refreshParam === "1" || refreshParam === "true";
 
-        // Client-side cookie cache comes first
-        const cookieCache = req.cookies.get(COOKIE_KEY)?.value;
-        if (!forceRefresh && cookieCache) {
-            try {
-                const parsed = JSON.parse(cookieCache);
-                return NextResponse.json(parsed);
-            } catch (err) {
-                console.warn("Failed to parse recommendation cookie, ignoring", err);
-            }
-        }
-
-        // Server memory cache (fallback after cookie)
+        // Server memory cache
         const cacheKey = `recommendations:${session.user.email}`;
         if (forceRefresh) {
             cache.delete(cacheKey);
         } else {
             const cached = cache.get(cacheKey);
             if (cached) {
-                const res = NextResponse.json(cached);
-                if (!cookieCache) {
-                    res.cookies.set(COOKIE_KEY, JSON.stringify(trimForCookie(cached)), {
-                        maxAge: COOKIE_MAX_AGE,
-                        httpOnly: false,
-                    });
-                }
-                return res;
+                return NextResponse.json(cached);
             }
         }
 
@@ -562,12 +519,7 @@ export async function GET(req: NextRequest) {
         // Cache recommendations (they're expensive to generate)
         cache.set(cacheKey, response, CACHE_TTL.RECOMMENDATIONS);
 
-        const res = NextResponse.json(response);
-        res.cookies.set(COOKIE_KEY, JSON.stringify(trimForCookie(response)), {
-            maxAge: COOKIE_MAX_AGE,
-            httpOnly: false,
-        });
-        return res;
+        return NextResponse.json(response);
 
     } catch (error) {
         console.error("Error generating recommendations:", error);
