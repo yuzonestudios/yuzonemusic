@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { usePlayerStore } from "@/store/playerStore";
 
 // Generate a unique device ID for this browser
 function getDeviceId(): string {
@@ -26,29 +25,35 @@ export function usePlayerSyncServer() {
     const lastSyncRef = useRef<number>(0);
     const hasLoadedInitialStateRef = useRef(false);
 
-    const playerState = usePlayerStore((state) => ({
-        currentSong: state.currentSong,
-        queue: state.queue,
-        queueIndex: state.queueIndex,
-        queueSource: state.queueSource,
-        currentTime: state.currentTime,
-        volume: state.volume,
-        repeat: state.repeat,
-        shuffle: state.shuffle,
-        playbackSpeed: state.playbackSpeed,
-    }));
+    // Get current player state from store
+    const getPlayerState = () => {
+        const { usePlayerStore } = require("@/store/playerStore");
+        const state = usePlayerStore.getState();
+        return {
+            currentSong: state.currentSong,
+            queue: state.queue,
+            queueIndex: state.queueIndex,
+            queueSource: state.queueSource,
+            currentTime: state.currentTime,
+            volume: state.volume,
+            repeat: state.repeat,
+            shuffle: state.shuffle,
+            playbackSpeed: state.playbackSpeed,
+        };
+    };
 
     // Sync player state to server
-    const syncToServer = async (immediate = false) => {
+    const syncToServer = async () => {
         if (status !== "authenticated" || !session?.user) return;
 
         const now = Date.now();
-        if (!immediate && now - lastSyncRef.current < 10000) {
-            // Don't sync more than once every 10 seconds unless immediate
+        if (now - lastSyncRef.current < 10000) {
+            // Don't sync more than once every 10 seconds
             return;
         }
 
         try {
+            const playerState = getPlayerState();
             const deviceId = getDeviceId();
             const response = await fetch("/api/sync", {
                 method: "POST",
@@ -75,6 +80,7 @@ export function usePlayerSyncServer() {
         if (hasLoadedInitialStateRef.current) return;
 
         try {
+            const { usePlayerStore } = require("@/store/playerStore");
             const deviceId = getDeviceId();
             const response = await fetch("/api/sync", {
                 headers: {
@@ -86,15 +92,10 @@ export function usePlayerSyncServer() {
                 const data = await response.json();
                 if (data.success && data.playerState) {
                     const serverState = data.playerState;
-                    const localState = playerState;
-
-                    // Only load if server state is newer than local state
-                    // Check if local state has a current song
-                    const hasLocalState = localState.currentSong !== null;
                     const serverStateDate = new Date(serverState.lastSyncedAt).getTime();
                     const localStorageDate = parseInt(localStorage.getItem("yuzone-last-played") || "0");
 
-                    if (!hasLocalState || serverStateDate > localStorageDate) {
+                    if (serverStateDate > localStorageDate) {
                         // Load server state
                         const store = usePlayerStore.getState();
                         
@@ -114,11 +115,11 @@ export function usePlayerSyncServer() {
                             store.setVolume(serverState.volume);
                         }
                         if (serverState.repeat) {
-                            // Set repeat state by cycling until we match
-                            const currentRepeat = store.repeat;
-                            while (store.repeat !== serverState.repeat) {
+                            const modes = ["off", "all", "one"];
+                            const currentIndex = modes.indexOf(store.repeat);
+                            const targetIndex = modes.indexOf(serverState.repeat);
+                            for (let i = currentIndex; i !== targetIndex; i = (i + 1) % 3) {
                                 store.toggleRepeat();
-                                if (store.repeat === currentRepeat) break; // Prevent infinite loop
                             }
                         }
                         if (serverState.shuffle !== undefined && serverState.shuffle !== store.shuffle) {
@@ -147,34 +148,12 @@ export function usePlayerSyncServer() {
         }
     }, [status]);
 
-    // Debounced sync on state changes
-    useEffect(() => {
-        if (status !== "authenticated") return;
-        if (!hasLoadedInitialStateRef.current) return; // Don't sync before initial load
-
-        // Clear existing debounce
-        if (debounceTimeoutRef.current) {
-            clearTimeout(debounceTimeoutRef.current);
-        }
-
-        // Set new debounce
-        debounceTimeoutRef.current = setTimeout(() => {
-            syncToServer(false);
-        }, SYNC_DEBOUNCE);
-
-        return () => {
-            if (debounceTimeoutRef.current) {
-                clearTimeout(debounceTimeoutRef.current);
-            }
-        };
-    }, [playerState, status]);
-
-    // Periodic sync
+    // Setup periodic sync
     useEffect(() => {
         if (status !== "authenticated") return;
 
         syncIntervalRef.current = setInterval(() => {
-            syncToServer(false);
+            syncToServer();
         }, SYNC_INTERVAL);
 
         return () => {
@@ -191,6 +170,7 @@ export function usePlayerSyncServer() {
         const handleBeforeUnload = () => {
             // Use sendBeacon for reliable sync on page close
             const deviceId = getDeviceId();
+            const playerState = getPlayerState();
             const blob = new Blob([JSON.stringify(playerState)], {
                 type: "application/json",
             });
@@ -206,7 +186,7 @@ export function usePlayerSyncServer() {
         return () => {
             window.removeEventListener("beforeunload", handleBeforeUnload);
         };
-    }, [playerState, status]);
+    }, [status]);
 
     return null;
 }
