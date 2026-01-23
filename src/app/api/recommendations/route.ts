@@ -22,13 +22,15 @@ const COOKIE_KEY = "yuz_recommendations";
 const COOKIE_MAX_AGE = 60 * 60; // 1 hour in seconds
 
 const trimForCookie = (data: any) => {
-    // Minimal payload: only videoId, title, artist (no thumbnails, no durations, no reasons)
+    // Minimal payload: only videoId, title, artist, thumbnail (compressed), duration
     // This keeps total payload well under 4KB browser limit
     const clampSongs = (list: any[] = [], size = 5) => 
         list.slice(0, size).map(item => ({
             videoId: item.videoId,
             title: item.title,
             artist: item.artist,
+            thumbnail: item.thumbnail || "",
+            duration: item.duration || "",
         }));
 
     return {

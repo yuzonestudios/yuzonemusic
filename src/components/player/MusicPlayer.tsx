@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, type CSSProperties, type MouseEvent } from "react";
 import Image from "next/image";
-import { Download, Heart, Maximize, ListPlus, ListMusic, X, GripVertical, ChevronUp, ChevronDown } from "lucide-react";
+import { Download, Heart, Maximize, ListPlus, ListMusic, X, GripVertical, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -42,6 +42,7 @@ export default function MusicPlayer() {
         setCurrentSong,
         moveInQueue,
         removeFromQueue,
+        clearQueue,
     } = usePlayerStore();
 
     const { seek } = useAudioPlayer();
@@ -551,13 +552,26 @@ export default function MusicPlayer() {
                                 <div className={styles.queueTitle}>Queue</div>
                                 <div className={styles.queueSubtitle}>Up next · {queue.length} item{queue.length === 1 ? "" : "s"}</div>
                             </div>
-                            <button
-                                className={styles.closeQueue}
-                                onClick={() => setIsQueueOpen(false)}
-                                aria-label="Close queue"
-                            >
-                                <X size={16} />
-                            </button>
+                            <div className={styles.queueHeaderActions}>
+                                <button
+                                    className={styles.clearQueueBtn}
+                                    onClick={() => {
+                                        clearQueue();
+                                        setIsQueueOpen(false);
+                                    }}
+                                    title="Clear queue"
+                                    aria-label="Clear queue"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                                <button
+                                    className={styles.closeQueue}
+                                    onClick={() => setIsQueueOpen(false)}
+                                    aria-label="Close queue"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
                         </div>
 
                         <SortableContext items={queueIds} strategy={verticalListSortingStrategy}>

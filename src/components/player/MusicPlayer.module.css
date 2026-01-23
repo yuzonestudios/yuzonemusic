@@ -333,6 +333,28 @@
     color: var(--text-secondary);
 }
 
+.queueHeaderActions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.clearQueueBtn {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clearQueueBtn:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
 .closeQueue {
     width: 28px;
     height: 28px;

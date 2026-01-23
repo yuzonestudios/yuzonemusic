@@ -74,6 +74,7 @@ export default function SongCard({
                         quality={80}
                         sizes="(max-width: 640px) 100px, 120px"
                         className={styles.thumbnailImg}
+                        unoptimized={song.thumbnail.includes('ytimg.com') || song.thumbnail.includes('ggpht.com')}
                     />
                 ) : (
                     <div className={styles.placeholderThumbnail}>
