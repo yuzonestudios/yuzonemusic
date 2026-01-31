@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Download, Play, Pause, Music } from "lucide-react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { usePlayerStore } from "@/store/playerStore";
+import type { Song } from "@/types";
 import styles from "./share.module.css";
 
 interface SharedContent {
@@ -13,16 +16,25 @@ interface SharedContent {
 
 export default function SharePage() {
     const params = useParams();
+    const router = useRouter();
     const token = params.token as string;
+    const { data: session, status } = useSession();
+    const isLoggedIn = status === "authenticated";
+    
     const [content, setContent] = useState<SharedContent | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string>("");
+    
+    // For non-logged-in users: standalone player state
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const audioRef = useRef<HTMLAudioElement>(null);
     const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
     const playlistAudioRef = useRef<HTMLAudioElement>(null);
+    
+    // For logged-in users: access to the global player store
+    const { setQueue, setQueueSource, setCurrentSong } = usePlayerStore();
 
     useEffect(() => {
         const fetchSharedContent = async () => {
@@ -46,6 +58,57 @@ export default function SharePage() {
             fetchSharedContent();
         }
     }, [token]);
+
+    // Auto-play for logged-in users
+    useEffect(() => {
+        if (!isLoggedIn || !content || loading) return;
+
+        if (content.type === "song") {
+            playSongInMainPlayer(content.data);
+            router.push("/dashboard");
+        } else if (content.type === "playlist") {
+            const playlist = content.data;
+            if (playlist && playlist.songs && playlist.songs.length > 0) {
+                playPlaylistInMainPlayer(playlist, 0);
+                router.push("/dashboard");
+            }
+        }
+    }, [isLoggedIn, content, loading]);
+
+    // Handler for logged-in users to play a single song in the main player
+    const playSongInMainPlayer = (song: any) => {
+        const playerSong: Song = {
+            videoId: song.videoId,
+            title: song.title || "Shared Song",
+            artist: song.artist || "Unknown Artist",
+            thumbnail: song.thumbnail || "/placeholder-album.png",
+            duration: song.duration || "0:00",
+            album: song.album,
+        };
+        setCurrentSong(playerSong);
+        setQueueSource({ type: "other", name: "Shared Song" });
+    };
+
+    // Handler for logged-in users to play a playlist in the main player
+    const playPlaylistInMainPlayer = (playlist: any, startIndex = 0) => {
+        const songs: Song[] = playlist.songs.map((song: any) => ({
+            videoId: song.videoId,
+            title: song.title || "Unknown Title",
+            artist: song.artist || "Unknown Artist",
+            thumbnail: song.thumbnail || "/placeholder-album.png",
+            duration: song.duration || "0:00",
+            album: song.album,
+        }));
+        
+        if (songs.length > 0) {
+            setQueue(songs, startIndex);
+            setQueueSource({ 
+                type: "playlist", 
+                id: playlist._id || null,
+                name: playlist.name || "Shared Playlist" 
+            });
+        }
+    };
 
     if (loading) {
         return (
@@ -76,6 +139,20 @@ export default function SharePage() {
         );
     }
 
+    // For logged-in users, show loading state while redirecting
+    if (isLoggedIn) {
+        return (
+            <div className={`${styles.container} flex justify-center items-center`}>
+                <LoadingSpinner size="large" />
+                <p className={styles.description}>
+                    Starting playback...
+                </p>
+            </div>
+        );
+    }
+
+    // Below this point, user is NOT logged in (non-authenticated users only)
+    
     if (content.type === "playlist") {
         const playlist = content.data;
 
