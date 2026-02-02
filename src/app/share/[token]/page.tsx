@@ -339,7 +339,7 @@ export default function SharePage() {
                             <a
                                 className={styles.primaryLink}
                                 href={downloadUrl}
-                                download={`${song.title || "song"}.mp3`}
+                                download={`${song.title || "song"}.mp4`}
                                 title="Download"
                             >
                                 <Download size={18} />

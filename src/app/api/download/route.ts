@@ -28,12 +28,12 @@ export async function GET(request: NextRequest) {
 /**
  * POST /download
  * Download audio with quality selection
- * Body: { videoId: string, format?: "mp3", quality?: 1 | 2 | 3 }
+ * Body: { videoId: string, format?: "mp4", quality?: 1 | 2 | 3 }
  */
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json() as DownloadRequest;
-        const { videoId, quality = 2, format = "mp3" } = body;
+        const { videoId, quality = 2, format = "mp4" } = body;
 
         if (!videoId) {
             return errorResponse("videoId is required", undefined, 400);
@@ -64,7 +64,7 @@ async function downloadAudio(videoId: string, title: string, quality: 1 | 2 | 3)
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     videoId,
-                    format: "mp3",
+                    format: "mp4",
                     quality,
                 }),
             });

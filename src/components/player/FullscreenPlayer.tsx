@@ -422,7 +422,7 @@ export default function FullscreenPlayer() {
 
                     <a
                         href={currentSong ? `/api/stream?id=${currentSong.videoId}` : "#"}
-                        download={currentSong ? `${currentSong.title}.mp3` : undefined}
+                        download={currentSong ? `${currentSong.title}.mp4` : undefined}
                         className={styles.secondaryBtn}
                         title="Download"
                     >

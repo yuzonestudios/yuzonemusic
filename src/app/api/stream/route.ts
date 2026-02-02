@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
                 },
                 body: JSON.stringify({
                     videoId: videoId,
-                    format: "mp3",
+                    format: "mp4",
                 }),
                 cache: 'no-store'
             });
