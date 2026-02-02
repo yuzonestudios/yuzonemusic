@@ -8,12 +8,12 @@ import type { DownloadRequest } from "@/types/api";
  * Direct high-quality audio download (bypasses quality negotiation)
  * Supports quality 3 (320 kbps) by default
  *
- * Body: { videoId: string, format?: "mp4", quality?: 1 | 2 | 3 }
+ * Body: { videoId: string, format?: "mp3", quality?: 1 | 2 | 3 }
  */
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json() as DownloadRequest;
-        const { videoId, quality = 3, format = "mp4" } = body;
+        const { videoId, quality = 3, format = "mp3" } = body;
 
         if (!videoId) {
             return errorResponse("videoId is required", undefined, 400);
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams;
         const videoId = searchParams.get("id");
-        const title = searchParams.get("title") || "audio.mp4";
+        const title = searchParams.get("title") || "audio.mp3";
 
         if (!videoId) {
             return errorResponse("Video ID (id parameter) is required", undefined, 400);
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     videoId,
-                    format: "mp4",
+                    format: "mp3",
                     quality: 3,
                 }),
             });

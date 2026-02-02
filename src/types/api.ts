@@ -89,7 +89,7 @@ export interface AlbumDetailsResponse {
 // Download Request Types
 export interface DownloadRequest {
   videoId: string;
-  format?: "mp4" | "wav" | "aac";
+  format?: "mp3" | "wav" | "aac";
   quality?: 1 | 2 | 3; // 1=96kbps, 2=128kbps (default), 3=320kbps
 }
 
