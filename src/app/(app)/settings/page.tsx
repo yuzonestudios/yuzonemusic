@@ -518,6 +518,19 @@ export default function SettingsPage() {
                             {suggestionMessage}
                         </p>
                     )}
+                    <div style={{
+                        marginTop: "1.5rem",
+                        paddingTop: "1.5rem",
+                        borderTop: "1px solid rgba(139, 92, 246, 0.2)"
+                    }}>
+                        <p style={{
+                            fontSize: "0.85rem",
+                            color: "var(--text-secondary)",
+                            marginBottom: "0.75rem"
+                        }}>
+                            <strong>Special thanks to:</strong> Chiranth, Monami Mukherjee for their valuable feedback and support.
+                        </p>
+                    </div>
                 </div>
 
                 <div className={`glass-panel ${styles.section}`}>
@@ -671,6 +684,31 @@ export default function SettingsPage() {
                                 </a>
                             </div>
                         </div>
+                    </div>
+
+                    <div style={{
+                        padding: "1.5rem",
+                        background: "rgba(236, 72, 153, 0.08)",
+                        borderRadius: "0.75rem",
+                        border: "1px solid rgba(236, 72, 153, 0.2)",
+                        marginTop: "1.5rem"
+                    }}>
+                        <h3 style={{
+                            fontSize: "1.1rem",
+                            fontWeight: 700,
+                            color: "var(--accent-primary)",
+                            marginBottom: "1rem"
+                        }}>
+                            Credits
+                        </h3>
+                        <p style={{
+                            fontSize: "0.9rem",
+                            color: "var(--text-secondary)",
+                            lineHeight: "1.6",
+                            marginBottom: "0.5rem"
+                        }}>
+                            Yuzone Music was created with passion and dedication by <strong style={{ color: "var(--text-primary)" }}>Pranab Saini</strong> and <strong style={{ color: "var(--text-primary)" }}>Agnibha Mukherjee</strong>. Their combined expertise in full-stack development and IoT innovation brings this platform to life.
+                        </p>
                     </div>
                 </div>
             </div>
