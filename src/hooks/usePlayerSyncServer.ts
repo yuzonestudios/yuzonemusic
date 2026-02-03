@@ -27,6 +27,8 @@ export function usePlayerSyncServer() {
     const lastPollRef = useRef<number>(0);
     const hasLoadedInitialStateRef = useRef(false);
     const lastServerTimestampRef = useRef<number>(0);
+    const lastLocalChangeRef = useRef<number>(0);
+    const debounceSyncRef = useRef<NodeJS.Timeout | null>(null);
 
     // Get current player state from store
     const getPlayerState = () => {
@@ -104,6 +106,10 @@ export function usePlayerSyncServer() {
                     
                     // Only apply if server state is newer than what we last saw
                     if (serverTimestamp > lastServerTimestampRef.current) {
+                        // Skip applying older server state if we recently changed locally
+                        if (serverTimestamp <= lastLocalChangeRef.current) {
+                            return;
+                        }
                         lastServerTimestampRef.current = serverTimestamp;
                         const store = usePlayerStore.getState();
                         
@@ -250,6 +256,46 @@ export function usePlayerSyncServer() {
             if (pollIntervalRef.current) {
                 clearInterval(pollIntervalRef.current);
             }
+        };
+    }, [status]);
+
+    // Track local changes to avoid server overwrites and trigger debounced sync
+    useEffect(() => {
+        if (status !== "authenticated") return;
+
+        const { usePlayerStore } = require("@/store/playerStore");
+        const unsubscribe = usePlayerStore.subscribe(
+            (state) => ({
+                currentSongId: state.currentSong?.videoId ?? null,
+                queueIndex: state.queueIndex,
+                queueLength: state.queue.length,
+                isPlaying: state.isPlaying,
+            }),
+            (next, prev) => {
+                if (
+                    next.currentSongId !== prev.currentSongId ||
+                    next.queueIndex !== prev.queueIndex ||
+                    next.queueLength !== prev.queueLength ||
+                    next.isPlaying !== prev.isPlaying
+                ) {
+                    lastLocalChangeRef.current = Date.now();
+
+                    if (debounceSyncRef.current) {
+                        clearTimeout(debounceSyncRef.current);
+                    }
+
+                    debounceSyncRef.current = setTimeout(() => {
+                        syncToServer();
+                    }, SYNC_DEBOUNCE);
+                }
+            }
+        );
+
+        return () => {
+            if (debounceSyncRef.current) {
+                clearTimeout(debounceSyncRef.current);
+            }
+            unsubscribe();
         };
     }, [status]);
 
