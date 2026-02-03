@@ -26,6 +26,7 @@ interface AddToPlaylistModalProps {
     onClose: () => void;
     song: Song | null;
     onCreateNew?: () => void;
+    onAddSuccess?: () => void;
 }
 
 export default function AddToPlaylistModal({
@@ -33,6 +34,7 @@ export default function AddToPlaylistModal({
     onClose,
     song,
     onCreateNew,
+    onAddSuccess,
 }: AddToPlaylistModalProps) {
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
     const [loading, setLoading] = useState(false);
@@ -77,6 +79,9 @@ export default function AddToPlaylistModal({
             const data = await res.json();
             if (data.success) {
                 setMessage({ type: "success", text: "Song added to playlist!" });
+                if (onAddSuccess) {
+                    onAddSuccess();
+                }
                 setTimeout(() => {
                     onClose();
                 }, 1500);

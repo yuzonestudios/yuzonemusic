@@ -62,6 +62,15 @@ export default function SongCard({
         setTimeout(() => setQueued(false), 1500);
     };
 
+    const handlePlaylistModalClose = () => {
+        setIsPlaylistModalOpen(false);
+        // Reset the addedToPlaylist state when modal closes
+        // Only keep it if the song was actually added (will be reset by AddToPlaylistModal)
+        setTimeout(() => {
+            setAddedToPlaylist(false);
+        }, 1500);
+    };
+
     return (
         <div className={`${styles.card} ${isCurrentSong ? styles.playing : ""}`}>
             <div className={styles.thumbnail} onClick={handlePlay}>
@@ -145,7 +154,7 @@ export default function SongCard({
                     )}
                     {!hideAddToPlaylist && (
                         <button
-                            onClick={() => { setAddedToPlaylist(true); setIsPlaylistModalOpen(true); }}
+                            onClick={() => setIsPlaylistModalOpen(true)}
                             className={`${styles.actionBtn} ${addedToPlaylist ? styles.added : ""}`}
                             title={addedToPlaylist ? "Added to Playlist" : "Add to Playlist"}
                         >
@@ -166,8 +175,9 @@ export default function SongCard({
 
             <AddToPlaylistModal
                 isOpen={isPlaylistModalOpen}
-                onClose={() => setIsPlaylistModalOpen(false)}
+                onClose={handlePlaylistModalClose}
                 song={song}
+                onAddSuccess={() => setAddedToPlaylist(true)}
             />
 
             <ArtistModal
