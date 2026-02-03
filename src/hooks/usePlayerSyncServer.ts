@@ -15,20 +15,12 @@ function getDeviceId(): string {
     return deviceId;
 }
 
-const SYNC_INTERVAL = 30000; // Sync outbound every 30 seconds
-const POLL_INTERVAL = 10000; // Poll for updates from other devices every 10 seconds
-const SYNC_DEBOUNCE = 5000; // Wait 5 seconds after last change before syncing
 
 export function usePlayerSyncServer() {
     const { data: session, status } = useSession();
-    const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
-    const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const lastSyncRef = useRef<number>(0);
-    const lastPollRef = useRef<number>(0);
     const hasLoadedInitialStateRef = useRef(false);
     const lastServerTimestampRef = useRef<number>(0);
-    const lastLocalChangeRef = useRef<number>(0);
-    const debounceSyncRef = useRef<NodeJS.Timeout | null>(null);
 
     // Get current player state from store
     const getPlayerState = () => {
@@ -79,90 +71,6 @@ export function usePlayerSyncServer() {
         }
     };
 
-    // Poll for updates from other devices
-    const pollForUpdates = async () => {
-        if (status !== "authenticated" || !session?.user) return;
-
-        const now = Date.now();
-        if (now - lastPollRef.current < 5000) {
-            // Don't poll more than once every 5 seconds
-            return;
-        }
-
-        try {
-            const { usePlayerStore } = require("@/store/playerStore");
-            const deviceId = getDeviceId();
-            const response = await fetch("/api/sync", {
-                headers: {
-                    "X-Device-Id": deviceId,
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success && data.playerState) {
-                    const serverState = data.playerState;
-                    const serverTimestamp = new Date(serverState.lastSyncedAt).getTime();
-                    
-                    // Only apply if server state is newer than what we last saw
-                    if (serverTimestamp > lastServerTimestampRef.current) {
-                        // Skip applying older server state if we recently changed locally
-                        if (serverTimestamp <= lastLocalChangeRef.current) {
-                            return;
-                        }
-                        lastServerTimestampRef.current = serverTimestamp;
-                        const store = usePlayerStore.getState();
-                        
-                        // Check if the server state is different from our current state
-                        const localState = getPlayerState();
-                        const isDifferent = 
-                            localState.currentSong?.videoId !== serverState.currentSong?.videoId ||
-                            localState.queue.length !== serverState.queue.length ||
-                            localState.currentTime !== serverState.currentTime;
-
-                        if (isDifferent) {
-                            console.log("📱 Syncing state from another device");
-                            
-                            if (serverState.currentSong) {
-                                store.setCurrentSong(serverState.currentSong);
-                            }
-                            if (serverState.queue && serverState.queue.length > 0) {
-                                store.setQueue(serverState.queue, serverState.queueIndex);
-                            }
-                            if (serverState.queueSource) {
-                                store.setQueueSource(serverState.queueSource);
-                            }
-                            if (serverState.currentTime !== undefined) {
-                                store.setCurrentTime(serverState.currentTime);
-                            }
-                            if (serverState.volume !== undefined) {
-                                store.setVolume(serverState.volume);
-                            }
-                            if (serverState.repeat) {
-                                const modes = ["off", "all", "one"];
-                                const currentIndex = modes.indexOf(store.repeat);
-                                const targetIndex = modes.indexOf(serverState.repeat);
-                                for (let i = currentIndex; i !== targetIndex; i = (i + 1) % 3) {
-                                    store.toggleRepeat();
-                                }
-                            }
-                            if (serverState.shuffle !== undefined && serverState.shuffle !== store.shuffle) {
-                                store.toggleShuffle();
-                            }
-                            if (serverState.playbackSpeed) {
-                                store.setPlaybackSpeed(serverState.playbackSpeed);
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (error) {
-            console.error("❌ Failed to poll player state:", error);
-        } finally {
-            lastPollRef.current = now;
-        }
-    };
-
     // Load initial state from server when user logs in
     const loadFromServer = async () => {
         if (status !== "authenticated" || !session?.user) return;
@@ -185,8 +93,15 @@ export function usePlayerSyncServer() {
                     lastServerTimestampRef.current = serverStateDate;
 
                     const store = usePlayerStore.getState();
-                    
-                    // Always load on initial login to sync state
+                    const localState = getPlayerState();
+
+                    // Prioritize local player state if already playing or queued
+                    if (localState.currentSong || localState.queue.length > 0) {
+                        console.log("⚠️ Skipping server sync on login (local state present)");
+                        return;
+                    }
+
+                    // Load on initial login only when local state is empty
                     if (serverState.currentSong) {
                         store.setCurrentSong(serverState.currentSong);
                     }
@@ -235,67 +150,21 @@ export function usePlayerSyncServer() {
         }
     }, [status]);
 
-    // Setup periodic sync and polling
+    // Sync only when a song ends
     useEffect(() => {
         if (status !== "authenticated") return;
 
-        // Sync outbound every 30 seconds
-        syncIntervalRef.current = setInterval(() => {
-            syncToServer();
-        }, SYNC_INTERVAL);
-
-        // Poll for updates from other devices every 10 seconds
-        pollIntervalRef.current = setInterval(() => {
-            pollForUpdates();
-        }, POLL_INTERVAL);
-
-        return () => {
-            if (syncIntervalRef.current) {
-                clearInterval(syncIntervalRef.current);
-            }
-            if (pollIntervalRef.current) {
-                clearInterval(pollIntervalRef.current);
-            }
+        const handleSongEnded = () => {
+            // Allow state updates (next song) to settle before syncing
+            setTimeout(() => {
+                syncToServer();
+            }, 250);
         };
-    }, [status]);
 
-    // Track local changes to avoid server overwrites and trigger debounced sync
-    useEffect(() => {
-        if (status !== "authenticated") return;
-
-        const { usePlayerStore } = require("@/store/playerStore");
-        const unsubscribe = usePlayerStore.subscribe(
-            (state) => ({
-                currentSongId: state.currentSong?.videoId ?? null,
-                queueIndex: state.queueIndex,
-                queueLength: state.queue.length,
-                isPlaying: state.isPlaying,
-            }),
-            (next, prev) => {
-                if (
-                    next.currentSongId !== prev.currentSongId ||
-                    next.queueIndex !== prev.queueIndex ||
-                    next.queueLength !== prev.queueLength ||
-                    next.isPlaying !== prev.isPlaying
-                ) {
-                    lastLocalChangeRef.current = Date.now();
-
-                    if (debounceSyncRef.current) {
-                        clearTimeout(debounceSyncRef.current);
-                    }
-
-                    debounceSyncRef.current = setTimeout(() => {
-                        syncToServer();
-                    }, SYNC_DEBOUNCE);
-                }
-            }
-        );
+        window.addEventListener("yuzone-song-ended", handleSongEnded);
 
         return () => {
-            if (debounceSyncRef.current) {
-                clearTimeout(debounceSyncRef.current);
-            }
-            unsubscribe();
+            window.removeEventListener("yuzone-song-ended", handleSongEnded);
         };
     }, [status]);
 

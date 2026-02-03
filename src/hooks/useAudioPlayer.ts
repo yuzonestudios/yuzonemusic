@@ -58,6 +58,10 @@ export function useAudioPlayer() {
             } else {
                 nextSong();
             }
+
+            if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("yuzone-song-ended"));
+            }
         };
 
         const handleError = (e: Event) => {
