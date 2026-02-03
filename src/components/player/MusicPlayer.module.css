@@ -4,11 +4,11 @@
     left: 0;
     right: 0;
     height: var(--player-height);
-    background: var(--bg-card);
-    /* Use themed card background */
+    background: rgba(var(--bg-card-rgb, 20 20 35), 0.95);
+    /* Use themed card background with reduced transparency */
     border-top: 1px solid var(--border-color);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: space-between;
