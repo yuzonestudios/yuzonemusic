@@ -124,7 +124,7 @@
 }
 
 .userProfile {
-    display: flex;
+    display: none;
     align-items: center;
     gap: 12px;
 }
