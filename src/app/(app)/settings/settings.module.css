@@ -641,3 +641,58 @@
     font-size: 0.8rem;
     color: var(--text-secondary);
 }
+
+.legalCard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-radius: 0.85rem;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(236, 72, 153, 0.06));
+    text-decoration: none;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.legalCard:hover {
+    transform: translateY(-2px);
+    border-color: rgba(139, 92, 246, 0.5);
+    box-shadow: 0 12px 24px rgba(139, 92, 246, 0.2);
+}
+
+.legalContent {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.legalTitle {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.legalDescription {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.legalCta {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--accent-primary);
+    white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+    .legalCard {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .legalCta {
+        margin-top: 0.5rem;
+    }
+}

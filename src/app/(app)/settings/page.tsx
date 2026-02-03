@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
 import { useState, useEffect, useCallback, type FormEvent } from "react";
 import { LogOut } from "lucide-react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
@@ -517,6 +518,20 @@ export default function SettingsPage() {
                             {suggestionMessage}
                         </p>
                     )}
+                </div>
+
+                <div className={`glass-panel ${styles.section}`}>
+                    <h2 className={styles.sectionHeader}>Legal</h2>
+                    <p className={styles.helperText}>Review the terms that keep Yuzone Music safe and fair.</p>
+                    <Link href="/terms" className={styles.legalCard}>
+                        <div className={styles.legalContent}>
+                            <div className={styles.legalTitle}>Terms of Service</div>
+                            <div className={styles.legalDescription}>
+                                Learn your rights, responsibilities, and how we protect the community.
+                            </div>
+                        </div>
+                        <span className={styles.legalCta}>Open →</span>
+                    </Link>
                 </div>
 
                 <div className={`glass-panel ${styles.section}`}>
