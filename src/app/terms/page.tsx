@@ -23,7 +23,7 @@ export default function TermsPage() {
                         <a href="#overview" className={styles.primaryButton}>
                             Start reading
                         </a>
-                        <a href="mailto:support@yuzonemusic.com" className={styles.secondaryButton}>
+                        <a href="mailto:help@yuzone.me" className={styles.secondaryButton}>
                             Contact support
                         </a>
                     </div>
@@ -143,7 +143,7 @@ export default function TermsPage() {
                     <h2>10. Contact us</h2>
                     <p>
                         Questions about these terms? Email us at
-                        <a href="mailto:support@yuzonemusic.com"> support@yuzonemusic.com</a>.
+                        <a href="mailto:help@yuzone.me"> help@yuzone.me</a>.
                     </p>
                 </section>
             </div>
