@@ -244,7 +244,7 @@ body::before {
   opacity: 0.6;
   z-index: -1;
   pointer-events: none;
-  animation: bgPulse 10s ease-in-out infinite alternate;
+  will-change: auto;
 }
 
 /* Second layer for depth */
@@ -261,18 +261,16 @@ body::after {
   opacity: 0.4;
   z-index: -1;
   pointer-events: none;
-  animation: bgFloat 15s ease-in-out infinite alternate-reverse;
+  will-change: auto;
 }
 
 @keyframes bgPulse {
   0% {
     opacity: 0.4;
-    transform: scale(1);
   }
 
   100% {
-    opacity: 0.7;
-    transform: scale(1.1);
+    opacity: 0.6;
   }
 }
 
@@ -282,7 +280,7 @@ body::after {
   }
 
   100% {
-    transform: translate(-20px, 20px);
+    transform: translate(-10px, 10px);
   }
 }
 
