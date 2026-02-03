@@ -29,6 +29,15 @@
     transform: translateY(-4px);
 }
 
+.card.modalOpen {
+    transform: none;
+    overflow: visible;
+}
+
+.card.modalOpen:hover {
+    transform: none;
+}
+
 .card:hover::before {
     opacity: 1;
 }

@@ -72,7 +72,7 @@ export default function SongCard({
     };
 
     return (
-        <div className={`${styles.card} ${isCurrentSong ? styles.playing : ""}`}>
+        <div className={`${styles.card} ${isCurrentSong ? styles.playing : ""} ${isPlaylistModalOpen ? styles.modalOpen : ""}`}>
             <div className={styles.thumbnail} onClick={handlePlay}>
                 {song.thumbnail && song.thumbnail.trim() !== "" ? (
                     <Image
