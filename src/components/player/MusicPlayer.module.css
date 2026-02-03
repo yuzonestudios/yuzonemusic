@@ -13,7 +13,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 2rem;
-    z-index: 50;
+    z-index: 200;
     transition: background 0.3s ease;
     /* Smooth transition when theme changes */
     overflow: visible;
