@@ -11,11 +11,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (typeof document === "undefined") return;
         if (isPlaying && currentSong?.title) {
-            document.title = `${currentSong.title} - Yuzone Music`;
+            const artist = currentSong.artist || "Unknown Artist";
+            document.title = `${currentSong.title} - ${artist} | Yuzone Music`;
         } else {
             document.title = "Yuzone Music";
         }
-    }, [currentSong?.title, isPlaying]);
+    }, [currentSong?.title, currentSong?.artist, isPlaying]);
 
     return (
         <SessionProvider>
