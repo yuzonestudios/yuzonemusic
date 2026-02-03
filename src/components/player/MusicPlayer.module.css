@@ -4,8 +4,8 @@
     left: 0;
     right: 0;
     height: var(--player-height);
-    background: rgba(var(--bg-card-rgb, 20 20 35), 0.95);
-    /* Use themed card background with reduced transparency */
+    background: var(--bg-card);
+    /* Use themed card background fully opaque */
     border-top: 1px solid var(--border-color);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
