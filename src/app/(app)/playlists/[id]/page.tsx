@@ -435,6 +435,9 @@ export default function PlaylistDetailPage() {
                                         isLiked={likedSongIds.has(song.videoId)}
                                         hideAddToPlaylist={true}
                                         onRemoveFromPlaylist={handleRemoveSong}
+                                        sourceType="playlist"
+                                        sourceId={playlistId}
+                                        sourceName={playlist.name}
                                     />
                                 ));
                             })()}

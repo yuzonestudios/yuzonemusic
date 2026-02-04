@@ -75,10 +75,11 @@ export const usePlayerStore = create<PlayerState>()(
                         queueIndex: 0,
                         currentTime: 0,
                         isPlaying: true,
-                        // Clear playlist context when playing a standalone song
+                        // Clear playlist context when playing a standalone song without a source
                         queueSource: { type: "other", id: null, name: null },
                     });
                 } else {
+                    // Song is already in queue, don't modify queueSource
                     set({
                         currentSong: song,
                         queueIndex: index,

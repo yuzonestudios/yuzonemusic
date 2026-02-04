@@ -19,6 +19,9 @@ interface SongCardProps {
     hideAddToPlaylist?: boolean;
     hideAddToQueue?: boolean;
     onRemoveFromPlaylist?: (videoId: string) => void;
+    sourceType?: "playlist" | "album" | "search" | "library" | "other";
+    sourceId?: string;
+    sourceName?: string;
 }
 
 export default function SongCard({
@@ -31,6 +34,9 @@ export default function SongCard({
     hideAddToPlaylist = false,
     hideAddToQueue = false,
     onRemoveFromPlaylist,
+    sourceType = "other",
+    sourceId,
+    sourceName,
 }: SongCardProps) {
     const { currentSong, setQueue, isPlaying, togglePlay, setCurrentSong, play, ensurePlayback, addToQueue, setQueueSource } = usePlayerStore();
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
@@ -45,15 +51,15 @@ export default function SongCard({
             togglePlay();
         } else if (songs && songs.length > 0) {
             setQueue(songs, index);
-            // Clear playlist context when playing from library/search
-            setQueueSource({ type: "other" });
+            // Set the queue source context
+            setQueueSource({ type: sourceType, id: sourceId, name: sourceName });
             play();
             // Small delay to ensure audio element is ready
             setTimeout(() => ensurePlayback(), 50);
         } else {
             setCurrentSong(song);
-            // Clear playlist context when playing a single song
-            setQueueSource({ type: "other" });
+            // Set the queue source context for single songs
+            setQueueSource({ type: sourceType, id: sourceId, name: sourceName });
             play();
             // Small delay to ensure audio element is ready
             setTimeout(() => ensurePlayback(), 50);
