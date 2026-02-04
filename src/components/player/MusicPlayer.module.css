@@ -7,8 +7,8 @@
     background: var(--bg-card);
     /* Use themed card background fully opaque */
     border-top: 1px solid var(--border-color);
-    backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: space-between;

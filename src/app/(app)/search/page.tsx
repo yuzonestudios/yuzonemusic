@@ -5,9 +5,10 @@ import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ErrorState from "@/components/ui/ErrorState";
 import ArtistModal from "@/components/ui/ArtistModal";
-import { Music, X } from "lucide-react";
+import { Music, X, Clock, Trash2 } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import type { Song, Artist, Album } from "@/types";
+import { getSearchHistory, addToSearchHistory, removeFromSearchHistory, clearSearchHistory } from "@/lib/search-history";
 import styles from "./search.module.css";
 
 type SearchType = "all" | "songs" | "artists" | "albums";
@@ -28,6 +29,7 @@ export default function SearchPage() {
     const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
     const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
     const [pendingSearchRequest, setPendingSearchRequest] = useState<Promise<void> | null>(null);
+    const [searchHistory, setSearchHistory] = useState<string[]>([]);
 
     // Cache search results in browser storage
     const getSearchCacheKey = (q: string, type: SearchType) => `search_${q}_${type}`;
@@ -61,6 +63,10 @@ export default function SearchPage() {
 
     const handleSearch = useCallback(async () => {
         if (!query.trim()) return;
+
+        // Save to search history
+        addToSearchHistory(query);
+        setSearchHistory(getSearchHistory().map(item => item.query));
 
         // Check if we already have a pending request for this query
         if (pendingSearchRequest) {
@@ -144,6 +150,9 @@ export default function SearchPage() {
 
     // Fetch liked songs once and cache them
     useEffect(() => {
+        // Load search history on mount
+        setSearchHistory(getSearchHistory().map(item => item.query));
+
         const fetchLikedSongs = async () => {
             try {
                 const cacheKey = 'liked_songs_cache';
@@ -194,6 +203,21 @@ export default function SearchPage() {
         if (e.key === "Enter") {
             handleSearch();
         }
+    };
+
+    const handleHistoryClick = (historyQuery: string) => {
+        setQuery(historyQuery);
+    };
+
+    const handleRemoveHistory = (historyQuery: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        removeFromSearchHistory(historyQuery);
+        setSearchHistory(getSearchHistory().map(item => item.query));
+    };
+
+    const handleClearHistory = () => {
+        clearSearchHistory();
+        setSearchHistory([]);
     };
 
     const handleLike = async (song: Song) => {
@@ -342,6 +366,60 @@ export default function SearchPage() {
                         <LoadingSpinner text="Searching..." />
                     ) : error ? (
                         <ErrorState message={error} onRetry={handleSearch} />
+                    ) : !hasSearched && selectedAlbumTitle === null && !query ? (
+                        <div className={styles.placeholder}>
+                            {searchHistory.length > 0 ? (
+                                <>
+                                    <div className={styles.historySection}>
+                                        <div className={styles.historyHeader}>
+                                            <h3 className={styles.historyTitle}>
+                                                <Clock size={18} /> Recent Searches
+                                            </h3>
+                                            <button 
+                                                onClick={handleClearHistory}
+                                                className={styles.clearHistoryBtn}
+                                                title="Clear search history"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                        <div className={styles.historyList}>
+                                            {searchHistory.slice(0, 10).map((item) => (
+                                                <div 
+                                                    key={item}
+                                                    className={styles.historyItem}
+                                                    onClick={() => handleHistoryClick(item)}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' || e.key === ' ') {
+                                                            handleHistoryClick(item);
+                                                        }
+                                                    }}
+                                                >
+                                                    <Clock size={16} className={styles.historyItemIcon} />
+                                                    <span className={styles.historyItemText}>{item}</span>
+                                                    <button
+                                                        className={styles.removeHistoryBtn}
+                                                        onClick={(e) => handleRemoveHistory(item, e)}
+                                                        title="Remove from history"
+                                                        aria-label={`Remove "${item}" from history`}
+                                                    >
+                                                        <X size={14} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className={styles.placeholderIcon}><Music size={48} /></div>
+                                    <h3>Search for music</h3>
+                                    <p>Find your favorite songs, artists, and albums</p>
+                                </>
+                            )}
+                        </div>
                     ) : !hasSearched && selectedAlbumTitle === null ? (
                         <div className={styles.placeholder}>
                             <div className={styles.placeholderIcon}><Music size={48} /></div>
