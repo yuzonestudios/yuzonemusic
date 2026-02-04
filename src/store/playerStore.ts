@@ -7,7 +7,7 @@ interface PlayerState {
     queue: Song[];
     queueIndex: number;
     isPlaying: boolean;
-    queueSource: { type: "playlist" | "album" | "search" | "other" | null; id?: string | null; name?: string | null };
+    queueSource: { type: "playlist" | "album" | "search" | "library" | "other" | null; id?: string | null; name?: string | null };
     volume: number;
     currentTime: number;
     duration: number;
@@ -30,7 +30,7 @@ interface PlayerState {
     nextSong: () => void;
     previousSong: () => void;
     setQueue: (songs: Song[], startIndex?: number) => void;
-    setQueueSource: (source: { type: "playlist" | "album" | "search" | "other"; id?: string | null; name?: string | null }) => void;
+    setQueueSource: (source: { type: "playlist" | "album" | "search" | "library" | "other"; id?: string | null; name?: string | null }) => void;
     addToQueue: (song: Song) => void;
     moveInQueue: (fromIndex: number, toIndex: number) => void;
     removeFromQueue: (index: number) => void;
@@ -180,7 +180,7 @@ export const usePlayerStore = create<PlayerState>()(
                 });
             },
 
-            setQueueSource: (source: { type: "playlist" | "album" | "search" | "other"; id?: string | null; name?: string | null }) => {
+            setQueueSource: (source: { type: "playlist" | "album" | "search" | "library" | "other"; id?: string | null; name?: string | null }) => {
                 set({ queueSource: { type: source.type, id: source.id ?? null, name: source.name ?? null } });
             },
 
