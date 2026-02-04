@@ -185,6 +185,11 @@ export default function SearchPage() {
         fetchLikedSongs();
     }, []);
 
+    // Close artist modal when search results change
+    useEffect(() => {
+        setSelectedArtist(null);
+    }, [query, searchType, songs]);
+
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter") {
             handleSearch();
@@ -365,6 +370,7 @@ export default function SearchPage() {
                                             index={index}
                                             onLike={handleLike}
                                             isLiked={likedSongIds.has(song.videoId)}
+                                            onPlay={() => setSelectedArtist(null)}
                                         />
                                     );
                                 })}
@@ -390,6 +396,7 @@ export default function SearchPage() {
                                                 index={index}
                                                 onLike={handleLike}
                                                 isLiked={likedSongIds.has(song.videoId)}
+                                                onPlay={() => setSelectedArtist(null)}
                                             />
                                         ))}
                                     </div>

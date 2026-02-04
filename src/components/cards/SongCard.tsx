@@ -22,6 +22,7 @@ interface SongCardProps {
     sourceType?: "playlist" | "album" | "search" | "library" | "other";
     sourceId?: string;
     sourceName?: string;
+    onPlay?: () => void;
 }
 
 export default function SongCard({
@@ -37,6 +38,7 @@ export default function SongCard({
     sourceType = "other",
     sourceId,
     sourceName,
+    onPlay,
 }: SongCardProps) {
     const { currentSong, setQueue, isPlaying, togglePlay, setCurrentSong, play, ensurePlayback, addToQueue, setQueueSource } = usePlayerStore();
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
@@ -54,6 +56,8 @@ export default function SongCard({
             // Set the queue source context
             setQueueSource({ type: sourceType, id: sourceId, name: sourceName });
             play();
+            // Call onPlay callback to close modals
+            onPlay?.();
             // Small delay to ensure audio element is ready
             setTimeout(() => ensurePlayback(), 50);
         } else {
@@ -61,6 +65,8 @@ export default function SongCard({
             // Set the queue source context for single songs
             setQueueSource({ type: sourceType, id: sourceId, name: sourceName });
             play();
+            // Call onPlay callback to close modals
+            onPlay?.();
             // Small delay to ensure audio element is ready
             setTimeout(() => ensurePlayback(), 50);
         }
