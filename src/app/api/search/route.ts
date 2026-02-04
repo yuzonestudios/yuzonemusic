@@ -23,59 +23,79 @@ export async function GET(request: NextRequest) {
         // Use the user's external API with type parameter
         const externalApiUrl = `https://api.yuzone.me/search?q=${encodeURIComponent(query)}&type=${type}`;
 
-        const response = await fetch(externalApiUrl);
+        // Add timeout for faster failure detection
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
 
-        if (!response.ok) {
-            console.error(`External API error: ${response.status} ${response.statusText}`);
-            throw new Error(`External API error: ${response.status}`);
+        try {
+            const response = await fetch(externalApiUrl, {
+                signal: controller.signal,
+                headers: {
+                    'Accept-Encoding': 'gzip, deflate'
+                }
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                console.error(`External API error: ${response.status} ${response.statusText}`);
+                throw new Error(`External API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Parse response based on type
+            let result: SearchResponse = {};
+
+            if (type === "all" || type === "songs") {
+                const songsData = Array.isArray(data) ? data : data.songs || data.results || [];
+                const songs: SearchSongResult[] = songsData.map((song: any) => ({
+                    type: "song" as const,
+                    videoId: song.videoId || song.id || "",
+                    title: song.title || "Unknown Title",
+                    artists: Array.isArray(song.artists)
+                        ? song.artists
+                        : [song.artist || song.artists || "Unknown Artist"],
+                    thumbnail: song.thumbnail || song.thumbnails?.[0]?.url || "/placeholder-album.png",
+                    duration: song.duration || "0:00",
+                }));
+                result.songs = songs;
+            }
+
+            if (type === "all" || type === "artists") {
+                const artistsData = Array.isArray(data) ? data : data.artists || [];
+                result.artists = artistsData.map((artist: any) => ({
+                    type: "artist" as const,
+                    name: artist.name || "Unknown Artist",
+                    browseId: artist.browseId || "",
+                    thumbnail: artist.thumbnail || "/placeholder-artist.png",
+                }));
+            }
+
+            if (type === "all" || type === "albums") {
+                const albumsData = Array.isArray(data) ? data : data.albums || [];
+                result.albums = albumsData.map((album: any) => ({
+                    type: "album" as const,
+                    title: album.title || "Unknown Album",
+                    artists: Array.isArray(album.artists) ? album.artists : [album.artist || "Unknown Artist"],
+                    year: album.year,
+                    thumbnail: album.thumbnail || "/placeholder-album.png",
+                    browseId: album.browseId || "",
+                }));
+            }
+
+            // Cache the result
+            cache.set(cacheKey, result, CACHE_TTL.SEARCH);
+
+            return successResponse(result);
+        } catch (fetchError: any) {
+            clearTimeout(timeoutId);
+            if (fetchError.name === 'AbortError') {
+                console.error("Search request timeout");
+                return errorResponse("Search request timeout", "Request took too long");
+            }
+            throw fetchError;
         }
-
-        const data = await response.json();
-
-        // Parse response based on type
-        let result: SearchResponse = {};
-
-        if (type === "all" || type === "songs") {
-            const songsData = Array.isArray(data) ? data : data.songs || data.results || [];
-            const songs: SearchSongResult[] = songsData.map((song: any) => ({
-                type: "song" as const,
-                videoId: song.videoId || song.id || "",
-                title: song.title || "Unknown Title",
-                artists: Array.isArray(song.artists)
-                    ? song.artists
-                    : [song.artist || song.artists || "Unknown Artist"],
-                thumbnail: song.thumbnail || song.thumbnails?.[0]?.url || "/placeholder-album.png",
-                duration: song.duration || "0:00",
-            }));
-            result.songs = songs;
-        }
-
-        if (type === "all" || type === "artists") {
-            const artistsData = Array.isArray(data) ? data : data.artists || [];
-            result.artists = artistsData.map((artist: any) => ({
-                type: "artist" as const,
-                name: artist.name || "Unknown Artist",
-                browseId: artist.browseId || "",
-                thumbnail: artist.thumbnail || "/placeholder-artist.png",
-            }));
-        }
-
-        if (type === "all" || type === "albums") {
-            const albumsData = Array.isArray(data) ? data : data.albums || [];
-            result.albums = albumsData.map((album: any) => ({
-                type: "album" as const,
-                title: album.title || "Unknown Album",
-                artists: Array.isArray(album.artists) ? album.artists : [album.artist || "Unknown Artist"],
-                year: album.year,
-                thumbnail: album.thumbnail || "/placeholder-album.png",
-                browseId: album.browseId || "",
-            }));
-        }
-
-        // Cache the result
-        cache.set(cacheKey, result, CACHE_TTL.SEARCH);
-
-        return successResponse(result);
     } catch (error: any) {
         console.error("Search API error:", error);
         return errorResponse("Failed to perform search", error.message);

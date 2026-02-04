@@ -27,57 +27,106 @@ export default function SearchPage() {
     const [hasSearched, setHasSearched] = useState(false);
     const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
     const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
+    const [pendingSearchRequest, setPendingSearchRequest] = useState<Promise<void> | null>(null);
+
+    // Cache search results in browser storage
+    const getSearchCacheKey = (q: string, type: SearchType) => `search_${q}_${type}`;
+    
+    const getCachedSearchResults = (q: string, type: SearchType) => {
+        try {
+            const cached = localStorage.getItem(getSearchCacheKey(q, type));
+            if (cached) {
+                const { data, timestamp } = JSON.parse(cached);
+                // Cache valid for 5 minutes
+                if (Date.now() - timestamp < 5 * 60 * 1000) {
+                    return data;
+                }
+            }
+        } catch (e) {
+            console.error("Failed to read search cache:", e);
+        }
+        return null;
+    };
+
+    const setCachedSearchResults = (q: string, type: SearchType, data: any) => {
+        try {
+            localStorage.setItem(getSearchCacheKey(q, type), JSON.stringify({
+                data,
+                timestamp: Date.now()
+            }));
+        } catch (e) {
+            console.error("Failed to cache search results:", e);
+        }
+    };
 
     const handleSearch = useCallback(async () => {
         if (!query.trim()) return;
+
+        // Check if we already have a pending request for this query
+        if (pendingSearchRequest) {
+            return;
+        }
+
+        // Check browser cache first
+        const cached = getCachedSearchResults(query, searchType);
+        if (cached) {
+            setSongs(cached.songs || []);
+            setArtists(cached.artists || []);
+            setAlbums(cached.albums || []);
+            setError(null);
+            setHasSearched(true);
+            return;
+        }
 
         setLoading(true);
         setGlobalLoading(true, "Searching...");
         setError(null);
         setHasSearched(true);
 
-        try {
-            const res = await fetch(
-                `/api/search?q=${encodeURIComponent(query)}&type=${searchType}&limit=20`
-            );
-            const data = await res.json();
+        const searchPromise = (async () => {
+            try {
+                const res = await fetch(
+                    `/api/search?q=${encodeURIComponent(query)}&type=${searchType}&limit=20`
+                );
+                const data = await res.json();
 
-            if (data.success) {
-                // Normalize songs to `Song` type (ensure single `artist` string)
-                const normalizedSongs: Song[] = (data.data.songs || []).map((s: any) => ({
-                    videoId: s.videoId,
-                    title: s.title,
-                    artist: Array.isArray(s.artists) ? (s.artists[0] || s.artists.filter(Boolean).join(", ")) : (s.artist || "Unknown Artist"),
-                    thumbnail: s.thumbnail,
-                    duration: s.duration,
-                    album: s.album,
-                }));
+                if (data.success) {
+                    // Normalize songs to `Song` type (ensure single `artist` string)
+                    const normalizedSongs: Song[] = (data.data.songs || []).map((s: any) => ({
+                        videoId: s.videoId,
+                        title: s.title,
+                        artist: Array.isArray(s.artists) ? (s.artists[0] || s.artists.filter(Boolean).join(", ")) : (s.artist || "Unknown Artist"),
+                        thumbnail: s.thumbnail,
+                        duration: s.duration,
+                        album: s.album,
+                    }));
 
-                setSongs(normalizedSongs);
-                setArtists(data.data.artists || []);
-                setAlbums(data.data.albums || []);
-            } else {
-                setError(data.error || "Search failed");
-            }
+                    setSongs(normalizedSongs);
+                    setArtists(data.data.artists || []);
+                    setAlbums(data.data.albums || []);
 
-            // Fetch liked songs for heart icons
-            const likedRes = await fetch("/api/liked");
-            if (likedRes.ok) {
-                const likedData = await likedRes.json();
-                if (likedData.success) {
-                    const ids = new Set(likedData.data.map((s: Song) => s.videoId));
-                    setLikedSongIds(ids as Set<string>);
+                    // Cache the results
+                    setCachedSearchResults(query, searchType, {
+                        songs: normalizedSongs,
+                        artists: data.data.artists || [],
+                        albums: data.data.albums || []
+                    });
+                } else {
+                    setError(data.error || "Search failed");
                 }
+            } catch (err) {
+                setError("Failed to perform search. Please try again.");
+            } finally {
+                setLoading(false);
+                setGlobalLoading(false);
+                setPendingSearchRequest(null);
             }
-        } catch (err) {
-            setError("Failed to perform search. Please try again.");
-        } finally {
-            setLoading(false);
-            setGlobalLoading(false);
-        }
+        })();
+
+        setPendingSearchRequest(searchPromise);
     }, [query, searchType, setGlobalLoading]);
 
-    // Debounced search effect - 2 second delay
+    // Debounced search effect - 500ms delay for faster feedback
     useEffect(() => {
         const timer = setTimeout(() => {
             if (query.trim()) {
@@ -88,28 +137,52 @@ export default function SearchPage() {
                 setAlbums([]);
                 setHasSearched(false);
             }
-        }, 2000);
+        }, 500);
 
         return () => clearTimeout(timer);
     }, [query, handleSearch]);
 
-    // Listen for like events from player
+    // Fetch liked songs once and cache them
     useEffect(() => {
-        const handleLikeEvent = (event: any) => {
-            const { videoId, liked } = event.detail;
-            setLikedSongIds((prev) => {
-                const next = new Set(prev);
-                if (liked) {
-                    next.add(videoId);
-                } else {
-                    next.delete(videoId);
+        const fetchLikedSongs = async () => {
+            try {
+                const cacheKey = 'liked_songs_cache';
+                const cached = localStorage.getItem(cacheKey);
+                
+                // Use cached liked songs if available (5 min cache)
+                if (cached) {
+                    const { data, timestamp } = JSON.parse(cached);
+                    if (Date.now() - timestamp < 5 * 60 * 1000) {
+                        const ids = new Set(data.map((s: Song) => s.videoId));
+                        setLikedSongIds(ids as Set<string>);
+                        return;
+                    }
                 }
-                return next;
-            });
+
+                const likedRes = await fetch("/api/liked");
+                if (likedRes.ok) {
+                    const likedData = await likedRes.json();
+                    if (likedData.success) {
+                        const ids = new Set(likedData.data.map((s: Song) => s.videoId));
+                        setLikedSongIds(ids as Set<string>);
+                        
+                        // Cache liked songs
+                        try {
+                            localStorage.setItem(cacheKey, JSON.stringify({
+                                data: likedData.data,
+                                timestamp: Date.now()
+                            }));
+                        } catch (e) {
+                            console.error("Failed to cache liked songs:", e);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch liked songs:", err);
+            }
         };
 
-        window.addEventListener('songLiked', handleLikeEvent);
-        return () => window.removeEventListener('songLiked', handleLikeEvent);
+        fetchLikedSongs();
     }, []);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
