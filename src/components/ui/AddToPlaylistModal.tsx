@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { X, Music, Plus, CheckCircle } from "lucide-react";
 import styles from "./PlaylistModal.module.css";
@@ -40,6 +41,11 @@ export default function AddToPlaylistModal({
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
     const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         if (isOpen) {
@@ -109,9 +115,9 @@ export default function AddToPlaylistModal({
         }
     };
 
-    if (!isOpen || !song) return null;
+    if (!isOpen || !song || !mounted) return null;
 
-    return (
+    const modalContent = (
         <div className={styles.modalOverlay} onClick={handleOverlayClick}>
             <div className={styles.modal}>
                 <div className={styles.modalHeader}>
@@ -182,4 +188,6 @@ export default function AddToPlaylistModal({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 }
