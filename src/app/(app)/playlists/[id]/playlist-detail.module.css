@@ -170,6 +170,22 @@
     flex: 1;
 }
 
+.warningMessage {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(251, 146, 60, 0.15);
+    border: 1px solid rgba(251, 146, 60, 0.3);
+    border-radius: var(--radius-md);
+    color: #fb923c;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    animation: slideDown 300ms ease-out;
+}
+
+.warningMessage p {
+    margin: 0;
+}
+
 .dismissBtn {
     padding: 0.4rem 0.8rem;
     background: transparent;

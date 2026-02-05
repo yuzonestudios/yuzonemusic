@@ -394,6 +394,12 @@ export default function PlaylistDetailPage() {
                         </button>
                     </div>
 
+                    {isDownloading && (
+                        <div className={styles.warningMessage}>
+                            <p>⏳ Download in progress... This may take several minutes depending on the number of songs and selected quality.</p>
+                        </div>
+                    )}
+
                     {downloadError && (
                         <div className={styles.errorMessage}>
                             <p>{downloadError}</p>
