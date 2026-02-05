@@ -1,0 +1,14 @@
+name: Bug Report
+description: Something isn’t working
+labels: ["bug"]
+body:
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: Clear description of the issue
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Device / Browser

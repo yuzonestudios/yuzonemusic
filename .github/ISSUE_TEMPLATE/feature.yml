@@ -1,0 +1,6 @@
+name: 💡 Feature Request
+labels: ["enhancement"]
+body:
+  - type: textarea
+    attributes:
+      label: What should be added?

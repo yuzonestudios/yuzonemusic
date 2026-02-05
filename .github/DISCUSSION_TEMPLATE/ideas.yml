@@ -1,0 +1,12 @@
+title: "[Idea] "
+labels: ["idea"]
+body:
+  - type: textarea
+    attributes:
+      label: Problem
+  - type: textarea
+    attributes:
+      label: Proposed Solution
+  - type: textarea
+    attributes:
+      label: Alternatives Considered
