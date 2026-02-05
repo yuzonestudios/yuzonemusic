@@ -473,16 +473,33 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem 1.5rem;
+    padding: clamp(0.5rem, 2vw, 0.75rem) clamp(1rem, 3vw, 1.5rem);
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
     border: 1px solid rgba(239, 68, 68, 0.4);
     color: #ef4444;
     border-radius: var(--radius-full);
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
     cursor: pointer;
     transition: all var(--transition-fast);
     margin-top: 1rem;
+    width: 100%;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .logoutBtn {
+        font-size: 0.9rem;
+        padding: 0.65rem 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .logoutBtn {
+        width: 100%;
+        font-size: 0.85rem;
+        padding: 0.6rem 1rem;
+    }
 }
 
 .logoutBtn:hover:not(:disabled) {

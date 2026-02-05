@@ -358,11 +358,11 @@ Want to code? [Fork and contribute](https://github.com/yuzonestudios/yuzonemusic
 
 <div align="center">
 
-MIT License © 2024 Yuzone Studios
+MIT License © 2026 Yuzone Studios
 
 Built with ❤️ by [Yuzone Studios](https://yuzone.me)
 
-[Website](https://music.yuzone.me) • [Documentation](https://docs.yuzone.me) • [API](https://api.yuzone.me) • [Support](mailto:support@yuzone.me)
+[Website](https://music.yuzone.me) • [Documentation](https://music.yuzone.me/terms) • [API](https://api.yuzone.me) • [Support](mailto:support@yuzone.me)
 
 ---
 

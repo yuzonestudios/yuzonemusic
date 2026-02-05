@@ -312,7 +312,7 @@
     transform: translateY(8px);
     transition: opacity var(--transition-fast), transform var(--transition-fast);
     overflow: hidden;
-    z-index: 60;
+    z-index: 201;
 }
 
 .queuePanel.open {
