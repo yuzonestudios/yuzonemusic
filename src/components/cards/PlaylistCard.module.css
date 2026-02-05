@@ -3,7 +3,7 @@
     border-radius: var(--radius-lg);
     padding: 1.5rem;
     border: 1px solid var(--border-color);
-    transition: all var(--transition-normal);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
     position: relative;
     overflow: hidden;
@@ -11,6 +11,23 @@
     flex-direction: column;
     height: 100%;
     min-height: 280px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    contain: layout style paint;
+    will-change: transform;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .playlistCard:active {
+        transform: scale(0.97);
+        border-color: var(--accent-primary);
+        box-shadow: 0 12px 32px rgba(139, 92, 246, 0.3);
+        transition: all 0.1s ease;
+    }
+
+    .playlistCard:active::before {
+        opacity: 1;
+    }
 }
 
 .playlistCard.playing {
@@ -286,6 +303,7 @@
 @media (max-width: 768px) {
     .playlistCard {
         min-height: 240px;
+        padding: 1.25rem;
     }
 
     .playlistThumbnail {
@@ -298,8 +316,28 @@
     }
 
     .actionBtn {
-        padding: 0.6rem 0.8rem;
-        font-size: 0.8rem;
+        padding: 0.7rem 1rem;
+        font-size: 0.85rem;
+        min-height: 44px;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+
+    .actionBtn:active {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
+    }
+
+    .playBtn:active {
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.5);
+    }
+
+    .downloadBtn:active {
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+    }
+
+    .deleteBtn:active {
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
     }
 }
 
@@ -319,6 +357,11 @@
     }
 
     .playlistMeta {
+        font-size: 0.8rem;
+    }
+
+    .actionBtn {
+        padding: 0.6rem 0.9rem;
         font-size: 0.8rem;
     }
 }

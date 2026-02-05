@@ -96,8 +96,9 @@ export default function SongCard({
                         alt={song.title}
                         width={120}
                         height={120}
-                        quality={80}
-                        sizes="(max-width: 640px) 100px, 120px"
+                        quality={70}
+                        sizes="(max-width: 640px) 80px, 100px"
+                        loading="lazy"
                         className={styles.thumbnailImg}
                         unoptimized={song.thumbnail.includes('ytimg.com') || song.thumbnail.includes('ggpht.com')}
                     />

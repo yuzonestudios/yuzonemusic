@@ -4,12 +4,16 @@
     gap: 1rem;
     padding: 1rem;
     border-radius: var(--radius-md);
-    transition: all var(--transition-normal);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(139, 92, 246, 0.1);
     position: relative;
     overflow: hidden;
     align-items: flex-start;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    contain: layout style paint;
+    will-change: transform;
 }
 
 .card::before {
@@ -27,6 +31,19 @@
     border-color: rgba(139, 92, 246, 0.3);
     box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
     transform: translateY(-4px);
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .card:active {
+        background: rgba(139, 92, 246, 0.12);
+        border-color: rgba(139, 92, 246, 0.4);
+        transform: scale(0.98);
+        transition: all 0.1s ease;
+    }
+
+    .card:active::before {
+        opacity: 1;
+    }
 }
 
 .card.modalOpen {
@@ -330,6 +347,25 @@
 
     .artist {
         font-size: 0.72rem;
+    }
+
+    .playBtn,
+    .actionBtn {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .playBtn:active {
+        transform: scale(0.92);
+        transition: transform 0.1s ease;
+    }
+
+    .actionBtn:active {
+        transform: scale(0.88);
+        background: rgba(139, 92, 246, 0.2);
+        transition: all 0.1s ease;
     }
 
     .duration {

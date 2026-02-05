@@ -7,8 +7,6 @@
     background: var(--bg-card);
     /* Use themed card background fully opaque */
     border-top: 1px solid var(--border-color);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -17,6 +15,14 @@
     transition: background 0.3s ease;
     /* Smooth transition when theme changes */
     overflow: visible;
+    contain: layout style paint;
+}
+
+@supports (backdrop-filter: blur(10px)) {
+    .player {
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+    }
 }
 
 /* Song Info */
@@ -529,8 +535,10 @@
     }
 
     .thumbnail {
-        width: 48px;
-        height: 48px;
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     }
 
     .volumeControl {
@@ -544,6 +552,7 @@
 
     .songTitle {
         font-size: 0.85rem;
+        font-weight: 600;
     }
 
     .songArtist {
@@ -563,7 +572,17 @@
     }
 
     .buttons {
-        gap: 8px;
+        gap: 12px;
+    }
+
+    .controlBtn {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+
+    .controlBtn:active {
+        transform: scale(0.9);
+        transition: transform 0.1s ease;
     }
 
     .controlBtn.secondary {
@@ -571,8 +590,14 @@
     }
 
     .controlBtn.primary {
-        width: 44px;
-        height: 44px;
+        width: 48px;
+        height: 48px;
+        box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+    }
+
+    .controlBtn.primary:active {
+        transform: scale(0.95);
+        box-shadow: 0 2px 8px rgba(139, 92, 246, 0.6);
     }
 
     .queuePanel {
