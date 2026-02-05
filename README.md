@@ -345,7 +345,7 @@ Want to code? [Fork and contribute](https://github.com/yuzonestudios/yuzonemusic
 <div align="center">
 
 [![Discord](https://img.shields.io/badge/Discord-Join_Chat-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/yuzone)
-[![Twitter](https://img.shields.io/badge/Twitter-Follow_Us-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/yuzonestudios)
+[![X](https://img.shields.io/badge/Twitter-Follow_Us-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://x.com/YuzoneS39264)
 [![GitHub](https://img.shields.io/badge/GitHub-Star_Us-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yuzonestudios/yuzonemusic)
 
 **Join 10,000+ music lovers discovering their next favorite song**
