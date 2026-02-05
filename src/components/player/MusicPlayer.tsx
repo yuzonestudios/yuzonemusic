@@ -331,208 +331,210 @@ export default function MusicPlayer() {
     };
 
     return (
-        <footer className={styles.player} onClick={handlePlayerTap}>
-            {/* Song Info */}
-            <div className={styles.songInfo}>
-                {currentSong ? (
-                    <>
-                        <div className={styles.thumbnail}>
-                            <Image
-                                src={currentSong.thumbnail}
-                                alt={currentSong.title}
-                                width={56}
-                                height={56}
-                                className={styles.thumbnailImg}
-                            />
+        <>
+            <footer className={styles.player} onClick={handlePlayerTap}>
+                {/* Song Info */}
+                <div className={styles.songInfo}>
+                    {currentSong ? (
+                        <>
+                            <div className={styles.thumbnail}>
+                                <Image
+                                    src={currentSong.thumbnail}
+                                    alt={currentSong.title}
+                                    width={56}
+                                    height={56}
+                                    className={styles.thumbnailImg}
+                                />
+                            </div>
+                            <div className={styles.songDetails}>
+                                <span className={styles.songTitle}>{currentSong.title}</span>
+                                <span className={styles.songArtist}>{currentSong.artist}</span>
+                            </div>
+                            <button
+                                onClick={toggleLike}
+                                className={`${styles.likeBtn} ${isLiked ? styles.active : ""}`}
+                                title={isLiked ? "Unlike" : "Like"}
+                            >
+                                <Heart size={20} fill={isLiked ? "var(--accent-primary)" : "none"} stroke={isLiked ? "var(--accent-primary)" : "currentColor"} />
+                            </button>
+                        </>
+                    ) : (
+                        <div className={styles.noSong}>
+                            <span>No song playing</span>
                         </div>
-                        <div className={styles.songDetails}>
-                            <span className={styles.songTitle}>{currentSong.title}</span>
-                            <span className={styles.songArtist}>{currentSong.artist}</span>
-                        </div>
+                    )}
+                </div>
+
+                {/* Player Controls */}
+                <div className={styles.controls}>
+                    <div className={styles.buttons}>
                         <button
-                            onClick={toggleLike}
-                            className={`${styles.likeBtn} ${isLiked ? styles.active : ""}`}
-                            title={isLiked ? "Unlike" : "Like"}
+                            onClick={previousSong}
+                            className={`${styles.controlBtn} ${styles.secondary}`}
+                            disabled={!currentSong}
+                            title="Previous"
                         >
-                            <Heart size={20} fill={isLiked ? "var(--accent-primary)" : "none"} stroke={isLiked ? "var(--accent-primary)" : "currentColor"} />
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M6 6h2v12H6zM9.5 12l8.5 6V6z" />
+                            </svg>
                         </button>
-                    </>
-                ) : (
-                    <div className={styles.noSong}>
-                        <span>No song playing</span>
+
+                        <button
+                            onClick={togglePlay}
+                            className={`${styles.controlBtn} ${styles.primary}`}
+                            disabled={!currentSong}
+                            title={isPlaying ? "Pause" : "Play"}
+                        >
+                            {isPlaying ? (
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M6 4h4v16H6zM14 4h4v16h-4z" />
+                                </svg>
+                            ) : (
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M8 5v14l11-7z" />
+                                </svg>
+                            )}
+                        </button>
+
+                        <button
+                            onClick={nextSong}
+                            className={`${styles.controlBtn} ${styles.secondary}`}
+                            disabled={!currentSong}
+                            title="Next"
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
+                            </svg>
+                        </button>
+
+                        <button
+                            onClick={toggleShuffle}
+                            className={`${styles.controlBtn} ${styles.secondary} ${shuffle ? styles.active : ""}`}
+                            disabled={!currentSong}
+                            title={shuffle ? "Shuffle: On" : "Shuffle: Off"}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="16 3 21 3 21 8" />
+                                <line x1="4" y1="20" x2="21" y2="3" />
+                                <polyline points="21 16 21 21 16 21" />
+                                <line x1="15" y1="15" x2="21" y2="21" />
+                                <line x1="4" y1="4" x2="9" y2="9" />
+                            </svg>
+                        </button>
+
+                        <button
+                            onClick={toggleRepeat}
+                            className={`${styles.controlBtn} ${styles.secondary} ${repeat !== "off" ? styles.active : ""}`}
+                            disabled={!currentSong}
+                            title={`Repeat: ${repeat}`}
+                        >
+                            {repeat === "one" ? (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M17 1l4 4-4 4" />
+                                    <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                                    <path d="M7 23l-4-4 4-4" />
+                                    <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                                    <text x="12" y="14" fontSize="8" fill="currentColor" textAnchor="middle">1</text>
+                                </svg>
+                            ) : (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M17 1l4 4-4 4" />
+                                    <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                                    <path d="M7 23l-4-4 4-4" />
+                                    <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                                </svg>
+                            )}
+                        </button>
+
+                        <a
+                            href={currentSong ? `/api/stream?id=${currentSong.videoId}` : "#"}
+                            download={currentSong ? `${currentSong.title}.mp4` : undefined}
+                            className={`${styles.controlBtn} ${styles.secondary}`}
+                            title="Download"
+                        >
+                            <Download size={18} />
+                        </a>
+                        <button
+                            onClick={() => setIsPlaylistModalOpen(true)}
+                            className={`${styles.controlBtn} ${styles.secondary}`}
+                            disabled={!currentSong}
+                            title="Add to Playlist"
+                        >
+                            <ListPlus size={18} />
+                        </button>
+
+                        <button
+                            onClick={openFullscreen}
+                            className={`${styles.controlBtn} ${styles.secondary}`}
+                            disabled={!currentSong}
+                            title="Fullscreen Player"
+                        >
+                            <Maximize size={18} />
+                        </button>
                     </div>
-                )}
-            </div>
 
-            {/* Player Controls */}
-            <div className={styles.controls}>
-                <div className={styles.buttons}>
-                    <button
-                        onClick={previousSong}
-                        className={`${styles.controlBtn} ${styles.secondary}`}
-                        disabled={!currentSong}
-                        title="Previous"
-                    >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M6 6h2v12H6zM9.5 12l8.5 6V6z" />
-                        </svg>
-                    </button>
-
-                    <button
-                        onClick={togglePlay}
-                        className={`${styles.controlBtn} ${styles.primary}`}
-                        disabled={!currentSong}
-                        title={isPlaying ? "Pause" : "Play"}
-                    >
-                        {isPlaying ? (
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M6 4h4v16H6zM14 4h4v16h-4z" />
-                            </svg>
-                        ) : (
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M8 5v14l11-7z" />
-                            </svg>
-                        )}
-                    </button>
-
-                    <button
-                        onClick={nextSong}
-                        className={`${styles.controlBtn} ${styles.secondary}`}
-                        disabled={!currentSong}
-                        title="Next"
-                    >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
-                        </svg>
-                    </button>
-
-                    <button
-                        onClick={toggleShuffle}
-                        className={`${styles.controlBtn} ${styles.secondary} ${shuffle ? styles.active : ""}`}
-                        disabled={!currentSong}
-                        title={shuffle ? "Shuffle: On" : "Shuffle: Off"}
-                    >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="16 3 21 3 21 8" />
-                            <line x1="4" y1="20" x2="21" y2="3" />
-                            <polyline points="21 16 21 21 16 21" />
-                            <line x1="15" y1="15" x2="21" y2="21" />
-                            <line x1="4" y1="4" x2="9" y2="9" />
-                        </svg>
-                    </button>
-
-                    <button
-                        onClick={toggleRepeat}
-                        className={`${styles.controlBtn} ${styles.secondary} ${repeat !== "off" ? styles.active : ""}`}
-                        disabled={!currentSong}
-                        title={`Repeat: ${repeat}`}
-                    >
-                        {repeat === "one" ? (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M17 1l4 4-4 4" />
-                                <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-                                <path d="M7 23l-4-4 4-4" />
-                                <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-                                <text x="12" y="14" fontSize="8" fill="currentColor" textAnchor="middle">1</text>
-                            </svg>
-                        ) : (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M17 1l4 4-4 4" />
-                                <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-                                <path d="M7 23l-4-4 4-4" />
-                                <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-                            </svg>
-                        )}
-                    </button>
-
-                    <a
-                        href={currentSong ? `/api/stream?id=${currentSong.videoId}` : "#"}
-                        download={currentSong ? `${currentSong.title}.mp4` : undefined}
-                        className={`${styles.controlBtn} ${styles.secondary}`}
-                        title="Download"
-                    >
-                        <Download size={18} />
-                    </a>
-                    <button
-                        onClick={() => setIsPlaylistModalOpen(true)}
-                        className={`${styles.controlBtn} ${styles.secondary}`}
-                        disabled={!currentSong}
-                        title="Add to Playlist"
-                    >
-                        <ListPlus size={18} />
-                    </button>
-
-                    <button
-                        onClick={openFullscreen}
-                        className={`${styles.controlBtn} ${styles.secondary}`}
-                        disabled={!currentSong}
-                        title="Fullscreen Player"
-                    >
-                        <Maximize size={18} />
-                    </button>
-                </div>
-
-                {/* Progress Bar */}
-                <div className={styles.progressWrapper}>
-                    <span className={styles.time}>{formatTime(currentTime)}</span>
-                    <div className={styles.progressBar} onClick={handleProgressClick}>
-                        <div className={styles.progressBg}>
-                            <div
-                                className={styles.progressFill}
-                                style={{ width: `${progress}%` }}
-                            />
+                    {/* Progress Bar */}
+                    <div className={styles.progressWrapper}>
+                        <span className={styles.time}>{formatTime(currentTime)}</span>
+                        <div className={styles.progressBar} onClick={handleProgressClick}>
+                            <div className={styles.progressBg}>
+                                <div
+                                    className={styles.progressFill}
+                                    style={{ width: `${progress}%` }}
+                                />
+                            </div>
                         </div>
+                        <span className={styles.time}>{formatTime(duration)}</span>
                     </div>
-                    <span className={styles.time}>{formatTime(duration)}</span>
                 </div>
-            </div>
 
-            <div className={styles.sideActions}>
-                <button
-                    ref={queueToggleRef}
-                    className={`${styles.queueToggle} ${isQueueOpen ? styles.active : ""}`}
-                    onClick={() => setIsQueueOpen((open) => !open)}
-                    title="Open Queue"
-                >
-                    <ListMusic size={18} />
-                    <span className={styles.queueCount}>{queue.length}</span>
-                </button>
-
-                <div className={styles.volumeControl}>
+                <div className={styles.sideActions}>
                     <button
-                        onClick={() => setVolume(volume > 0 ? 0 : 0.7)}
-                        className={styles.volumeBtn}
-                        title={volume > 0 ? "Mute" : "Unmute"}
+                        ref={queueToggleRef}
+                        className={`${styles.queueToggle} ${isQueueOpen ? styles.active : ""}`}
+                        onClick={() => setIsQueueOpen((open) => !open)}
+                        title="Open Queue"
                     >
-                        {volume === 0 ? (
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M11 5L6 9H2v6h4l5 4V5z" />
-                                <line x1="23" y1="9" x2="17" y2="15" />
-                                <line x1="17" y1="9" x2="23" y2="15" />
-                            </svg>
-                        ) : volume < 0.5 ? (
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M11 5L6 9H2v6h4l5 4V5z" />
-                                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                            </svg>
-                        ) : (
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M11 5L6 9H2v6h4l5 4V5z" />
-                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                            </svg>
-                        )}
+                        <ListMusic size={18} />
+                        <span className={styles.queueCount}>{queue.length}</span>
                     </button>
-                    <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        value={volume}
-                        onChange={handleVolumeChange}
-                        className={styles.volumeSlider}
-                    />
+
+                    <div className={styles.volumeControl}>
+                        <button
+                            onClick={() => setVolume(volume > 0 ? 0 : 0.7)}
+                            className={styles.volumeBtn}
+                            title={volume > 0 ? "Mute" : "Unmute"}
+                        >
+                            {volume === 0 ? (
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                                    <line x1="23" y1="9" x2="17" y2="15" />
+                                    <line x1="17" y1="9" x2="23" y2="15" />
+                                </svg>
+                            ) : volume < 0.5 ? (
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                                </svg>
+                            ) : (
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                                </svg>
+                            )}
+                        </button>
+                        <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.01"
+                            value={volume}
+                            onChange={handleVolumeChange}
+                            className={styles.volumeSlider}
+                        />
+                    </div>
                 </div>
-            </div>
+            </footer>
 
             {currentSong && (
                 <>
@@ -589,6 +591,6 @@ export default function MusicPlayer() {
                     </div>
                 </DndContext>
             )}
-        </footer>
+        </>
     );
 }
