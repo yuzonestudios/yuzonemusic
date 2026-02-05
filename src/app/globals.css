@@ -201,6 +201,18 @@ html {
   --accent-glow: rgba(245, 158, 11, 0.4);
 }
 
+[data-theme='ambient'] {
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2a2a2a;
+  --bg-card: rgba(42, 42, 42, 0.8);
+  --bg-glass: rgba(42, 42, 42, 0.6);
+  --accent-primary: #8b5cf6;
+  --accent-secondary: #6366f1;
+  --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  --accent-glow: rgba(139, 92, 246, 0.4);
+}
+
 * {
   margin: 0;
   padding: 0;

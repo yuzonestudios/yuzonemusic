@@ -5,10 +5,11 @@ import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
-import { Play, Trash2, Music, ArrowLeft, User, Share2, Shuffle, Search } from "lucide-react";
+import { Play, Trash2, Music, ArrowLeft, User, Share2, Shuffle, Search, Download } from "lucide-react";
 import SongCard from "@/components/cards/SongCard";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { usePlayerStore } from "@/store/playerStore";
+import { usePlaylistDownload } from "@/hooks/usePlaylistDownload";
 import type { Song as GlobalSong } from "@/types";
 import { debounce } from "@/lib/debounce";
 import styles from "./playlist-detail.module.css";
@@ -40,6 +41,7 @@ export default function PlaylistDetailPage() {
     const router = useRouter();
     const params = useParams();
     const playlistId = params.id as string;
+    const { isDownloading, error: downloadError, downloadPlaylist, clearError } = usePlaylistDownload();
     
     const [playlist, setPlaylist] = useState<Playlist | null>(null);
     const [loading, setLoading] = useState(true);
@@ -193,6 +195,16 @@ export default function PlaylistDetailPage() {
             play();
             ensurePlayback();
         }
+    };
+
+    const handleDownloadPlaylist = async () => {
+        if (!playlist || playlist.songs.length === 0) {
+            alert("No songs in this playlist to download");
+            return;
+        }
+
+        const videoIds = playlist.songs.map((song) => song.videoId);
+        await downloadPlaylist(videoIds, playlist.name);
     };
 
     const handleDeletePlaylist = async () => {
@@ -357,6 +369,16 @@ export default function PlaylistDetailPage() {
                             Shuffle
                         </button>
                         <button
+                            type="button"
+                            className={`${styles.secondaryBtn} ${styles.downloadBtn}`}
+                            onClick={handleDownloadPlaylist}
+                            disabled={playlist.songs.length === 0 || isDownloading}
+                            title="Download playlist as ZIP"
+                        >
+                            <Download size={18} />
+                            {isDownloading ? "Downloading..." : "Download"}
+                        </button>
+                        <button
                             className={styles.secondaryBtn}
                             onClick={() => setShareModal({ isOpen: true, contentId: playlistId, contentName: playlist.name })}
                         >
@@ -371,6 +393,19 @@ export default function PlaylistDetailPage() {
                             Delete
                         </button>
                     </div>
+
+                    {downloadError && (
+                        <div className={styles.errorMessage}>
+                            <p>{downloadError}</p>
+                            <button
+                                type="button"
+                                onClick={clearError}
+                                className={styles.dismissBtn}
+                            >
+                                Dismiss
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 

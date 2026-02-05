@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Music, Play, Trash2 } from "lucide-react";
+import { Music, Play, Trash2, Download } from "lucide-react";
+import { useState } from "react";
 import styles from "./PlaylistCard.module.css";
 import { usePlayerStore } from "@/store/playerStore";
+import { usePlaylistDownload } from "@/hooks/usePlaylistDownload";
 
 interface PlaylistCardProps {
     playlist: {
@@ -14,6 +16,13 @@ interface PlaylistCardProps {
         thumbnail?: string;
         songCount: number;
         createdAt: string;
+        songs?: Array<{
+            videoId: string;
+            title: string;
+            artist: string;
+            thumbnail: string;
+            duration: string;
+        }>;
     };
     onDelete?: (playlistId: string) => void;
     onPlay?: (playlistId: string) => void;
@@ -22,6 +31,8 @@ interface PlaylistCardProps {
 export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCardProps) {
     const router = useRouter();
     const { isPlaying, queueSource } = usePlayerStore();
+    const { isDownloading, error: downloadError, downloadPlaylist, clearError, reset } = usePlaylistDownload();
+    const [showDownloadError, setShowDownloadError] = useState(false);
 
     const isPlayingFromThisPlaylist =
         isPlaying && queueSource?.type === "playlist" && queueSource?.id === playlist._id;
@@ -43,6 +54,18 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
         if (onPlay && playlist.songCount > 0) {
             onPlay(playlist._id);
         }
+    };
+
+    const handleDownload = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        
+        if (!playlist.songs || playlist.songs.length === 0) {
+            alert("No songs in this playlist to download");
+            return;
+        }
+
+        const videoIds = playlist.songs.map((song) => song.videoId);
+        await downloadPlaylist(videoIds, playlist.name);
     };
 
     const handleClick = () => {
@@ -93,6 +116,16 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
                     Play
                 </button>
                 <button
+                    type="button"
+                    className={`${styles.actionBtn} ${styles.downloadBtn}`}
+                    onClick={handleDownload}
+                    disabled={playlist.songCount === 0 || isDownloading}
+                    title="Download playlist as ZIP"
+                >
+                    <Download size={16} />
+                    {isDownloading ? "Downloading..." : "Download"}
+                </button>
+                <button
                     className={`${styles.actionBtn} ${styles.deleteBtn}`}
                     onClick={handleDelete}
                 >
@@ -100,6 +133,22 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
                     Delete
                 </button>
             </div>
+
+            {downloadError && (
+                <div className={styles.errorMessage}>
+                    <p>{downloadError}</p>
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            clearError();
+                        }}
+                        className={styles.dismissBtn}
+                    >
+                        Dismiss
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
