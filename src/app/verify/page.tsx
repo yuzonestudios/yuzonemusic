@@ -14,10 +14,10 @@ export default async function VerifyPage({
     const rawToken = typeof searchParams?.token === "string" ? searchParams.token : "";
     const rawEmail = typeof searchParams?.email === "string" ? searchParams.email : "";
     const normalizedEmail = decodeURIComponent(rawEmail).trim().toLowerCase();
-    const normalizedToken = decodeURIComponent(rawToken).trim();
-    const tokenMatch = normalizedToken.match(/[a-f0-9]{64}/i);
-    const token = tokenMatch ? tokenMatch[0].toLowerCase() : "";
+    const token = rawToken.trim();
     let status: "success" | "invalid" | "expired" = "invalid";
+
+    console.log("Verification attempt:", { rawToken, token, tokenLength: token.length, normalizedEmail });
 
     if (normalizedEmail) {
         try {
@@ -39,10 +39,14 @@ export default async function VerifyPage({
         try {
             await connectDB();
             const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+            console.log("Looking for tokenHash:", tokenHash);
+            
             let user = await User.findOne({
                 emailVerificationToken: tokenHash,
                 emailVerificationExpires: { $gt: new Date() },
             }).select("+emailVerificationToken");
+
+            console.log("User found:", !!user);
 
             if (user) {
                 user.emailVerified = true;

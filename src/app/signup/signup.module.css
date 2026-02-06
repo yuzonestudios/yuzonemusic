@@ -250,6 +250,14 @@
     text-align: center;
 }
 
+.verificationSection {
+    width: 100%;
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
 .switchAuth {
     margin-top: 16px;
     font-size: 0.85rem;

@@ -14,7 +14,6 @@ export async function POST(request: NextRequest) {
         const name = typeof body?.name === "string" ? body.name.trim() : "";
         const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
         const password = typeof body?.password === "string" ? body.password : "";
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
 
         if (!name || !email || !password) {
             return NextResponse.json(
@@ -48,15 +47,11 @@ export async function POST(request: NextRequest) {
                     existingUser.emailVerificationExpires = expiresAt;
                     await existingUser.save();
 
-                    await sendVerificationEmail(
-                        email,
-                        name,
-                        `${siteUrl}/verify?token=${token}&email=${encodeURIComponent(email)}`
-                    );
+                    await sendVerificationEmail(email, name, token);
 
                     return NextResponse.json({
                         success: true,
-                        message: "Verification email sent.",
+                        message: "Verification code sent to your email.",
                         code: "VERIFICATION_SENT",
                     });
                 }
@@ -89,13 +84,9 @@ export async function POST(request: NextRequest) {
             }
             await existingUser.save();
 
-            await sendVerificationEmail(
-                email,
-                name,
-                `${siteUrl}/verify?token=${token}&email=${encodeURIComponent(email)}`
-            );
+            await sendVerificationEmail(email, name, token);
 
-            return NextResponse.json({ success: true, message: "Verification email sent.", code: "VERIFICATION_SENT" });
+            return NextResponse.json({ success: true, message: "Verification code sent to your email.", code: "VERIFICATION_SENT" });
         }
 
         const passwordHash = await bcrypt.hash(password, 12);
@@ -113,17 +104,13 @@ export async function POST(request: NextRequest) {
         });
 
         try {
-            await sendVerificationEmail(
-                email,
-                name,
-                `${siteUrl}/verify?token=${token}&email=${encodeURIComponent(email)}`
-            );
+            await sendVerificationEmail(email, name, token);
         } catch (error) {
             await User.deleteOne({ email });
             throw error;
         }
 
-        return NextResponse.json({ success: true, message: "Verification email sent.", code: "VERIFICATION_SENT" });
+        return NextResponse.json({ success: true, message: "Verification code sent to your email.", code: "VERIFICATION_SENT" });
     } catch (error) {
         console.error("Signup error:", error);
         const message = error instanceof Error && error.message ? error.message : "Failed to create account.";

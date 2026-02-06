@@ -20,8 +20,8 @@ function SignupClient() {
     const [error, setError] = useState<string | null>(null);
     const [showGooglePrompt, setShowGooglePrompt] = useState(false);
     const [verificationSent, setVerificationSent] = useState(false);
-    const [resendMessage, setResendMessage] = useState<string | null>(null);
-    const [isResending, setIsResending] = useState(false);
+    const [verificationCode, setVerificationCode] = useState("");
+    const [isVerifying, setIsVerifying] = useState(false);
 
     const handleSignup = async (event: FormEvent) => {
         event.preventDefault();
@@ -58,32 +58,31 @@ function SignupClient() {
         }
         setIsSubmitting(false);
         setVerificationSent(true);
-        setResendMessage("Verification email sent. Please check your inbox.");
         return;
     };
 
-    const handleResend = async () => {
-        if (isResending || !email.trim()) {
+    const handleVerify = async () => {
+        if (isVerifying || !verificationCode.trim()) {
             return;
         }
-        setIsResending(true);
-        setResendMessage(null);
+        setError(null);
+        setIsVerifying(true);
         try {
-            const response = await fetch("/api/auth/resend-verification", {
+            const response = await fetch("/api/auth/verify-code", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: email.trim().toLowerCase() }),
+                body: JSON.stringify({ email: email.trim().toLowerCase(), code: verificationCode.trim() }),
             });
             const data = await response.json();
             if (response.ok && data.success) {
-                setResendMessage(data.message || "Verification email sent.");
+                router.push("/login?verified=true");
             } else {
-                setResendMessage(data.error || "Failed to resend verification email.");
+                setError(data.error || "Invalid or expired code.");
             }
         } catch (err) {
-            setResendMessage("Failed to resend verification email.");
+            setError("Verification failed.");
         } finally {
-            setIsResending(false);
+            setIsVerifying(false);
         }
     };
 
@@ -168,22 +167,30 @@ function SignupClient() {
                 </form>
 
                 {verificationSent && (
-                    <p className={styles.successMessage}>
-                        Verification email sent. Please confirm to activate your account.
-                    </p>
-                )}
-                {verificationSent && (
-                    <button
-                        type="button"
-                        className={styles.resendBtn}
-                        onClick={handleResend}
-                        disabled={isResending}
-                    >
-                        {isResending ? "Sending..." : "Resend verification email"}
-                    </button>
-                )}
-                {resendMessage && (
-                    <p className={styles.resendMessage}>{resendMessage}</p>
+                    <div className={styles.verificationSection}>
+                        <p className={styles.successMessage}>
+                            A 6-digit code has been sent to your email.
+                        </p>
+                        <label className={styles.label} htmlFor="verificationCode">Verification Code</label>
+                        <input
+                            id="verificationCode"
+                            type="text"
+                            className={styles.input}
+                            value={verificationCode}
+                            onChange={(e) => setVerificationCode(e.target.value)}
+                            placeholder="Enter 6-digit code"
+                            maxLength={6}
+                            required
+                        />
+                        <button
+                            type="button"
+                            className={styles.primaryBtn}
+                            onClick={handleVerify}
+                            disabled={isVerifying || verificationCode.length !== 6}
+                        >
+                            {isVerifying ? "Verifying..." : "Verify Email"}
+                        </button>
+                    </div>
                 )}
 
                 <div className={styles.divider}>
