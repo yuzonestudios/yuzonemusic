@@ -20,6 +20,8 @@ function SignupClient() {
     const [error, setError] = useState<string | null>(null);
     const [showGooglePrompt, setShowGooglePrompt] = useState(false);
     const [verificationSent, setVerificationSent] = useState(false);
+    const [resendMessage, setResendMessage] = useState<string | null>(null);
+    const [isResending, setIsResending] = useState(false);
 
     const handleSignup = async (event: FormEvent) => {
         event.preventDefault();
@@ -56,7 +58,33 @@ function SignupClient() {
         }
         setIsSubmitting(false);
         setVerificationSent(true);
+        setResendMessage("Verification email sent. Please check your inbox.");
         return;
+    };
+
+    const handleResend = async () => {
+        if (isResending || !email.trim()) {
+            return;
+        }
+        setIsResending(true);
+        setResendMessage(null);
+        try {
+            const response = await fetch("/api/auth/resend-verification", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: email.trim().toLowerCase() }),
+            });
+            const data = await response.json();
+            if (response.ok && data.success) {
+                setResendMessage(data.message || "Verification email sent.");
+            } else {
+                setResendMessage(data.error || "Failed to resend verification email.");
+            }
+        } catch (err) {
+            setResendMessage("Failed to resend verification email.");
+        } finally {
+            setIsResending(false);
+        }
     };
 
     const handleGoogleSignIn = () => {
@@ -143,6 +171,19 @@ function SignupClient() {
                     <p className={styles.successMessage}>
                         Verification email sent. Please confirm to activate your account.
                     </p>
+                )}
+                {verificationSent && (
+                    <button
+                        type="button"
+                        className={styles.resendBtn}
+                        onClick={handleResend}
+                        disabled={isResending}
+                    >
+                        {isResending ? "Sending..." : "Resend verification email"}
+                    </button>
+                )}
+                {resendMessage && (
+                    <p className={styles.resendMessage}>{resendMessage}</p>
                 )}
 
                 <div className={styles.divider}>
