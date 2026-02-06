@@ -4,6 +4,7 @@ import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export default async function VerifyPage({
     searchParams,
