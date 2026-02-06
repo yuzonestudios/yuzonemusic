@@ -42,7 +42,7 @@ export default async function VerifyPage({
             let user = await User.findOne({
                 emailVerificationToken: tokenHash,
                 emailVerificationExpires: { $gt: new Date() },
-            });
+            }).select("+emailVerificationToken");
 
             if (user) {
                 user.emailVerified = true;
@@ -54,11 +54,11 @@ export default async function VerifyPage({
                 const expiredUser = await User.findOne({
                     emailVerificationToken: tokenHash,
                     emailVerificationExpires: { $lte: new Date() },
-                });
+                }).select("+emailVerificationToken");
                 if (expiredUser) {
                     status = "expired";
                 } else {
-                    user = await User.findOne({ emailVerificationToken: tokenHash });
+                    user = await User.findOne({ emailVerificationToken: tokenHash }).select("+emailVerificationToken");
                     if (user) {
                         status = "expired";
                     }
