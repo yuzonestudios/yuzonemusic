@@ -9,6 +9,18 @@
     overflow: hidden;
 }
 
+@media (max-width: 480px) {
+    .container {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 360px) {
+    .container {
+        padding: 16px;
+    }
+}
+
 .background {
     position: absolute;
     inset: 0;
@@ -37,6 +49,13 @@
 @media (max-width: 640px) {
     .card {
         border-radius: var(--radius-lg);
+        padding: 1.75rem 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .card {
+        padding: 1.5rem 1rem;
     }
 }
 
@@ -56,6 +75,12 @@
     margin-bottom: 24px;
     filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.4));
     animation: float 3s ease-in-out infinite;
+}
+
+@media (max-width: 480px) {
+    .logo {
+        margin-bottom: 16px;
+    }
 }
 
 @keyframes float {
@@ -288,5 +313,33 @@
 
     .feature span {
         font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .input {
+        padding: 12px 14px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .primaryBtn {
+        padding: 12px 14px;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .googleBtn {
+        padding: 12px 14px;
+        font-size: 0.95rem;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .features {
+        margin-top: 2rem;
     }
 }

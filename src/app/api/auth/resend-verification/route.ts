@@ -29,17 +29,12 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: true, message: "Email already verified." });
         }
 
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
         const { token, tokenHash, expiresAt } = createVerificationToken();
         user.emailVerificationToken = tokenHash;
         user.emailVerificationExpires = expiresAt;
         await user.save();
 
-        await sendVerificationEmail(
-            email,
-            user.name || "there",
-            `${siteUrl}/verify?token=${token}&email=${encodeURIComponent(email)}`
-        );
+        await sendVerificationEmail(email, user.name || "there", token);
 
         return NextResponse.json({ success: true, message: "Verification email sent." });
     } catch (error) {

@@ -238,6 +238,13 @@
     color: var(--text-primary);
 }
 
+.loadingText {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
 .resendBtn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -313,4 +320,55 @@
 .modalActions {
     display: grid;
     gap: 0.75rem;
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 20px;
+    }
+
+    .card {
+        padding: 1.5rem 1rem;
+        border-radius: var(--radius-lg);
+    }
+
+    .logo {
+        margin-bottom: 16px;
+    }
+
+    .input {
+        padding: 12px 14px;
+        font-size: 0.9rem;
+    }
+
+    .primaryBtn,
+    .cancelBtn,
+    .resendBtn,
+    .googleBtn {
+        padding: 12px 14px;
+        font-size: 0.95rem;
+    }
+
+    .modal {
+        padding: 18px;
+        border-radius: var(--radius-lg);
+    }
+
+    .modalTitle {
+        font-size: 1.1rem;
+    }
+
+    .modalText {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .container {
+        padding: 16px;
+    }
+
+    .card {
+        padding: 1.25rem 0.9rem;
+    }
 }

@@ -17,36 +17,15 @@ export default async function VerifyPage({
     const token = rawToken.trim();
     let status: "success" | "invalid" | "expired" = "invalid";
 
-    console.log("Verification attempt:", { rawToken, token, tokenLength: token.length, normalizedEmail });
-
-    if (normalizedEmail) {
-        try {
-            await connectDB();
-            const emailUser = await User.findOne({ email: normalizedEmail });
-            if (emailUser) {
-                emailUser.emailVerified = true;
-                emailUser.emailVerificationToken = undefined;
-                emailUser.emailVerificationExpires = undefined;
-                await emailUser.save();
-                status = "success";
-            }
-        } catch (error) {
-            console.error("Email verification error:", error);
-        }
-    }
-
-    if (status !== "success" && token) {
+    if (token) {
         try {
             await connectDB();
             const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
-            console.log("Looking for tokenHash:", tokenHash);
-            
             let user = await User.findOne({
                 emailVerificationToken: tokenHash,
                 emailVerificationExpires: { $gt: new Date() },
+                ...(normalizedEmail ? { email: normalizedEmail } : {}),
             }).select("+emailVerificationToken");
-
-            console.log("User found:", !!user);
 
             if (user) {
                 user.emailVerified = true;
@@ -58,11 +37,15 @@ export default async function VerifyPage({
                 const expiredUser = await User.findOne({
                     emailVerificationToken: tokenHash,
                     emailVerificationExpires: { $lte: new Date() },
+                    ...(normalizedEmail ? { email: normalizedEmail } : {}),
                 }).select("+emailVerificationToken");
                 if (expiredUser) {
                     status = "expired";
                 } else {
-                    user = await User.findOne({ emailVerificationToken: tokenHash }).select("+emailVerificationToken");
+                    user = await User.findOne({
+                        emailVerificationToken: tokenHash,
+                        ...(normalizedEmail ? { email: normalizedEmail } : {}),
+                    }).select("+emailVerificationToken");
                     if (user) {
                         status = "expired";
                     }

@@ -180,6 +180,7 @@ function SignupClient() {
                             onChange={(e) => setVerificationCode(e.target.value)}
                             placeholder="Enter 6-digit code"
                             maxLength={6}
+                            disabled={isVerifying}
                             required
                         />
                         <button
@@ -190,6 +191,9 @@ function SignupClient() {
                         >
                             {isVerifying ? "Verifying..." : "Verify Email"}
                         </button>
+                        {isVerifying && (
+                            <p className={styles.loadingText}>Checking your code...</p>
+                        )}
                     </div>
                 )}
 
