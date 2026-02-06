@@ -134,6 +134,23 @@
     transform: none;
 }
 
+.cancelBtn {
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.cancelBtn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+}
+
 .divider {
     width: 100%;
     display: flex;
@@ -174,6 +191,13 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
+.googleBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
 .terms {
     margin-top: 24px;
     font-size: 0.8rem;
@@ -186,6 +210,13 @@
     color: #f87171;
     font-size: 0.85rem;
     text-align: left;
+}
+
+.successMessage {
+    margin-top: 12px;
+    color: #22c55e;
+    font-size: 0.9rem;
+    text-align: center;
 }
 
 .switchAuth {
@@ -202,4 +233,45 @@
 
 .switchAuth a:hover {
     text-decoration: underline;
+}
+
+.modalBackdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 24px;
+}
+
+.modal {
+    background: var(--bg-glass);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 24px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    backdrop-filter: blur(18px);
+}
+
+.modalTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+}
+
+.modalText {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.modalActions {
+    display: grid;
+    gap: 0.75rem;
 }

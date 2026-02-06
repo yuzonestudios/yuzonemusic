@@ -16,10 +16,16 @@ function SignupClient() {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showGooglePrompt, setShowGooglePrompt] = useState(false);
+    const [verificationSent, setVerificationSent] = useState(false);
 
     const handleSignup = async (event: FormEvent) => {
         event.preventDefault();
+        if (isSubmitting || isGoogleLoading) {
+            return;
+        }
         setError(null);
 
         if (password !== confirmPassword) {
@@ -41,28 +47,23 @@ function SignupClient() {
         const data = await response.json();
         if (!response.ok) {
             setIsSubmitting(false);
+            if (data?.code === "GOOGLE_LINKED") {
+                setShowGooglePrompt(true);
+                return;
+            }
             setError(data?.error || "Failed to create account.");
             return;
         }
-
-        const signInResult = await signIn("credentials", {
-            redirect: false,
-            email: email.trim().toLowerCase(),
-            password,
-            callbackUrl,
-        });
-
         setIsSubmitting(false);
-
-        if (signInResult?.error) {
-            router.push("/login");
-            return;
-        }
-
-        router.push(callbackUrl);
+        setVerificationSent(true);
+        return;
     };
 
     const handleGoogleSignIn = () => {
+        if (isGoogleLoading || isSubmitting) {
+            return;
+        }
+        setIsGoogleLoading(true);
         signIn("google", { callbackUrl });
     };
 
@@ -132,17 +133,27 @@ function SignupClient() {
                     <button
                         type="submit"
                         className={styles.primaryBtn}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || isGoogleLoading || verificationSent}
                     >
-                        {isSubmitting ? "Creating account..." : "Create account"}
+                        {verificationSent ? "Check your email" : isSubmitting ? "Creating account..." : "Create account"}
                     </button>
                 </form>
+
+                {verificationSent && (
+                    <p className={styles.successMessage}>
+                        Verification email sent. Please confirm to activate your account.
+                    </p>
+                )}
 
                 <div className={styles.divider}>
                     <span>or</span>
                 </div>
 
-                <button onClick={handleGoogleSignIn} className={styles.googleBtn}>
+                <button
+                    onClick={handleGoogleSignIn}
+                    className={styles.googleBtn}
+                    disabled={isGoogleLoading || isSubmitting || verificationSent}
+                >
                     <svg width="20" height="20" viewBox="0 0 24 24">
                         <path
                             fill="#4285F4"
@@ -161,7 +172,7 @@ function SignupClient() {
                             d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                         />
                     </svg>
-                    <span>Continue with Google</span>
+                    <span>{isGoogleLoading ? "Redirecting..." : "Continue with Google"}</span>
                 </button>
 
                 <p className={styles.terms}>
@@ -172,6 +183,33 @@ function SignupClient() {
                     Already have an account? <a href="/login">Sign in</a>
                 </p>
             </div>
+
+            {showGooglePrompt && (
+                <div className={styles.modalBackdrop}>
+                    <div className={styles.modal}>
+                        <h2 className={styles.modalTitle}>Use Google to sign in</h2>
+                        <p className={styles.modalText}>
+                            This email is already linked with Google. Please continue with Google to access your account.
+                        </p>
+                        <div className={styles.modalActions}>
+                            <button
+                                className={styles.primaryBtn}
+                                onClick={handleGoogleSignIn}
+                                disabled={isGoogleLoading || isSubmitting}
+                            >
+                                {isGoogleLoading ? "Redirecting..." : "Continue with Google"}
+                            </button>
+                            <button
+                                className={styles.cancelBtn}
+                                onClick={() => setShowGooglePrompt(false)}
+                                disabled={isGoogleLoading || isSubmitting}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

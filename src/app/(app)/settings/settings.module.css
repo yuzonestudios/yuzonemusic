@@ -455,6 +455,40 @@
     color: var(--text-primary);
 }
 
+.avatarEditor {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.avatarRow {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.avatarInput {
+    flex: 1;
+    min-width: 220px;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    outline: none;
+    transition: all var(--transition-fast);
+}
+
+.avatarInput:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
 .message {
     font-size: 0.85rem;
     padding: 0.5rem 0;

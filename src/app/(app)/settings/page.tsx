@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback, type FormEvent } from "react";
 import { LogOut } from "lucide-react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTheme } from "@/context/ThemeContext";
+import { getAvatarUrl } from "@/lib/avatar";
 import styles from "./settings.module.css";
 
 export default function SettingsPage() {
@@ -16,6 +17,10 @@ export default function SettingsPage() {
     const [isEditingName, setIsEditingName] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState("");
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+    const [avatarInput, setAvatarInput] = useState("");
+    const [isSavingAvatar, setIsSavingAvatar] = useState(false);
+    const [avatarMessage, setAvatarMessage] = useState("");
     const [suggestion, setSuggestion] = useState("");
     const [suggestionMessage, setSuggestionMessage] = useState<string | null>(null);
     const [isSubmittingSuggestion, setIsSubmittingSuggestion] = useState(false);
@@ -66,6 +71,8 @@ export default function SettingsPage() {
                     const name = data.user.displayName || data.user.name;
                     setDisplayName(name);
                     setSavedDisplayName(name);
+                    setAvatarUrl(data.user.image || null);
+                    setAvatarInput(data.user.image || "");
                     if (data.user.audioQuality) {
                         setAudioQuality(data.user.audioQuality);
                     }
@@ -75,6 +82,34 @@ export default function SettingsPage() {
             console.error("Failed to fetch profile:", error);
         }
     }, []);
+
+    const handleSaveAvatar = async (nextUrl: string | null) => {
+        setIsSavingAvatar(true);
+        setAvatarMessage("");
+
+        try {
+            const res = await fetch("/api/user/profile", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ image: nextUrl }),
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                setAvatarUrl(data.user.image || null);
+                setAvatarInput(data.user.image || "");
+                setAvatarMessage("Profile photo updated!");
+                setTimeout(() => setAvatarMessage(""), 3000);
+            } else {
+                setAvatarMessage(data.error || "Failed to update profile photo");
+            }
+        } catch (error) {
+            console.error("Error updating profile photo:", error);
+            setAvatarMessage("An error occurred. Please try again.");
+        } finally {
+            setIsSavingAvatar(false);
+        }
+    };
 
     useEffect(() => {
         if (session) {
@@ -214,7 +249,7 @@ export default function SettingsPage() {
                     <h2 className={styles.sectionHeader}>Account</h2>
                     <div className={styles.profile}>
                         <img
-                            src={session.user?.image || "/placeholder-user.png"}
+                            src={getAvatarUrl(avatarUrl || session.user?.image, displayName || session.user?.name)}
                             alt="Profile"
                             className={styles.avatar}
                         />
@@ -290,6 +325,41 @@ export default function SettingsPage() {
                                     {saveMessage}
                                 </p>
                             )}
+                            <div className={styles.avatarEditor}>
+                                <label className={styles.label} htmlFor="avatarUrl">Profile photo URL</label>
+                                <div className={styles.avatarRow}>
+                                    <input
+                                        id="avatarUrl"
+                                        type="url"
+                                        value={avatarInput}
+                                        onChange={(e) => setAvatarInput(e.target.value)}
+                                        className={styles.avatarInput}
+                                        placeholder="https://example.com/avatar.jpg"
+                                        autoComplete="off"
+                                    />
+                                    <button
+                                        type="button"
+                                        className={styles.saveBtn}
+                                        onClick={() => handleSaveAvatar(avatarInput.trim() || null)}
+                                        disabled={isSavingAvatar}
+                                    >
+                                        {isSavingAvatar ? "Saving..." : "Save"}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={styles.cancelBtn}
+                                        onClick={() => handleSaveAvatar(null)}
+                                        disabled={isSavingAvatar}
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                                {avatarMessage && (
+                                    <p className={`${styles.message} ${avatarMessage.includes("updated") ? styles.success : styles.error}`}>
+                                        {avatarMessage}
+                                    </p>
+                                )}
+                            </div>
                             <p className={styles.email}>{session.user?.email}</p>
                             
                             <button

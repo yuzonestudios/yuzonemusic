@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 // Public paths that don't require authentication
-const publicPaths = ["/login", "/signup", "/api/auth", "/api/stream", "/api/share", "/share"];
+const publicPaths = ["/login", "/signup", "/verify", "/api/auth", "/api/stream", "/api/share", "/share"];
 
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;

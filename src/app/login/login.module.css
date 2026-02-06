@@ -120,6 +120,13 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
+.googleBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
 .googleBtn:active {
     transform: translateY(0);
 }

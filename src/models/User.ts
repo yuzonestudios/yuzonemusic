@@ -9,6 +9,9 @@ export interface IUser extends Document {
     googleId?: string;
     passwordHash?: string;
     providers?: string[];
+    emailVerified?: boolean;
+    emailVerificationToken?: string;
+    emailVerificationExpires?: Date;
     theme: string;
     audioQuality?: 1 | 2 | 3;
     createdAt: Date;
@@ -44,6 +47,17 @@ const UserSchema = new Schema<IUser>(
         providers: {
             type: [String],
             default: [],
+        },
+        emailVerified: {
+            type: Boolean,
+            default: false,
+        },
+        emailVerificationToken: {
+            type: String,
+            select: false,
+        },
+        emailVerificationExpires: {
+            type: Date,
         },
         theme: {
             type: String,

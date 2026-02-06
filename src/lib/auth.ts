@@ -35,8 +35,12 @@ export const authOptions: NextAuthOptions = {
 
                 await connectDB();
 
-                const user = await User.findOne({ email }).select("+passwordHash");
+                const user = await User.findOne({ email }).select("+passwordHash +emailVerified");
                 if (!user?.passwordHash) {
+                    return null;
+                }
+
+                if (user.emailVerified === false) {
                     return null;
                 }
 
@@ -70,6 +74,11 @@ export const authOptions: NextAuthOptions = {
                                 name: user.name,
                                 image: user.image,
                                 email: user.email,
+                                emailVerified: true,
+                            },
+                            $unset: {
+                                emailVerificationToken: "",
+                                emailVerificationExpires: "",
                             },
                             $setOnInsert: {
                                 googleId: account.providerAccountId,

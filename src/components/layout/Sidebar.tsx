@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Home, Search, Library, Trophy, Settings, ListMusic, Sparkles } from "lucide-react";
+import { getAvatarUrl } from "@/lib/avatar";
 import styles from "./Sidebar.module.css";
 
 interface NavItem {
@@ -86,7 +87,7 @@ export default function Sidebar() {
                 {session?.user && (
                     <div className={styles.userProfile}>
                         <img
-                            src={session.user.image || "/placeholder-user.png"}
+                            src={getAvatarUrl(session.user.image, (session.user as any).displayName || session.user.name)}
                             alt={session.user.name || "User"}
                             className={styles.avatar}
                         />

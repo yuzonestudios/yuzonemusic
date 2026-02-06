@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 
@@ -13,6 +15,7 @@ export async function POST(request: NextRequest) {
         const name = typeof body?.name === "string" ? body.name.trim() : "";
         const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
         const password = typeof body?.password === "string" ? body.password : "";
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
 
         if (!name || !email || !password) {
             return NextResponse.json(
@@ -37,27 +40,59 @@ export async function POST(request: NextRequest) {
 
         await connectDB();
 
-        const existingUser = await User.findOne({ email }).select("+passwordHash");
+        const existingUser = await User.findOne({ email }).select("+passwordHash +emailVerified +emailVerificationToken +emailVerificationExpires");
         if (existingUser) {
             if (existingUser.passwordHash) {
+                if (existingUser.emailVerified === false) {
+                    const { token, tokenHash, expiresAt } = createVerificationToken();
+                    existingUser.emailVerificationToken = tokenHash;
+                    existingUser.emailVerificationExpires = expiresAt;
+                    await existingUser.save();
+
+                    await sendVerificationEmail(email, name, `${siteUrl}/verify?token=${token}`);
+
+                    return NextResponse.json({
+                        success: true,
+                        message: "Verification email sent.",
+                        code: "VERIFICATION_SENT",
+                    });
+                }
                 return NextResponse.json(
                     { success: false, error: "An account with this email already exists." },
                     { status: 409 }
                 );
             }
 
+            if (existingUser.googleId || existingUser.providers?.includes("google")) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: "This email is linked with Google. Please sign in with Google.",
+                        code: "GOOGLE_LINKED",
+                    },
+                    { status: 409 }
+                );
+            }
+
             const passwordHash = await bcrypt.hash(password, 12);
+            const { token, tokenHash, expiresAt } = createVerificationToken();
             existingUser.passwordHash = passwordHash;
             existingUser.providers = Array.from(new Set([...(existingUser.providers || []), "credentials"]));
+            existingUser.emailVerified = false;
+            existingUser.emailVerificationToken = tokenHash;
+            existingUser.emailVerificationExpires = expiresAt;
             if (!existingUser.name) {
                 existingUser.name = name;
             }
             await existingUser.save();
 
-            return NextResponse.json({ success: true, message: "Account created." });
+            await sendVerificationEmail(email, name, `${siteUrl}/verify?token=${token}`);
+
+            return NextResponse.json({ success: true, message: "Verification email sent.", code: "VERIFICATION_SENT" });
         }
 
         const passwordHash = await bcrypt.hash(password, 12);
+        const { token, tokenHash, expiresAt } = createVerificationToken();
 
         await User.create({
             name,
@@ -65,9 +100,19 @@ export async function POST(request: NextRequest) {
             email,
             passwordHash,
             providers: ["credentials"],
+            emailVerified: false,
+            emailVerificationToken: tokenHash,
+            emailVerificationExpires: expiresAt,
         });
 
-        return NextResponse.json({ success: true, message: "Account created." });
+        try {
+            await sendVerificationEmail(email, name, `${siteUrl}/verify?token=${token}`);
+        } catch (error) {
+            await User.deleteOne({ email });
+            throw error;
+        }
+
+        return NextResponse.json({ success: true, message: "Verification email sent.", code: "VERIFICATION_SENT" });
     } catch (error) {
         console.error("Signup error:", error);
         return NextResponse.json(
@@ -75,4 +120,38 @@ export async function POST(request: NextRequest) {
             { status: 500 }
         );
     }
+}
+
+function createVerificationToken() {
+    const token = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24);
+    return { token, tokenHash, expiresAt };
+}
+
+async function sendVerificationEmail(email: string, name: string, link: string) {
+    const host = process.env.SMTP_HOST;
+    const port = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined;
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+    const from = process.env.SMTP_FROM || "no-reply@yuzonemusic.com";
+
+    if (!host || !port || !user || !pass) {
+        throw new Error("SMTP configuration is missing");
+    }
+
+    const transporter = nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465,
+        auth: { user, pass },
+    });
+
+    await transporter.sendMail({
+        from,
+        to: email,
+        subject: "Verify your Yuzone account",
+        text: `Hi ${name || "there"},\n\nPlease verify your email by clicking the link below:\n${link}\n\nIf you didn\'t request this, you can ignore this email.`,
+        html: `<p>Hi ${name || "there"},</p><p>Please verify your email by clicking the link below:</p><p><a href="${link}">Verify my email</a></p><p>If you didn\'t request this, you can ignore this email.</p>`,
+    });
 }

@@ -69,7 +69,7 @@ export async function PATCH(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { displayName, audioQuality } = body;
+        const { displayName, audioQuality, image } = body;
 
         // Validate displayName if provided
         if (displayName !== undefined) {
@@ -98,6 +98,30 @@ export async function PATCH(req: NextRequest) {
             }
         }
 
+        if (image !== undefined) {
+            if (image !== null && typeof image !== "string") {
+                return NextResponse.json(
+                    { success: false, error: "Image must be a string URL or null" },
+                    { status: 400 }
+                );
+            }
+            if (typeof image === "string") {
+                const trimmed = image.trim();
+                if (trimmed.length > 500) {
+                    return NextResponse.json(
+                        { success: false, error: "Image URL is too long" },
+                        { status: 400 }
+                    );
+                }
+                if (trimmed && !/^https?:\/\//i.test(trimmed) && !/^data:image\//i.test(trimmed)) {
+                    return NextResponse.json(
+                        { success: false, error: "Image URL must be http(s) or data URL" },
+                        { status: 400 }
+                    );
+                }
+            }
+        }
+
         // Build update object with provided fields
         const updateData: any = {};
         if (displayName !== undefined) {
@@ -105,6 +129,9 @@ export async function PATCH(req: NextRequest) {
         }
         if (audioQuality !== undefined) {
             updateData.audioQuality = audioQuality;
+        }
+        if (image !== undefined) {
+            updateData.image = image ? image.trim() : null;
         }
 
         // Ensure at least one field is being updated
@@ -138,6 +165,7 @@ export async function PATCH(req: NextRequest) {
                 name: user.name,
                 displayName: user.displayName || user.name,
                 email: user.email,
+                image: user.image,
                 audioQuality: user.audioQuality || 2,
             },
         });
