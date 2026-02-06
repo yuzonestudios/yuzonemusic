@@ -1,30 +1,51 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { Music, Headphones, Heart } from "lucide-react";
+import { Music } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import styles from "./login.module.css";
+import styles from "./signup.module.css";
 
-export default function LoginPage() {
+export default function SignupPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
+    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleGoogleSignIn = () => {
-        signIn("google", { callbackUrl });
-    };
-
-    const handleCredentialsSignIn = async (event: FormEvent) => {
+    const handleSignup = async (event: FormEvent) => {
         event.preventDefault();
         setError(null);
-        setIsSubmitting(true);
 
-        const result = await signIn("credentials", {
+        if (password !== confirmPassword) {
+            setError("Passwords do not match.");
+            return;
+        }
+
+        setIsSubmitting(true);
+        const response = await fetch("/api/auth/signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: name.trim(),
+                email: email.trim().toLowerCase(),
+                password,
+            }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            setIsSubmitting(false);
+            setError(data?.error || "Failed to create account.");
+            return;
+        }
+
+        const signInResult = await signIn("credentials", {
             redirect: false,
             email: email.trim().toLowerCase(),
             password,
@@ -33,12 +54,16 @@ export default function LoginPage() {
 
         setIsSubmitting(false);
 
-        if (result?.error) {
-            setError("Invalid email or password.");
+        if (signInResult?.error) {
+            router.push("/login");
             return;
         }
 
         router.push(callbackUrl);
+    };
+
+    const handleGoogleSignIn = () => {
+        signIn("google", { callbackUrl });
     };
 
     return (
@@ -47,22 +72,25 @@ export default function LoginPage() {
 
             <div className={styles.card}>
                 <div className={styles.logo}>
-                    <svg width="64" height="64" viewBox="0 0 32 32" fill="none">
-                        <defs>
-                            <linearGradient id="loginLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stopColor="#8b5cf6" />
-                                <stop offset="100%" stopColor="#06b6d4" />
-                            </linearGradient>
-                        </defs>
-                        <circle cx="16" cy="16" r="14" fill="url(#loginLogoGradient)" />
-                        <path d="M12 10v12l10-6z" fill="white" />
-                    </svg>
+                    <div className={styles.logoIcon}><Music size={32} /></div>
                 </div>
 
-                <h1 className={styles.title}>Welcome to Yuzone</h1>
-                <p className={styles.subtitle}>Stream millions of songs for free</p>
+                <h1 className={styles.title}>Create your account</h1>
+                <p className={styles.subtitle}>Join Yuzone and start streaming</p>
 
-                <form className={styles.form} onSubmit={handleCredentialsSignIn}>
+                <form className={styles.form} onSubmit={handleSignup}>
+                    <label className={styles.label} htmlFor="name">Full name</label>
+                    <input
+                        id="name"
+                        type="text"
+                        className={styles.input}
+                        value={name}
+                        onChange={(event) => setName(event.target.value)}
+                        placeholder="Jane Doe"
+                        autoComplete="name"
+                        required
+                    />
+
                     <label className={styles.label} htmlFor="email">Email</label>
                     <input
                         id="email"
@@ -82,8 +110,20 @@ export default function LoginPage() {
                         className={styles.input}
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
-                        placeholder="••••••••"
-                        autoComplete="current-password"
+                        placeholder="At least 8 characters"
+                        autoComplete="new-password"
+                        required
+                    />
+
+                    <label className={styles.label} htmlFor="confirmPassword">Confirm password</label>
+                    <input
+                        id="confirmPassword"
+                        type="password"
+                        className={styles.input}
+                        value={confirmPassword}
+                        onChange={(event) => setConfirmPassword(event.target.value)}
+                        placeholder="Repeat your password"
+                        autoComplete="new-password"
                         required
                     />
 
@@ -94,7 +134,7 @@ export default function LoginPage() {
                         className={styles.primaryBtn}
                         disabled={isSubmitting}
                     >
-                        {isSubmitting ? "Signing in..." : "Sign in"}
+                        {isSubmitting ? "Creating account..." : "Create account"}
                     </button>
                 </form>
 
@@ -125,27 +165,12 @@ export default function LoginPage() {
                 </button>
 
                 <p className={styles.terms}>
-                    By signing in, you agree to our Terms of Service and Privacy Policy.
+                    By creating an account, you agree to our Terms of Service and Privacy Policy.
                 </p>
 
                 <p className={styles.switchAuth}>
-                    Don't have an account? <a href="/signup">Create one</a>
+                    Already have an account? <a href="/login">Sign in</a>
                 </p>
-            </div>
-
-            <div className={styles.features}>
-                <div className={styles.feature}>
-                    <div className={styles.featureIcon}><Music size={32} /></div>
-                    <span>Millions of Songs</span>
-                </div>
-                <div className={styles.feature}>
-                    <div className={styles.featureIcon}><Headphones size={32} /></div>
-                    <span>High Quality Audio</span>
-                </div>
-                <div className={styles.feature}>
-                    <div className={styles.featureIcon}><Heart size={32} fill="currentColor" /></div>
-                    <span>Save Your Favorites</span>
-                </div>
             </div>
         </div>
     );

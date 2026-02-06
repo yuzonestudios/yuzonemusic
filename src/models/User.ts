@@ -6,7 +6,9 @@ export interface IUser extends Document {
     name: string;
     displayName?: string;
     image?: string;
-    googleId: string;
+    googleId?: string;
+    passwordHash?: string;
+    providers?: string[];
     theme: string;
     audioQuality?: 1 | 2 | 3;
     createdAt: Date;
@@ -32,8 +34,16 @@ const UserSchema = new Schema<IUser>(
         },
         googleId: {
             type: String,
-            required: true,
             unique: true,
+            sparse: true,
+        },
+        passwordHash: {
+            type: String,
+            select: false,
+        },
+        providers: {
+            type: [String],
+            default: [],
         },
         theme: {
             type: String,

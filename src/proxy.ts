@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 // Public paths that don't require authentication
-const publicPaths = ["/login", "/api/auth", "/api/stream", "/api/share", "/share"];
+const publicPaths = ["/login", "/signup", "/api/auth", "/api/stream", "/api/share", "/share"];
 
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -18,7 +18,7 @@ export async function proxy(request: NextRequest) {
     });
 
     // If user is authenticated and trying to access login page or landing page, redirect to dashboard
-    if (token && (pathname === "/login" || pathname === "/")) {
+    if (token && (pathname === "/login" || pathname === "/signup" || pathname === "/")) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 

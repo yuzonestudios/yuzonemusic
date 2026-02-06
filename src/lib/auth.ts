@@ -1,5 +1,8 @@
 import type { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
+import { isValidObjectId } from "mongoose";
 import connectDB from "./mongodb";
 import User from "@/models/User";
 
@@ -15,6 +18,40 @@ export const authOptions: NextAuthOptions = {
                     response_type: "code"
                 }
             }
+        }),
+        CredentialsProvider({
+            name: "Credentials",
+            credentials: {
+                email: { label: "Email", type: "email" },
+                password: { label: "Password", type: "password" },
+            },
+            async authorize(credentials) {
+                const email = credentials?.email?.toLowerCase().trim();
+                const password = credentials?.password;
+
+                if (!email || !password) {
+                    return null;
+                }
+
+                await connectDB();
+
+                const user = await User.findOne({ email }).select("+passwordHash");
+                if (!user?.passwordHash) {
+                    return null;
+                }
+
+                const isValid = await bcrypt.compare(password, user.passwordHash);
+                if (!isValid) {
+                    return null;
+                }
+
+                return {
+                    id: user._id.toString(),
+                    name: user.name,
+                    email: user.email,
+                    image: user.image,
+                };
+            },
         }),
     ],
     callbacks: {
@@ -36,6 +73,9 @@ export const authOptions: NextAuthOptions = {
                             },
                             $setOnInsert: {
                                 googleId: account.providerAccountId,
+                            },
+                            $addToSet: {
+                                providers: "google",
                             }
                         },
                         {
@@ -70,6 +110,9 @@ export const authOptions: NextAuthOptions = {
                     return false;
                 }
             }
+            if (account?.provider === "credentials") {
+                return true;
+            }
             return true;
         },
         async session({ session, token }) {
@@ -88,9 +131,15 @@ export const authOptions: NextAuthOptions = {
                         return session;
                     }
 
-                    // Fallback: lookup by googleId (token.sub)
+                    // Fallback: lookup by id (token.sub) or googleId
                     if (token.sub) {
-                        const dbUser = await User.findOne({ googleId: token.sub });
+                        let dbUser = null;
+                        if (isValidObjectId(token.sub)) {
+                            dbUser = await User.findOne({ _id: token.sub });
+                        }
+                        if (!dbUser) {
+                            dbUser = await User.findOne({ googleId: token.sub });
+                        }
 
                         if (!dbUser) {
                             console.error("CRITICAL: User not found in DB during session check!", token.sub);
@@ -107,12 +156,12 @@ export const authOptions: NextAuthOptions = {
             }
             return session;
         },
-        async jwt({ token, account }) {
+        async jwt({ token, account, user }) {
             try {
                 await connectDB();
 
                 // On first sign-in, account is present
-                if (account?.providerAccountId) {
+                if (account?.provider === "google" && account.providerAccountId) {
                     const dbUser = await User.findOne({ googleId: account.providerAccountId });
                     if (dbUser) {
                         token.uid = dbUser._id.toString();
@@ -121,9 +170,21 @@ export const authOptions: NextAuthOptions = {
                     return token;
                 }
 
+                if (account?.provider === "credentials" && user?.id) {
+                    token.uid = user.id as string;
+                    token.sub = user.id as string;
+                    return token;
+                }
+
                 // For subsequent requests, ensure uid is set
                 if (!token.uid && token.sub) {
-                    const dbUser = await User.findOne({ googleId: token.sub });
+                    let dbUser = null;
+                    if (isValidObjectId(token.sub)) {
+                        dbUser = await User.findOne({ _id: token.sub });
+                    }
+                    if (!dbUser) {
+                        dbUser = await User.findOne({ googleId: token.sub });
+                    }
                     if (dbUser) {
                         token.uid = dbUser._id.toString();
                     }
