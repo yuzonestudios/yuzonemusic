@@ -19,7 +19,23 @@ export default async function VerifyPage({
     const token = tokenMatch ? tokenMatch[0].toLowerCase() : "";
     let status: "success" | "invalid" | "expired" = "invalid";
 
-    if (token) {
+    if (normalizedEmail) {
+        try {
+            await connectDB();
+            const emailUser = await User.findOne({ email: normalizedEmail });
+            if (emailUser) {
+                emailUser.emailVerified = true;
+                emailUser.emailVerificationToken = undefined;
+                emailUser.emailVerificationExpires = undefined;
+                await emailUser.save();
+                status = "success";
+            }
+        } catch (error) {
+            console.error("Email verification error:", error);
+        }
+    }
+
+    if (status !== "success" && token) {
         try {
             await connectDB();
             const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
@@ -45,15 +61,6 @@ export default async function VerifyPage({
                     user = await User.findOne({ emailVerificationToken: tokenHash });
                     if (user) {
                         status = "expired";
-                    } else if (normalizedEmail) {
-                        const emailUser = await User.findOne({ email: normalizedEmail });
-                        if (emailUser) {
-                            emailUser.emailVerified = true;
-                            emailUser.emailVerificationToken = undefined;
-                            emailUser.emailVerificationExpires = undefined;
-                            await emailUser.save();
-                            status = "success";
-                        }
                     }
                 }
             }
