@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export default async function VerifyPage({
     searchParams,
 }: {
-    searchParams?: { token?: string };
+    searchParams?: { token?: string; email?: string };
 }) {
     const rawToken = typeof searchParams?.token === "string" ? searchParams.token : "";
     const rawEmail = typeof searchParams?.email === "string" ? searchParams.email : "";
