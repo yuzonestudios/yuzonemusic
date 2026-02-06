@@ -3,10 +3,10 @@
 import { signIn } from "next-auth/react";
 import { Music } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { Suspense, useState, type FormEvent } from "react";
 import styles from "./signup.module.css";
 
-export default function SignupPage() {
+function SignupClient() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
@@ -173,5 +173,13 @@ export default function SignupPage() {
                 </p>
             </div>
         </div>
+    );
+}
+
+export default function SignupPage() {
+    return (
+        <Suspense>
+            <SignupClient />
+        </Suspense>
     );
 }

@@ -3,10 +3,10 @@
 import { signIn } from "next-auth/react";
 import { Music, Headphones, Heart } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { Suspense, useState, type FormEvent } from "react";
 import styles from "./login.module.css";
 
-export default function LoginPage() {
+function LoginClient() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
@@ -148,5 +148,13 @@ export default function LoginPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense>
+            <LoginClient />
+        </Suspense>
     );
 }

@@ -4,6 +4,7 @@ import Providers from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
     title: "Yuzone Music - Stream Your Favorite Music",
     description: "Discover and stream millions of songs with Yuzone Music. Modern music streaming experience with YouTube Music integration.",
     keywords: ["music", "streaming", "youtube music", "songs", "playlist"],
