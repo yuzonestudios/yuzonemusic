@@ -115,8 +115,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, message: "Verification email sent.", code: "VERIFICATION_SENT" });
     } catch (error) {
         console.error("Signup error:", error);
+        const message = error instanceof Error && error.message ? error.message : "Failed to create account.";
+        const safeMessage = message === "SMTP configuration is missing" ? message : "Failed to create account.";
         return NextResponse.json(
-            { success: false, error: "Failed to create account." },
+            { success: false, error: safeMessage },
             { status: 500 }
         );
     }
