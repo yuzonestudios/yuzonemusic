@@ -10,14 +10,17 @@ export default async function VerifyPage({
 }: {
     searchParams?: { token?: string };
 }) {
-    const token = searchParams?.token || "";
+    const rawToken = typeof searchParams?.token === "string" ? searchParams.token : "";
+    const normalizedToken = decodeURIComponent(rawToken).trim();
+    const tokenMatch = normalizedToken.match(/[a-f0-9]{64}/i);
+    const token = tokenMatch ? tokenMatch[0].toLowerCase() : "";
     let status: "success" | "invalid" | "expired" = "invalid";
 
     if (token) {
         try {
             await connectDB();
             const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
-            const user = await User.findOne({
+            let user = await User.findOne({
                 emailVerificationToken: tokenHash,
                 emailVerificationExpires: { $gt: new Date() },
             });
@@ -35,6 +38,11 @@ export default async function VerifyPage({
                 });
                 if (expiredUser) {
                     status = "expired";
+                } else {
+                    user = await User.findOne({ emailVerificationToken: tokenHash });
+                    if (user) {
+                        status = "expired";
+                    }
                 }
             }
         } catch (error) {
