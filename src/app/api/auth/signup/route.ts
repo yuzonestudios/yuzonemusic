@@ -116,7 +116,12 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error("Signup error:", error);
         const message = error instanceof Error && error.message ? error.message : "Failed to create account.";
-        const safeMessage = message === "SMTP configuration is missing" ? message : "Failed to create account.";
+        const safeMessage =
+            message === "SMTP configuration is missing"
+                ? message
+                : message === "SMTP send failed"
+                    ? "Unable to send verification email. Please check SMTP settings."
+                    : "Failed to create account.";
         return NextResponse.json(
             { success: false, error: safeMessage },
             { status: 500 }
@@ -149,11 +154,16 @@ async function sendVerificationEmail(email: string, name: string, link: string) 
         auth: { user, pass },
     });
 
-    await transporter.sendMail({
-        from,
-        to: email,
-        subject: "Verify your Yuzone account",
-        text: `Hi ${name || "there"},\n\nPlease verify your email by clicking the link below:\n${link}\n\nIf you didn\'t request this, you can ignore this email.`,
-        html: `<p>Hi ${name || "there"},</p><p>Please verify your email by clicking the link below:</p><p><a href="${link}">Verify my email</a></p><p>If you didn\'t request this, you can ignore this email.</p>`,
-    });
+    try {
+        await transporter.sendMail({
+            from,
+            to: email,
+            subject: "Verify your Yuzone account",
+            text: `Hi ${name || "there"},\n\nPlease verify your email by clicking the link below:\n${link}\n\nIf you didn\'t request this, you can ignore this email.`,
+            html: `<p>Hi ${name || "there"},</p><p>Please verify your email by clicking the link below:</p><p><a href="${link}">Verify my email</a></p><p>If you didn\'t request this, you can ignore this email.</p>`,
+        });
+    } catch (error) {
+        console.error("SMTP send error:", error);
+        throw new Error("SMTP send failed");
+    }
 }
