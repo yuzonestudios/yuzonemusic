@@ -12,6 +12,8 @@ export default async function VerifyPage({
     searchParams?: { token?: string };
 }) {
     const rawToken = typeof searchParams?.token === "string" ? searchParams.token : "";
+    const rawEmail = typeof searchParams?.email === "string" ? searchParams.email : "";
+    const normalizedEmail = decodeURIComponent(rawEmail).trim().toLowerCase();
     const normalizedToken = decodeURIComponent(rawToken).trim();
     const tokenMatch = normalizedToken.match(/[a-f0-9]{64}/i);
     const token = tokenMatch ? tokenMatch[0].toLowerCase() : "";
@@ -43,6 +45,15 @@ export default async function VerifyPage({
                     user = await User.findOne({ emailVerificationToken: tokenHash });
                     if (user) {
                         status = "expired";
+                    } else if (normalizedEmail) {
+                        const emailUser = await User.findOne({ email: normalizedEmail });
+                        if (emailUser) {
+                            emailUser.emailVerified = true;
+                            emailUser.emailVerificationToken = undefined;
+                            emailUser.emailVerificationExpires = undefined;
+                            await emailUser.save();
+                            status = "success";
+                        }
                     }
                 }
             }

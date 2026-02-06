@@ -35,7 +35,11 @@ export async function POST(request: NextRequest) {
         user.emailVerificationExpires = expiresAt;
         await user.save();
 
-        await sendVerificationEmail(email, user.name || "there", `${siteUrl}/verify?token=${token}`);
+        await sendVerificationEmail(
+            email,
+            user.name || "there",
+            `${siteUrl}/verify?token=${token}&email=${encodeURIComponent(email)}`
+        );
 
         return NextResponse.json({ success: true, message: "Verification email sent." });
     } catch (error) {

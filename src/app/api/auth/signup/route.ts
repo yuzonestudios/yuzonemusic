@@ -48,7 +48,11 @@ export async function POST(request: NextRequest) {
                     existingUser.emailVerificationExpires = expiresAt;
                     await existingUser.save();
 
-                    await sendVerificationEmail(email, name, `${siteUrl}/verify?token=${token}`);
+                    await sendVerificationEmail(
+                        email,
+                        name,
+                        `${siteUrl}/verify?token=${token}&email=${encodeURIComponent(email)}`
+                    );
 
                     return NextResponse.json({
                         success: true,
@@ -85,7 +89,11 @@ export async function POST(request: NextRequest) {
             }
             await existingUser.save();
 
-            await sendVerificationEmail(email, name, `${siteUrl}/verify?token=${token}`);
+            await sendVerificationEmail(
+                email,
+                name,
+                `${siteUrl}/verify?token=${token}&email=${encodeURIComponent(email)}`
+            );
 
             return NextResponse.json({ success: true, message: "Verification email sent.", code: "VERIFICATION_SENT" });
         }
@@ -105,7 +113,11 @@ export async function POST(request: NextRequest) {
         });
 
         try {
-            await sendVerificationEmail(email, name, `${siteUrl}/verify?token=${token}`);
+            await sendVerificationEmail(
+                email,
+                name,
+                `${siteUrl}/verify?token=${token}&email=${encodeURIComponent(email)}`
+            );
         } catch (error) {
             await User.deleteOne({ email });
             throw error;
