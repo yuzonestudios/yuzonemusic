@@ -238,6 +238,9 @@ export default function FullscreenPlayer() {
                     className={styles.bgImgEl}
                 />
             )}
+            <div className={styles.ambientGlow} />
+            <div className={styles.ambientGlowAlt} />
+            <div className={styles.grain} />
             <div className={styles.container}>
                 {/* Close Button */}
                 <button onClick={closeFullscreen} className={styles.closeBtn} title="Close">
@@ -257,6 +260,8 @@ export default function FullscreenPlayer() {
                                 quality={95}
                                 className={styles.albumImage}
                             />
+                            <div className={styles.albumShine} />
+                            <div className={styles.albumRings} />
                             <div className={`${styles.albumGlow} ${isPlaying ? styles.playing : ""}`} />
                         </div>
                     ) : (
