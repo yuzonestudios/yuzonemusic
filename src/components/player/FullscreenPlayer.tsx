@@ -189,20 +189,6 @@ export default function FullscreenPlayer() {
         }
     };
 
-    const oldUseEffect = useEffect(() => {
-        if (!isFullscreenOpen) return;
-
-        // Prevent body scroll when modal is open
-        document.body.style.overflow = "hidden";
-        return () => {
-            document.body.style.overflow = "unset";
-        };
-    }, [isFullscreenOpen]);
-
-    // This will replace the old useEffect, removing the duplicate
-
-    if (!isFullscreenOpen) return null;
-
     const progress = duration ? (currentTime / duration) * 100 : 0;
 
     const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -242,7 +228,7 @@ export default function FullscreenPlayer() {
     };
 
     useEffect(() => {
-        if (!isPlaying) {
+        if (!isFullscreenOpen || !isPlaying) {
             setWaveIntensity(0);
             return;
         }
@@ -290,7 +276,9 @@ export default function FullscreenPlayer() {
         return () => {
             cancelAnimationFrame(rafId);
         };
-    }, [isPlaying]);
+    }, [isFullscreenOpen, isPlaying]);
+
+    if (!isFullscreenOpen) return null;
 
     return (
         <div className={styles.overlay}>
