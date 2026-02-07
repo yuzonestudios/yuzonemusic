@@ -58,6 +58,7 @@ export default function FullscreenPlayer() {
     const [lyricsLoading, setLyricsLoading] = useState(false);
     const [lyricsError, setLyricsError] = useState<string | null>(null);
     const [showLyrics, setShowLyrics] = useState(false);
+    const [waveIntensity, setWaveIntensity] = useState(0);
     const [showSpeedMenu, setShowSpeedMenu] = useState(false);
 
     useEffect(() => {
@@ -227,6 +228,70 @@ export default function FullscreenPlayer() {
         setVolume(parseFloat(e.target.value));
     };
 
+    const waveSpeed = Math.max(0.7, 2 - waveIntensity * 1.2);
+    const waveGlow = 6 + waveIntensity * 12;
+
+    const progressStyle: React.CSSProperties = {
+        width: `${progress}%`,
+        ...(isPlaying
+            ? {
+                  ["--wave-speed" as any]: `${waveSpeed}s`,
+                  ["--wave-glow" as any]: `${waveGlow}px`,
+              }
+            : {}),
+    };
+
+    useEffect(() => {
+        if (!isPlaying) {
+            setWaveIntensity(0);
+            return;
+        }
+
+        const audio = getAudioElement();
+        if (!audio) return;
+
+        let rafId: number;
+
+        const audioCtx: AudioContext = (audio as any).__yuzoneAudioCtx || new AudioContext();
+        (audio as any).__yuzoneAudioCtx = audioCtx;
+
+        const analyser: AnalyserNode = (audio as any).__yuzoneAnalyser || audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        (audio as any).__yuzoneAnalyser = analyser;
+
+        let source: MediaElementAudioSourceNode | undefined = (audio as any).__yuzoneSource;
+        if (!source) {
+            source = audioCtx.createMediaElementSource(audio);
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            (audio as any).__yuzoneSource = source;
+        }
+
+        if (audioCtx.state === "suspended") {
+            audioCtx.resume().catch(() => null);
+        }
+
+        const data = new Uint8Array(analyser.frequencyBinCount);
+
+        const tick = () => {
+            analyser.getByteFrequencyData(data);
+            let sum = 0;
+            for (let i = 0; i < data.length; i += 1) {
+                sum += data[i];
+            }
+            const avg = sum / data.length;
+            const normalized = Math.min(1, avg / 255);
+            setWaveIntensity(normalized);
+            rafId = requestAnimationFrame(tick);
+        };
+
+        rafId = requestAnimationFrame(tick);
+
+        return () => {
+            cancelAnimationFrame(rafId);
+        };
+    }, [isPlaying]);
+
     return (
         <div className={styles.overlay}>
             {currentSong && currentSong.thumbnail && (
@@ -250,7 +315,7 @@ export default function FullscreenPlayer() {
                 {/* Album Art */}
                 <div className={styles.albumArtContainer}>
                     {currentSong && currentSong.thumbnail ? (
-                        <div className={styles.albumArt}>
+                        <div className={`${styles.albumArt} ${isPlaying ? styles.playingArt : ""}`}>
                             <Image
                                 src={currentSong.thumbnail.replace(/=w\d+-h\d+/, '=w720-h720')}
                                 alt={currentSong.title}
@@ -274,6 +339,18 @@ export default function FullscreenPlayer() {
                 {/* Song Info */}
                 {currentSong && (
                     <div className={styles.songInfo}>
+                        <div className={styles.badgeRow}>
+                            <span className={styles.nowPlayingBadge}>
+                                <span className={styles.pulseDot} /> Now Playing
+                            </span>
+                            <span className={styles.personalBadge}>Personalized for you</span>
+                        </div>
+                        <div className={`${styles.equalizer} ${isPlaying ? styles.equalizerPlaying : ""}`}>
+                            <span className={styles.eqBar} />
+                            <span className={styles.eqBar} />
+                            <span className={styles.eqBar} />
+                            <span className={styles.eqBar} />
+                        </div>
                         <h1 className={styles.title}>{currentSong.title}</h1>
                         <p 
                             className={styles.artist}
@@ -330,8 +407,8 @@ export default function FullscreenPlayer() {
                     <div className={styles.progressBar} onClick={handleProgressClick}>
                         <div className={styles.progressBg}>
                             <div
-                                className={styles.progressFill}
-                                style={{ width: `${progress}%` }}
+                                className={`${styles.progressFill} ${isPlaying ? styles.progressPlaying : ""}`}
+                                style={progressStyle}
                             />
                         </div>
                     </div>
