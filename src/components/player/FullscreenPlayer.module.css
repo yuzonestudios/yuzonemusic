@@ -297,11 +297,7 @@
     text-align: center;
     max-width: 500px;
     animation: fadeIn 0.6s ease-out 0.1s both;
-    padding: 0.9rem 0.75rem;
-    border-radius: var(--radius-lg);
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+    padding: 0.6rem 0.25rem;
 }
 
 .badgeRow {
@@ -372,14 +368,15 @@
     font-size: 0.8rem;
     font-weight: 600;
     letter-spacing: 0.01em;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: linear-gradient(135deg, rgba(255, 184, 230, 0.5), rgba(184, 230, 255, 0.45));
+    border: 1px solid rgba(255, 255, 255, 0.22);
     color: var(--text-primary);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .personalBadge {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(56, 189, 248, 0.3));
-    border-color: rgba(139, 92, 246, 0.5);
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.55), rgba(125, 211, 252, 0.5));
+    border-color: rgba(167, 139, 250, 0.6);
 }
 
 .pulseDot {
@@ -481,11 +478,11 @@
 .lyricsPanel {
     width: 100%;
     max-width: 700px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-lg);
     padding: 1.25rem;
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+    background: transparent;
+    border: 1px solid transparent;
+    box-shadow: none;
 }
 
 .lyricsHeader {
@@ -545,10 +542,7 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    padding: 0.6rem 0.75rem;
-    border-radius: var(--radius-lg);
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.2rem 0.25rem;
 }
 
 .progressBar {
@@ -632,10 +626,7 @@
     gap: 2rem;
     width: 100%;
     animation: fadeIn 0.6s ease-out 0.2s both;
-    padding: 0.5rem 0.75rem;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.25rem 0.5rem;
 }
 
 @media (max-width: 768px) {
@@ -660,15 +651,15 @@
     color: var(--text-secondary);
     transition: all var(--transition-fast);
     position: relative;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    border: 1px solid transparent;
 }
 
 .controlBtn:hover:not(:disabled) {
     color: var(--text-primary);
     background: rgba(139, 92, 246, 0.16);
     border-color: rgba(139, 92, 246, 0.4);
-    transform: translateY(-2px);
+    transform: translateY(-3px) scale(1.04);
 }
 
 .controlBtn:disabled {
@@ -771,10 +762,7 @@
     width: 100%;
     max-width: 300px;
     animation: fadeIn 0.6s ease-out 0.3s both;
-    padding: 0.5rem 0.6rem;
-    border-radius: var(--radius-lg);
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.2rem 0.25rem;
 }
 
 @media (max-width: 480px) {
@@ -840,10 +828,7 @@
     justify-content: center;
     margin-top: 1rem;
     animation: fadeIn 0.6s ease-out 0.35s both;
-    padding: 0.4rem 0.6rem;
-    border-radius: var(--radius-full);
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.2rem 0.25rem;
 }
 
 .speedBtn {
@@ -935,10 +920,7 @@
     justify-content: center;
     gap: 2rem;
     animation: fadeIn 0.6s ease-out 0.4s both;
-    padding: 0.5rem 0.7rem;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.2rem 0.25rem;
 }
 
 .secondaryBtn {
@@ -949,16 +931,16 @@
     height: 48px;
     border-radius: var(--radius-full);
     color: var(--text-secondary);
-    background: rgba(255, 255, 255, 0.06);
+    background: transparent;
     transition: all var(--transition-fast);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid transparent;
 }
 
 .secondaryBtn:hover:not(:disabled) {
     color: var(--text-primary);
     background: rgba(139, 92, 246, 0.1);
     border-color: var(--accent-primary);
-    transform: translateY(-2px) scale(1.05);
+    transform: translateY(-3px) scale(1.06);
 }
 
 .secondaryBtn:disabled {
