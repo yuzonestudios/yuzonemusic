@@ -27,6 +27,8 @@ interface RecommendationsData {
     basedOnRecent: Song[];
     trendingInYourStyle: Song[];
     freshDiscoveries: Song[];
+    forYouMix: Song[];
+    weeklyDiscovery: Song[];
 }
 
 export default function RecommendationsPage() {
@@ -81,7 +83,13 @@ export default function RecommendationsPage() {
         );
     }
 
-    const recommendations = data?.recommendations as RecommendationsData | undefined;
+    const recommendations = data?.recommendations
+        ? {
+            ...data.recommendations,
+            forYouMix: data.recommendations.forYouMix || [],
+            weeklyDiscovery: data.recommendations.weeklyDiscovery || [],
+        } as RecommendationsData
+        : undefined;
     const topArtists = data?.topArtists || [];
 
     const hasRecommendations = recommendations && (
@@ -89,7 +97,9 @@ export default function RecommendationsPage() {
         recommendations.artistsYouMightLike.length > 0 ||
         recommendations.basedOnRecent.length > 0 ||
         recommendations.trendingInYourStyle.length > 0 ||
-        recommendations.freshDiscoveries.length > 0
+        recommendations.freshDiscoveries.length > 0 ||
+        recommendations.forYouMix.length > 0 ||
+        recommendations.weeklyDiscovery.length > 0
     );
 
     return (
@@ -127,6 +137,38 @@ export default function RecommendationsPage() {
                 </div>
             ) : (
                 <div className={styles.sections}>
+                    {recommendations.forYouMix.length > 0 && (
+                        <section className={styles.section}>
+                            <h2 className={styles.sectionTitle}>For You Mix</h2>
+                            <div className={styles.grid}>
+                                {recommendations.forYouMix.map((song, index) => (
+                                    <SongCard
+                                        key={song.videoId}
+                                        song={song}
+                                        songs={recommendations.forYouMix}
+                                        index={index}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {recommendations.weeklyDiscovery.length > 0 && (
+                        <section className={styles.section}>
+                            <h2 className={styles.sectionTitle}>Weekly Discovery</h2>
+                            <div className={styles.grid}>
+                                {recommendations.weeklyDiscovery.map((song, index) => (
+                                    <SongCard
+                                        key={song.videoId}
+                                        song={song}
+                                        songs={recommendations.weeklyDiscovery}
+                                        index={index}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
                     {recommendations.suggested.length > 0 && (
                         <section className={styles.section}>
                             <h2 className={styles.sectionTitle}>Songs You Might Like</h2>

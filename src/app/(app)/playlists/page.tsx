@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Plus, Music, Download } from "lucide-react";
 import PlaylistCard from "@/components/cards/PlaylistCard";
+import SmartPlaylistCard from "@/components/cards/SmartPlaylistCard";
 import CreatePlaylistModal from "@/components/ui/CreatePlaylistModal";
 import ImportPlaylistModal from "@/components/ui/ImportPlaylistModal";
 import { usePlayerStore } from "@/store/playerStore";
@@ -26,10 +27,27 @@ interface Playlist {
     createdAt: string;
 }
 
+interface SmartPlaylist {
+    id: string;
+    name: string;
+    description: string;
+    thumbnail?: string;
+    songCount: number;
+    songs: Array<{
+        videoId: string;
+        title: string;
+        artist: string;
+        thumbnail: string;
+        duration: string;
+    }>;
+}
+
 export default function PlaylistsPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
+    const [smartPlaylists, setSmartPlaylists] = useState<SmartPlaylist[]>([]);
+    const [smartLoading, setSmartLoading] = useState(true);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -40,6 +58,7 @@ export default function PlaylistsPage() {
             router.push("/login");
         } else if (status === "authenticated") {
             fetchPlaylists();
+            fetchSmartPlaylists();
         }
     }, [status, router]);
 
@@ -55,6 +74,21 @@ export default function PlaylistsPage() {
             console.error("Error fetching playlists:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchSmartPlaylists = async () => {
+        setSmartLoading(true);
+        try {
+            const res = await fetch("/api/smart-playlists", { cache: "no-store" });
+            const data = await res.json();
+            if (data.success) {
+                setSmartPlaylists(data.playlists || []);
+            }
+        } catch (error) {
+            console.error("Error fetching smart playlists:", error);
+        } finally {
+            setSmartLoading(false);
         }
     };
 
@@ -112,6 +146,16 @@ export default function PlaylistsPage() {
         } catch (error) {
             console.error("Error playing playlist:", error);
         }
+    };
+
+    const handlePlaySmartPlaylist = (playlistId: string) => {
+        const playlist = smartPlaylists.find((p) => p.id === playlistId);
+        if (!playlist || playlist.songs.length === 0) return;
+        setQueue(playlist.songs);
+        setCurrentSong(playlist.songs[0]);
+        setQueueSource({ type: "smart", id: playlistId, name: playlist.name });
+        play();
+        ensurePlayback();
     };
 
     const handleImportPlaylist = async (
@@ -206,6 +250,24 @@ export default function PlaylistsPage() {
                         </div>
                         <div>
                             <h2 className={styles.emptyTitle}>No playlists yet</h2>
+                            {smartLoading ? (
+                                <div className={styles.loading}>Loading smart playlists...</div>
+                            ) : smartPlaylists.length > 0 ? (
+                                <section className={styles.section}>
+                                    <h2 className={styles.sectionTitle}>Smart Playlists</h2>
+                                    <p className={styles.sectionSubtitle}>Mood, tempo, and time-of-day mixes tailored to you.</p>
+                                    <div className={styles.grid}>
+                                        {smartPlaylists.map((playlist) => (
+                                            <SmartPlaylistCard
+                                                key={playlist.id}
+                                                playlist={playlist}
+                                                onPlay={handlePlaySmartPlaylist}
+                                            />
+                                        ))}
+                                    </div>
+                                </section>
+                            ) : null}
+
                             <p className={styles.emptyText}>
                                 Create your first playlist and start organizing your favorite songs
                             </p>

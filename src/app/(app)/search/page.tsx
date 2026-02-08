@@ -30,6 +30,8 @@ export default function SearchPage() {
     const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
     const [pendingSearchRequest, setPendingSearchRequest] = useState<Promise<void> | null>(null);
     const [searchHistory, setSearchHistory] = useState<string[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [trendingSuggestions, setTrendingSuggestions] = useState<Array<{ title: string; artist: string }>>([]);
 
     // Cache search results in browser storage
     const getSearchCacheKey = (q: string, type: SearchType) => `search_${q}_${type}`;
@@ -63,6 +65,8 @@ export default function SearchPage() {
 
     const handleSearch = useCallback(async () => {
         if (!query.trim()) return;
+
+        setShowSuggestions(false);
 
         // Save to search history
         addToSearchHistory(query);
@@ -132,22 +136,6 @@ export default function SearchPage() {
         setPendingSearchRequest(searchPromise);
     }, [query, searchType, setGlobalLoading]);
 
-    // Debounced search effect - 500ms delay for faster feedback
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (query.trim()) {
-                handleSearch();
-            } else if (query === "") {
-                setSongs([]);
-                setArtists([]);
-                setAlbums([]);
-                setHasSearched(false);
-            }
-        }, 500);
-
-        return () => clearTimeout(timer);
-    }, [query, handleSearch]);
-
     // Fetch liked songs once and cache them
     useEffect(() => {
         // Load search history on mount
@@ -194,6 +182,28 @@ export default function SearchPage() {
         fetchLikedSongs();
     }, []);
 
+    useEffect(() => {
+        const fetchTrending = async () => {
+            try {
+                const res = await fetch("/api/top", { cache: "no-store" });
+                const data = await res.json();
+                if (data.success && Array.isArray(data.songs)) {
+                    const normalized = data.songs.map((song: any) => ({
+                        title: song.title || "Unknown Title",
+                        artist: Array.isArray(song.artists)
+                            ? song.artists.join(", ")
+                            : song.artist || song.artists || "Unknown Artist",
+                    }));
+                    setTrendingSuggestions(normalized);
+                }
+            } catch (error) {
+                console.error("Failed to fetch trending suggestions:", error);
+            }
+        };
+
+        fetchTrending();
+    }, []);
+
     // Close artist modal when search results change
     useEffect(() => {
         setSelectedArtist(null);
@@ -203,6 +213,24 @@ export default function SearchPage() {
         if (e.key === "Enter") {
             handleSearch();
         }
+    };
+
+    const clearSearchInput = () => {
+        setQuery("");
+        setSongs([]);
+        setArtists([]);
+        setAlbums([]);
+        setAlbumSongs([]);
+        setSelectedAlbumTitle(null);
+        setSelectedAlbumThumbnail(null);
+        setError(null);
+        setHasSearched(false);
+        setShowSuggestions(false);
+    };
+
+    const handleSuggestionSelect = (value: string) => {
+        setQuery(value);
+        setShowSuggestions(false);
     };
 
     const handleHistoryClick = (historyQuery: string) => {
@@ -305,6 +333,20 @@ export default function SearchPage() {
         }
     };
 
+    const normalizedQuery = query.trim().toLowerCase();
+    const recentMatches = showSuggestions
+        ? (normalizedQuery
+            ? searchHistory.filter((item) => item.toLowerCase().includes(normalizedQuery)).slice(0, 5)
+            : searchHistory.slice(0, 5))
+        : [];
+    const trendingMatches = showSuggestions
+        ? (normalizedQuery
+            ? trendingSuggestions
+                .filter((item) => `${item.title} ${item.artist}`.toLowerCase().includes(normalizedQuery))
+                .slice(0, 5)
+            : trendingSuggestions.slice(0, 5))
+        : [];
+
     return (
         <div className={styles.page}>
             <div className={styles.content}>
@@ -327,19 +369,72 @@ export default function SearchPage() {
                             type="text"
                             placeholder="Search for songs, artists, or albums..."
                             value={query}
-                            onChange={(e) => setQuery(e.target.value)}
+                            onChange={(e) => {
+                                const nextQuery = e.target.value;
+                                setQuery(nextQuery);
+                                if (!nextQuery.trim()) {
+                                    clearSearchInput();
+                                } else {
+                                    setShowSuggestions(true);
+                                }
+                            }}
+                            onFocus={() => setShowSuggestions(true)}
+                            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                             onKeyDown={handleKeyDown}
                             className={styles.input}
                         />
                         {query && (
                             <button
-                                onClick={() => setQuery("")}
+                                onClick={clearSearchInput}
                                 className={styles.clearBtn}
                                 title="Clear search"
                                 aria-label="Clear search"
                             >
                                 <X size={16} />
                             </button>
+                        )}
+
+                        {showSuggestions && (recentMatches.length > 0 || trendingMatches.length > 0) && (
+                            <div className={styles.suggestionsPanel}>
+                                {recentMatches.length > 0 && (
+                                    <div className={styles.suggestionsGroup}>
+                                        <div className={styles.suggestionsHeader}>Recent searches</div>
+                                        {recentMatches.map((item) => (
+                                            <button
+                                                key={`recent-${item}`}
+                                                type="button"
+                                                className={styles.suggestionItem}
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={() => handleSuggestionSelect(item)}
+                                            >
+                                                <Clock size={14} className={styles.suggestionIcon} />
+                                                <span className={styles.suggestionText}>{item}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {trendingMatches.length > 0 && (
+                                    <div className={styles.suggestionsGroup}>
+                                        <div className={styles.suggestionsHeader}>Trending now</div>
+                                        {trendingMatches.map((item) => (
+                                            <button
+                                                key={`trending-${item.title}-${item.artist}`}
+                                                type="button"
+                                                className={styles.suggestionItem}
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={() => handleSuggestionSelect(item.title)}
+                                            >
+                                                <Music size={14} className={styles.suggestionIcon} />
+                                                <span className={styles.suggestionText}>
+                                                    {item.title}
+                                                    <span className={styles.suggestionSubtext}> • {item.artist}</span>
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
                     <button onClick={handleSearch} className={styles.searchBtn}>

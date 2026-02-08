@@ -437,7 +437,30 @@ export async function GET(req: NextRequest) {
             basedOnRecent: sortedRecommendations.filter(r => r.reason.includes("Because you played")).slice(0, 14),
             trendingInYourStyle: sortedRecommendations.filter(r => r.reason === "Trending in your style").slice(0, 12),
             freshDiscoveries: sortedRecommendations.filter(r => r.reason === "Fresh discoveries").slice(0, 20),
+            forYouMix: [] as any[],
+            weeklyDiscovery: [] as any[],
         };
+
+        const uniqueById = (songs: any[]) => {
+            const seen = new Set<string>();
+            return songs.filter((song) => {
+                if (seen.has(song.videoId)) return false;
+                seen.add(song.videoId);
+                return true;
+            });
+        };
+
+        groupedRecommendations.forYouMix = uniqueById([
+            ...groupedRecommendations.suggested,
+            ...groupedRecommendations.basedOnRecent,
+            ...groupedRecommendations.artistsYouMightLike,
+            ...groupedRecommendations.trendingInYourStyle,
+        ]).slice(0, 30);
+
+        groupedRecommendations.weeklyDiscovery = uniqueById([
+            ...groupedRecommendations.freshDiscoveries,
+            ...groupedRecommendations.trendingInYourStyle,
+        ]).slice(0, 30);
 
         // Calculate total recommendations
         const totalRecommendations = 
@@ -476,6 +499,8 @@ export async function GET(req: NextRequest) {
                         basedOnRecent: [],
                         trendingInYourStyle: [],
                         freshDiscoveries: trendingRecommendations.slice(15, 50),
+                        forYouMix: trendingRecommendations.slice(0, 25),
+                        weeklyDiscovery: trendingRecommendations.slice(25, 55),
                     },
                     topArtists: topArtists.slice(0, 5),
                 });

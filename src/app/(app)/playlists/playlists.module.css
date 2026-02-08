@@ -76,6 +76,22 @@
     min-height: 400px;
 }
 
+.section {
+    margin-bottom: 2.5rem;
+}
+
+.sectionTitle {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.4rem;
+}
+
+.sectionSubtitle {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
 .loading {
     display: flex;
     align-items: center;
