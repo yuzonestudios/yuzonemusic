@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import connectDB from "@/lib/mongodb";
 import PlaybackHistory from "@/models/PlaybackHistory";
 import LikedSong from "@/models/LikedSong";
+import User from "@/models/User";
 import { getTopCharts } from "@/lib/youtube-music";
 import { cache, CACHE_TTL } from "@/lib/cache";
 
@@ -124,11 +125,20 @@ export async function GET() {
 
         await connectDB();
 
-        const userId = (session.user as any)?.id || (session.user as any)?.sub;
+        let userId = (session.user as any)?.id || (session.user as any)?.sub;
+
+        if (!userId && session.user.email) {
+            const user = await User.findOne({ email: session.user.email }).select("_id").lean();
+            userId = user?._id;
+        }
 
         const [history, liked] = await Promise.all([
-            PlaybackHistory.find({ userId }).sort({ playedAt: -1 }).limit(120).lean(),
-            LikedSong.find({ userId }).sort({ likedAt: -1 }).limit(80).lean(),
+            userId
+                ? PlaybackHistory.find({ userId }).sort({ playedAt: -1 }).limit(120).lean()
+                : Promise.resolve([]),
+            userId
+                ? LikedSong.find({ userId }).sort({ likedAt: -1 }).limit(80).lean()
+                : Promise.resolve([]),
         ]);
 
         const trending = await getTopCharts().catch(() => []);

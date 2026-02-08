@@ -92,6 +92,15 @@
     font-size: 0.95rem;
 }
 
+.smartEmpty {
+    margin-top: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px dashed rgba(139, 92, 246, 0.35);
+    border-radius: var(--radius-lg);
+    color: var(--text-muted);
+    background: rgba(139, 92, 246, 0.08);
+}
+
 .loading {
     display: flex;
     align-items: center;
