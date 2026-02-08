@@ -243,6 +243,30 @@ export default function PlaylistsPage() {
             </div>
 
             <div className={styles.content}>
+                {smartLoading ? (
+                    <div className={styles.loading}>Loading smart playlists...</div>
+                ) : (
+                    <section className={styles.section}>
+                        <h2 className={styles.sectionTitle}>Smart Playlists</h2>
+                        <p className={styles.sectionSubtitle}>Mood, tempo, and time-of-day mixes tailored to you.</p>
+                        {smartPlaylists.length > 0 ? (
+                            <div className={styles.grid}>
+                                {smartPlaylists.map((playlist) => (
+                                    <SmartPlaylistCard
+                                        key={playlist.id}
+                                        playlist={playlist}
+                                        onPlay={handlePlaySmartPlaylist}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className={styles.smartEmpty}>
+                                Start listening and liking tracks to unlock your smart mixes.
+                            </div>
+                        )}
+                    </section>
+                )}
+
                 {playlists.length === 0 ? (
                     <div className={styles.empty}>
                         <div className={styles.emptyIcon}>
@@ -250,30 +274,6 @@ export default function PlaylistsPage() {
                         </div>
                         <div>
                             <h2 className={styles.emptyTitle}>No playlists yet</h2>
-                            {smartLoading ? (
-                                <div className={styles.loading}>Loading smart playlists...</div>
-                            ) : (
-                                <section className={styles.section}>
-                                    <h2 className={styles.sectionTitle}>Smart Playlists</h2>
-                                    <p className={styles.sectionSubtitle}>Mood, tempo, and time-of-day mixes tailored to you.</p>
-                                    {smartPlaylists.length > 0 ? (
-                                        <div className={styles.grid}>
-                                            {smartPlaylists.map((playlist) => (
-                                                <SmartPlaylistCard
-                                                    key={playlist.id}
-                                                    playlist={playlist}
-                                                    onPlay={handlePlaySmartPlaylist}
-                                                />
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className={styles.smartEmpty}>
-                                            Start listening and liking tracks to unlock your smart mixes.
-                                        </div>
-                                    )}
-                                </section>
-                            )}
-
                             <p className={styles.emptyText}>
                                 Create your first playlist and start organizing your favorite songs
                             </p>
