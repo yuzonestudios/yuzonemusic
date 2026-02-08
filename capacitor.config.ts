@@ -8,6 +8,11 @@ const config: CapacitorConfig = {
     url: 'https://music.yuzone.me',
     cleartext: true,
     androidScheme: 'https'
+  },
+  plugins: {
+    Browser: {
+      presentationStyle: 'popover'
+    }
   }
 };
 

@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "me.yuzone.music",
+    "sha256_cert_fingerprints": [
+      "1C:EB:34:AC:25:57:98:A9:92:DF:09:30:12:D3:98:18:A5:A3:F5:4B:CF:18:12:AD:1B:63:D5:B5:34:EE:1B:FD"
+    ]
+  }
+}]
