@@ -14,6 +14,8 @@ export async function sendVerificationEmail(email: string, name: string, code: s
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
     const from = process.env.SMTP_FROM || "no-reply@yuzone.me";
+    const fromName = process.env.SMTP_FROM_NAME;
+    const fromHeader = fromName ? `${fromName} <${from}>` : from;
 
     if (!host || !port || !user || !pass) {
         throw new Error("SMTP configuration is missing");
@@ -28,7 +30,7 @@ export async function sendVerificationEmail(email: string, name: string, code: s
 
     try {
         await transporter.sendMail({
-            from,
+            from: fromHeader,
             to: email,
             subject: "Verify your Yuzone account",
             text: `Hi ${name || "there"},\n\nYour verification code is: ${code}\n\nThis code will expire in 15 minutes.\n\nIf you didn\'t request this, you can ignore this email.`,
