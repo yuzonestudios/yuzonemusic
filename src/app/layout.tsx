@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import NextTopLoader from 'nextjs-toploader';
 import Providers from "./providers";
+import DeepLinkHandler from "@/components/DeepLinkHandler";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -47,6 +48,7 @@ export default function RootLayout({
                     speed={200}
                     shadow="0 0 10px var(--accent-primary),0 0 5px var(--accent-primary)"
                 />
+                <DeepLinkHandler />
                 <Providers>{children}</Providers>
             </body>
         </html>
