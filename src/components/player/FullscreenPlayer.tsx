@@ -392,12 +392,29 @@ export default function FullscreenPlayer() {
 
                 {/* Progress Bar */}
                 <div className={styles.progressSection}>
-                    <div className={styles.progressBar} onClick={handleProgressClick}>
-                        <div className={styles.progressBg}>
-                            <div
-                                className={`${styles.progressFill} ${isPlaying ? styles.progressPlaying : ""}`}
-                                style={progressStyle}
-                            />
+                    <div
+                        className={`${styles.progressBar} ${isPlaying ? styles.waveAnimated : ""}`}
+                        onClick={handleProgressClick}
+                    >
+                        <div className={styles.waveTrack} aria-hidden="true">
+                            <svg className={styles.waveSvg} viewBox="0 0 120 20" preserveAspectRatio="none">
+                                <path d="M0 10 Q6 10 12 8 Q18 6 24 10 Q30 14 36 9 Q42 5 48 10 Q54 15 60 9 Q66 4 72 10 Q78 16 84 9 Q90 5 96 10 Q102 13 108 8 Q114 6 120 10" />
+                            </svg>
+                        </div>
+                        <div className={styles.waveFill} style={progressStyle} aria-hidden="true">
+                            <svg className={styles.waveSvg} viewBox="0 0 120 20" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="rgba(139, 92, 246, 0.9)" />
+                                        <stop offset="50%" stopColor="rgba(56, 189, 248, 0.9)" />
+                                        <stop offset="100%" stopColor="rgba(139, 92, 246, 0.9)" />
+                                    </linearGradient>
+                                </defs>
+                                <path
+                                    d="M0 10 Q6 10 12 8 Q18 6 24 10 Q30 14 36 9 Q42 5 48 10 Q54 15 60 9 Q66 4 72 10 Q78 16 84 9 Q90 5 96 10 Q102 13 108 8 Q114 6 120 10"
+                                    stroke="url(#waveGradient)"
+                                />
+                            </svg>
                         </div>
                     </div>
                     <div className={styles.timeInfo}>

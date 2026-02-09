@@ -183,60 +183,25 @@
     flex: 1;
     cursor: pointer;
     padding: 8px 0;
-    position: relative;
-    height: 14px;
 }
 
-.waveTrack,
-.waveFill {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 10px;
-}
 
-.waveTrack {
-    width: 100%;
-    color: rgba(255, 255, 255, 0.18);
-}
-
-.waveFill {
-    color: var(--accent-primary);
+.progressBg {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
     overflow: hidden;
-    transition: width 120ms linear;
 }
 
-.waveSvg {
-    width: 100%;
+.progressFill {
     height: 100%;
-    display: block;
-    stroke: currentColor;
-    stroke-width: 2.4;
-    fill: none;
-    filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.35));
+    background: var(--accent-gradient);
+    border-radius: 2px;
+    transition: width 100ms linear;
 }
 
-.waveAnimated .waveSvg {
-    stroke-dasharray: 16 10;
-    animation: waveShift 1.3s linear infinite;
-}
-
-@keyframes waveShift {
-    to {
-        stroke-dashoffset: -26;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .waveAnimated .waveSvg {
-        animation: none;
-    }
-}
-
-.progressBar:hover .waveTrack,
-.progressBar:hover .waveFill {
-    transform: translateY(-50%) scaleY(1.2);
+.progressBar:hover .progressBg {
+    height: 6px;
 }
 
 /* Volume Control */
