@@ -476,12 +476,23 @@ export default function MusicPlayer() {
                     {/* Progress Bar */}
                     <div className={styles.progressWrapper}>
                         <span className={styles.time}>{formatTime(currentTime)}</span>
-                        <div className={styles.progressBar} onClick={handleProgressClick}>
-                            <div className={styles.progressBg}>
-                                <div
-                                    className={styles.progressFill}
-                                    style={{ width: `${progress}%` }}
-                                />
+                        <div
+                            className={`${styles.progressBar} ${isPlaying ? styles.waveAnimated : ""}`}
+                            onClick={handleProgressClick}
+                        >
+                            <div className={styles.waveTrack} aria-hidden="true">
+                                <svg className={styles.waveSvg} viewBox="0 0 120 20" preserveAspectRatio="none">
+                                    <path d="M0 10 Q 10 2 20 10 T 40 10 T 60 10 T 80 10 T 100 10 T 120 10" />
+                                </svg>
+                            </div>
+                            <div
+                                className={styles.waveFill}
+                                style={{ width: `${progress}%` }}
+                                aria-hidden="true"
+                            >
+                                <svg className={styles.waveSvg} viewBox="0 0 120 20" preserveAspectRatio="none">
+                                    <path d="M0 10 Q 10 2 20 10 T 40 10 T 60 10 T 80 10 T 100 10 T 120 10" />
+                                </svg>
                             </div>
                         </div>
                         <span className={styles.time}>{formatTime(duration)}</span>
