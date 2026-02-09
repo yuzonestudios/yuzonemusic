@@ -68,6 +68,14 @@
     flex-direction: column;
 }
 
+.nameForm {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
 .name {
     font-size: 1.125rem;
     font-weight: 500;
@@ -533,6 +541,45 @@
         width: 100%;
         font-size: 0.85rem;
         padding: 0.6rem 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .profileInfo {
+        width: 100%;
+    }
+
+    .nameForm {
+        flex-wrap: wrap;
+        align-items: stretch;
+    }
+
+    .nameForm>* {
+        flex: 1 1 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .avatarRow {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .avatarInput {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .saveBtn,
+    .cancelBtn {
+        width: 100%;
+        justify-content: center;
     }
 }
 

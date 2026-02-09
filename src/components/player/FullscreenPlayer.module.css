@@ -599,6 +599,7 @@
 }
 
 @keyframes wavePulse {
+
     0%,
     100% {
         transform: translateY(-50%) scaleY(0.85);

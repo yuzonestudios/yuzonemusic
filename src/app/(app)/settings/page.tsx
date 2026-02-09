@@ -259,7 +259,7 @@ export default function SettingsPage() {
                                     e.preventDefault();
                                     handleSaveDisplayName();
                                 }}
-                                style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem", width: "100%" }}
+                                className={styles.nameForm}
                             >
                                 {isEditingName ? (
                                     <>
