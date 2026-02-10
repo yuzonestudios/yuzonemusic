@@ -17,10 +17,32 @@ export default function DashboardPage() {
     const [isSummaryLoaded, setIsSummaryLoaded] = useState(false);
 
     useEffect(() => {
-        const cachedMinutes = readListeningMinutesCookie();
+        const cachedMinutes = readLocalMinutes() ?? readListeningMinutesCookie();
         if (cachedMinutes !== null) {
             setMonthlyMinutes(cachedMinutes);
         }
+
+        const fetchSummary = async () => {
+            try {
+                const summaryRes = await fetch(`/api/history/summary?ts=${Date.now()}`, {
+                    cache: "no-store",
+                });
+                if (summaryRes.ok) {
+                    const summaryData = await summaryRes.json();
+                    if (summaryData.success) {
+                        const serverMinutes = summaryData.totalListenMinutes ?? 0;
+                        const localMinutes = readLocalMinutes() ?? 0;
+                        const minutes = Math.max(serverMinutes, localMinutes);
+                        setMonthlyMinutes(minutes);
+                        writeListeningMinutesCookie(minutes);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch listening summary:", error);
+            } finally {
+                setIsSummaryLoaded(true);
+            }
+        };
 
         const fetchData = async () => {
             try {
@@ -60,25 +82,33 @@ export default function DashboardPage() {
                     }
                 }
 
-                // Fetch monthly listening hours
-                const summaryRes = await fetch("/api/history/summary");
-                if (summaryRes.ok) {
-                    const summaryData = await summaryRes.json();
-                    if (summaryData.success) {
-                        const minutes = summaryData.totalListenMinutes ?? 0;
-                        setMonthlyMinutes(minutes);
-                        writeListeningMinutesCookie(minutes);
-                    }
-                }
+                await fetchSummary();
             } catch (error) {
                 console.error("Failed to fetch data:", error);
             } finally {
-                setIsSummaryLoaded(true);
                 setLoading(false);
             }
         };
 
         fetchData();
+
+        const handleLocalListen = (event: Event) => {
+            const detail = (event as CustomEvent).detail as { minutes?: number } | undefined;
+            if (!detail) return;
+            const minutes = Number.isFinite(detail.minutes) ? detail.minutes : null;
+            if (minutes !== null) {
+                setMonthlyMinutes(minutes);
+                writeListeningMinutesCookie(minutes);
+            }
+        };
+
+        window.addEventListener("listenMinutesLocal", handleLocalListen);
+
+        const intervalId = setInterval(fetchSummary, 60000);
+        return () => {
+            clearInterval(intervalId);
+            window.removeEventListener("listenMinutesLocal", handleLocalListen);
+        };
     }, []);
 
     const handleLike = async (song: Song) => {
@@ -257,7 +287,21 @@ function getTimeGreeting(): string {
 }
 
 const LISTEN_MINUTES_COOKIE_PREFIX = "yuzone_listen_minutes";
+const LISTEN_LOCAL_SECONDS_PREFIX = "yuzone_listen_local_seconds";
 const LISTEN_COOKIE_DAYS = 40;
+
+function readLocalMinutes(): number | null {
+    if (typeof window === "undefined") return null;
+    try {
+        const key = getLocalListenSecondsKey();
+        const value = window.localStorage.getItem(key);
+        const parsed = Number.parseInt(value || "0", 10);
+        if (!Number.isFinite(parsed)) return null;
+        return Math.round(parsed / 60);
+    } catch (e) {
+        return null;
+    }
+}
 
 function readListeningMinutesCookie(): number | null {
     if (typeof document === "undefined") return null;
@@ -285,4 +329,10 @@ function getListeningCookieKey(): string {
     const now = new Date();
     const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     return `${LISTEN_MINUTES_COOKIE_PREFIX}_${month}`;
+}
+
+function getLocalListenSecondsKey(): string {
+    const now = new Date();
+    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    return `${LISTEN_LOCAL_SECONDS_PREFIX}_${month}`;
 }

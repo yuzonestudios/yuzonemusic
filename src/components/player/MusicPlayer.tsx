@@ -77,6 +77,7 @@ export default function MusicPlayer() {
     const lastSongRef = useRef<typeof currentSong | null>(null);
     const lastListenRef = useRef(0);
     const sessionIdRef = useRef<string | null>(null);
+    const lastProgressRef = useRef(0);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -170,6 +171,53 @@ export default function MusicPlayer() {
         }
     }, []);
 
+    const LOCAL_LISTEN_SECONDS_KEY_PREFIX = "yuzone_listen_local_seconds";
+    const LISTEN_MINUTES_COOKIE_PREFIX = "yuzone_listen_minutes";
+
+    const getListenMonthKey = () => {
+        const now = new Date();
+        const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        return month;
+    };
+
+    const getLocalListenSecondsKey = () => {
+        return `${LOCAL_LISTEN_SECONDS_KEY_PREFIX}_${getListenMonthKey()}`;
+    };
+
+    const getListeningCookieKey = () => {
+        return `${LISTEN_MINUTES_COOKIE_PREFIX}_${getListenMonthKey()}`;
+    };
+
+    const readLocalListenSeconds = () => {
+        if (typeof window === "undefined") return 0;
+        try {
+            const key = getLocalListenSecondsKey();
+            const value = window.localStorage.getItem(key);
+            const parsed = Number.parseInt(value || "0", 10);
+            return Number.isFinite(parsed) ? parsed : 0;
+        } catch (e) {
+            return 0;
+        }
+    };
+
+    const writeLocalListenSeconds = (seconds: number) => {
+        if (typeof window === "undefined") return;
+        try {
+            const key = getLocalListenSecondsKey();
+            window.localStorage.setItem(key, String(Math.max(0, Math.floor(seconds))));
+        } catch (e) {
+            // Ignore storage errors
+        }
+    };
+
+    const writeListeningMinutesCookie = (minutes: number) => {
+        if (typeof document === "undefined") return;
+        const cookieKey = getListeningCookieKey();
+        const expires = new Date();
+        expires.setDate(expires.getDate() + 40);
+        document.cookie = `${cookieKey}=${encodeURIComponent(minutes)}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+    };
+
     // Track song play in history & Check Like Status
     useEffect(() => {
         if (currentSong) {
@@ -178,6 +226,7 @@ export default function MusicPlayer() {
             lastSongRef.current = currentSong;
             lastListenRef.current = 0;
             sessionIdRef.current = `${currentSong.videoId}-${Date.now()}`;
+            lastProgressRef.current = 0;
             
             // 1. Check if liked
             const checkLike = async () => {
@@ -212,6 +261,29 @@ export default function MusicPlayer() {
             lastListenRef.current = currentTime;
         }
     }, [currentTime, currentSong?.videoId]);
+
+    useEffect(() => {
+        if (!currentSong || !isPlaying) return;
+
+        const tick = () => {
+            const delta = Math.max(0, currentTime - lastProgressRef.current);
+            if (delta > 0) {
+                const totalSeconds = readLocalListenSeconds() + Math.floor(delta);
+                writeLocalListenSeconds(totalSeconds);
+                const minutes = Math.round(totalSeconds / 60);
+                writeListeningMinutesCookie(minutes);
+                window.dispatchEvent(
+                    new CustomEvent("listenMinutesLocal", {
+                        detail: { minutes, seconds: totalSeconds },
+                    })
+                );
+            }
+            lastProgressRef.current = currentTime;
+        };
+
+        const intervalId = setInterval(tick, 5000);
+        return () => clearInterval(intervalId);
+    }, [currentSong?.videoId, isPlaying, currentTime]);
 
     useEffect(() => {
         if (!currentSong || !isPlaying) return;
