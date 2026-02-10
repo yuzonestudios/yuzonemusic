@@ -131,6 +131,8 @@ function buildPlaylist(
         minSongs?: number;
         insight?: string;
         personalized?: boolean;
+        requireKeywordMatch?: boolean;
+        filterSong?: (song: SmartSong) => boolean;
     } = {}
 ): SmartPlaylist {
     const {
@@ -147,9 +149,13 @@ function buildPlaylist(
         minSongs = 12,
         insight,
         personalized = true,
+        requireKeywordMatch = false,
+        filterSong,
     } = options;
 
-    const scored = candidates
+    const scopedCandidates = filterSong ? candidates.filter(filterSong) : candidates;
+
+    const scored = scopedCandidates
         .map((song) => ({
             song,
             score: (() => {
@@ -169,7 +175,10 @@ function buildPlaylist(
                     ? artists.reduce((sum, artist) => (focusArtists.includes(artist) ? sum + 1.5 : sum), 0)
                     : 0;
 
+                const nameMatchOk = requireKeywordMatch ? keywordScore > 0 : true;
+
                 return (
+                    (nameMatchOk ? 1 : 0) +
                     baseWeight +
                     keywordScore * 0.8 +
                     userKeywordScore * 0.5 +
@@ -202,7 +211,7 @@ function buildPlaylist(
     }
 
     if (selected.length < minSongs) {
-        for (const song of candidates) {
+        for (const song of scopedCandidates) {
             if (selected.length >= maxSongs) break;
             if (!seen.has(song.videoId)) {
                 const primaryArtist = splitArtists(song.artist)[0] || "unknown";
@@ -382,6 +391,7 @@ export async function GET() {
                     playCounts,
                     likedIds,
                     maxPerArtist: 4,
+                    requireKeywordMatch: true,
                     insight: hasSignals ? "Weighted by your favorite artists." : "Mood-based picks to get started.",
                     personalized: hasSignals,
                 }
@@ -401,6 +411,7 @@ export async function GET() {
                     playCounts,
                     likedIds,
                     maxPerArtist: 4,
+                    requireKeywordMatch: true,
                     insight: hasSignals ? "Balanced by energy and your history." : "Energy picks to kick things off.",
                     personalized: hasSignals,
                 }
@@ -422,6 +433,12 @@ export async function GET() {
                     focusArtists: focusArtist ? [focusArtist] : undefined,
                     maxPerArtist: 6,
                     minSongs: 10,
+                    filterSong: focusArtist
+                        ? (song) => {
+                            const artists = splitArtists(song.artist);
+                            return artists.includes(focusArtist);
+                        }
+                        : undefined,
                     insight: hasSignals
                         ? focusArtistLabel
                             ? `Top artist: ${focusArtistLabel}`
