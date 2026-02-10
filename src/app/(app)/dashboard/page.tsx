@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import { Search, Heart, Music, Sparkles } from "lucide-react";
+import { Search, Heart, Music, Sparkles, Clock } from "lucide-react";
 import type { Song } from "@/types";
 import styles from "./dashboard.module.css";
 
@@ -13,6 +13,7 @@ export default function DashboardPage() {
     const [recommendations, setRecommendations] = useState<Song[]>([]);
     const [loading, setLoading] = useState(true);
     const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
+    const [monthlyMinutes, setMonthlyMinutes] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -50,6 +51,15 @@ export default function DashboardPage() {
                             ...recData.recommendations.trendingInYourStyle,
                         ].slice(0, 10);
                         setRecommendations(allRecs);
+                    }
+                }
+
+                // Fetch monthly listening hours
+                const summaryRes = await fetch("/api/history/summary");
+                if (summaryRes.ok) {
+                    const summaryData = await summaryRes.json();
+                    if (summaryData.success) {
+                        setMonthlyMinutes(summaryData.totalListenMinutes ?? 0);
                     }
                 }
             } catch (error) {
@@ -122,6 +132,19 @@ export default function DashboardPage() {
                             <p className={styles.headerSubtitle}>
                                 Ready to discover some great music?
                             </p>
+                        </div>
+                    </div>
+                    <div className={styles.statsRow}>
+                        <div className={styles.statCard}>
+                            <div className={styles.statIcon}>
+                                <Clock size={20} />
+                            </div>
+                            <div>
+                                <div className={styles.statLabel}>Listening this month (sync across devices)</div>
+                                <div className={styles.statValue}>
+                                    {monthlyMinutes === null ? "—" : `${monthlyMinutes} min`}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

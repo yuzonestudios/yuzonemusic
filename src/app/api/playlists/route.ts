@@ -226,3 +226,81 @@ export async function DELETE(req: NextRequest) {
         );
     }
 }
+
+// PATCH - Update playlist metadata (thumbnail)
+export async function PATCH(req: NextRequest) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.email) {
+            return NextResponse.json(
+                { success: false, error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
+        const body = await req.json();
+        const { id, thumbnail } = body;
+
+        if (!id) {
+            return NextResponse.json(
+                { success: false, error: "Playlist ID is required" },
+                { status: 400 }
+            );
+        }
+
+        if (thumbnail && typeof thumbnail !== "string") {
+            return NextResponse.json(
+                { success: false, error: "Thumbnail must be a string" },
+                { status: 400 }
+            );
+        }
+
+        if (typeof thumbnail === "string" && thumbnail.length > 1_500_000) {
+            return NextResponse.json(
+                { success: false, error: "Thumbnail is too large" },
+                { status: 400 }
+            );
+        }
+
+        await connectDB();
+        const user = await User.findOne({ email: session.user.email });
+        if (!user) {
+            return NextResponse.json(
+                { success: false, error: "User not found" },
+                { status: 404 }
+            );
+        }
+
+        const updated = await Playlist.findOneAndUpdate(
+            { _id: id, userId: user._id },
+            { thumbnail: thumbnail || undefined },
+            { new: true }
+        ).lean();
+
+        if (!updated) {
+            return NextResponse.json(
+                { success: false, error: "Playlist not found or unauthorized" },
+                { status: 404 }
+            );
+        }
+
+        cache.delete(`playlists:${user._id}`);
+        cache.delete(`playlist:${user._id}:${id}`);
+
+        return NextResponse.json({
+            success: true,
+            playlist: {
+                ...updated,
+                _id: updated._id.toString(),
+                userId: updated.userId.toString(),
+                songCount: updated.songs.length,
+            },
+        });
+    } catch (error) {
+        console.error("Error updating playlist:", error);
+        return NextResponse.json(
+            { success: false, error: "Failed to update playlist" },
+            { status: 500 }
+        );
+    }
+}

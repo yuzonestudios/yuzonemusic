@@ -133,6 +133,8 @@ function buildPlaylist(
         personalized?: boolean;
         requireKeywordMatch?: boolean;
         filterSong?: (song: SmartSong) => boolean;
+        requiredKeywords?: string[];
+        excludedKeywords?: string[];
     } = {}
 ): SmartPlaylist {
     const {
@@ -151,6 +153,8 @@ function buildPlaylist(
         personalized = true,
         requireKeywordMatch = false,
         filterSong,
+        requiredKeywords = [],
+        excludedKeywords = [],
     } = options;
 
     const scopedCandidates = filterSong ? candidates.filter(filterSong) : candidates;
@@ -161,6 +165,12 @@ function buildPlaylist(
             score: (() => {
                 const baseWeight = sourceWeights.get(song.videoId) || 0.5;
                 const text = `${song.title} ${song.artist}`.toLowerCase();
+                const requiredMatch = requiredKeywords.length
+                    ? requiredKeywords.some((keyword) => text.includes(keyword))
+                    : true;
+                const excludedMatch = excludedKeywords.length
+                    ? excludedKeywords.some((keyword) => text.includes(keyword))
+                    : false;
                 const keywordScore = keywords.reduce((sum, keyword) => (text.includes(keyword) ? sum + 1 : sum), 0);
                 const userKeywordScore = includeUserKeywords
                     ? userKeywords.reduce((sum, keyword) => (text.includes(keyword) ? sum + 1 : sum), 0)
@@ -176,9 +186,11 @@ function buildPlaylist(
                     : 0;
 
                 const nameMatchOk = requireKeywordMatch ? keywordScore > 0 : true;
+                if (!requiredMatch || excludedMatch || !nameMatchOk) {
+                    return -999;
+                }
 
                 return (
-                    (nameMatchOk ? 1 : 0) +
                     baseWeight +
                     keywordScore * 0.8 +
                     userKeywordScore * 0.5 +
@@ -352,6 +364,7 @@ export async function GET() {
                     likedIds,
                     extraBoostIds: likedIds,
                     maxPerArtist: 5,
+                    requiredKeywords: userKeywords.slice(0, 6),
                     insight: hasSignals ? "Built from your likes and top repeats." : "Popular picks to start your mix.",
                     personalized: hasSignals,
                 }
@@ -372,6 +385,7 @@ export async function GET() {
                     likedIds,
                     extraBoostIds: recentHistoryIds,
                     maxPerArtist: 4,
+                    requiredKeywords: userKeywords.slice(0, 6),
                     insight: hasSignals ? "Focused on your recent plays." : "Popular tracks with smooth pacing.",
                     personalized: hasSignals,
                 }
@@ -392,6 +406,8 @@ export async function GET() {
                     likedIds,
                     maxPerArtist: 4,
                     requireKeywordMatch: true,
+                    requiredKeywords: KEYWORDS.mood,
+                    excludedKeywords: KEYWORDS.tempo,
                     insight: hasSignals ? "Weighted by your favorite artists." : "Mood-based picks to get started.",
                     personalized: hasSignals,
                 }
@@ -412,6 +428,8 @@ export async function GET() {
                     likedIds,
                     maxPerArtist: 4,
                     requireKeywordMatch: true,
+                    requiredKeywords: KEYWORDS.tempo,
+                    excludedKeywords: KEYWORDS.mood,
                     insight: hasSignals ? "Balanced by energy and your history." : "Energy picks to kick things off.",
                     personalized: hasSignals,
                 }

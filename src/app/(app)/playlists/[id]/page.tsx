@@ -5,9 +5,10 @@ import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
-import { Play, Trash2, Music, ArrowLeft, User, Share2, Shuffle, Search, Download } from "lucide-react";
+import { Play, Trash2, Music, ArrowLeft, User, Share2, Shuffle, Search, Download, ImagePlus } from "lucide-react";
 import SongCard from "@/components/cards/SongCard";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import UpdatePlaylistImageModal from "@/components/ui/UpdatePlaylistImageModal";
 import { usePlayerStore } from "@/store/playerStore";
 import { usePlaylistDownload } from "@/hooks/usePlaylistDownload";
 import type { Song as GlobalSong } from "@/types";
@@ -64,6 +65,7 @@ export default function PlaylistDetailPage() {
         onConfirm: () => {},
     });
     const [shareModal, setShareModal] = useState({ isOpen: false, contentId: "", contentName: "" });
+    const [imageModalOpen, setImageModalOpen] = useState(false);
     
     const { setQueue, setCurrentSong, play, toggleShuffle, ensurePlayback } = usePlayerStore();
 
@@ -244,6 +246,30 @@ export default function PlaylistDetailPage() {
         });
     };
 
+    const handleUpdatePlaylistImage = async (thumbnail: string | null) => {
+        if (!playlist) return;
+
+        const res = await fetch("/api/playlists", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: playlistId, thumbnail }),
+        });
+
+        const data = await res.json();
+        if (!data.success) {
+            throw new Error(data.error || "Failed to update playlist image");
+        }
+
+        setPlaylist((prev) =>
+            prev
+                ? {
+                    ...prev,
+                    thumbnail: data.playlist.thumbnail,
+                }
+                : prev
+        );
+    };
+
     const handleRemoveSong = async (videoId: string) => {
         if (!playlist) return;
 
@@ -379,6 +405,14 @@ export default function PlaylistDetailPage() {
                             {isDownloading ? "Downloading..." : "Download"}
                         </button>
                         <button
+                            type="button"
+                            className={styles.secondaryBtn}
+                            onClick={() => setImageModalOpen(true)}
+                        >
+                            <ImagePlus size={18} />
+                            Change Image
+                        </button>
+                        <button
                             className={styles.secondaryBtn}
                             onClick={() => setShareModal({ isOpen: true, contentId: playlistId, contentName: playlist.name })}
                         >
@@ -512,6 +546,13 @@ export default function PlaylistDetailPage() {
                     onClose={() => setShareModal({ isOpen: false, contentId: "", contentName: "" })}
                 />
             )}
+
+            <UpdatePlaylistImageModal
+                isOpen={imageModalOpen}
+                initialThumbnail={playlist.thumbnail}
+                onClose={() => setImageModalOpen(false)}
+                onSave={handleUpdatePlaylistImage}
+            />
         </div>
     );
 }
