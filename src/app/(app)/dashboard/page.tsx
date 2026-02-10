@@ -15,12 +15,15 @@ export default function DashboardPage() {
     const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
     const [monthlyMinutes, setMonthlyMinutes] = useState<number | null>(null);
     const [isSummaryLoaded, setIsSummaryLoaded] = useState(false);
+    const [greeting, setGreeting] = useState("Hello");
 
     useEffect(() => {
         const cachedMinutes = readLocalMinutes() ?? readListeningMinutesCookie();
         if (cachedMinutes !== null) {
             setMonthlyMinutes(cachedMinutes);
         }
+
+        setGreeting(getTimeGreeting());
 
         const fetchSummary = async () => {
             try {
@@ -166,7 +169,7 @@ export default function DashboardPage() {
                         </div>
                         <div className={styles.headerInfo}>
                             <h1 className={styles.headerTitle}>
-                                Good {getTimeGreeting()}
+                                Good {greeting}
                             </h1>
                             <p className={styles.headerSubtitle}>
                                 Ready to discover some great music?
