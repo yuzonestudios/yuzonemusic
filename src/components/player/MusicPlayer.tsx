@@ -266,7 +266,8 @@ export default function MusicPlayer() {
         if (!currentSong || !isPlaying) return;
 
         const tick = () => {
-            const delta = Math.max(0, currentTime - lastProgressRef.current);
+            const current = lastListenRef.current;
+            const delta = Math.max(0, current - lastProgressRef.current);
             if (delta > 0) {
                 const totalSeconds = readLocalListenSeconds() + Math.floor(delta);
                 writeLocalListenSeconds(totalSeconds);
@@ -278,12 +279,12 @@ export default function MusicPlayer() {
                     })
                 );
             }
-            lastProgressRef.current = currentTime;
+            lastProgressRef.current = current;
         };
 
         const intervalId = setInterval(tick, 5000);
         return () => clearInterval(intervalId);
-    }, [currentSong?.videoId, isPlaying, currentTime]);
+    }, [currentSong?.videoId, isPlaying]);
 
     useEffect(() => {
         if (!currentSong || !isPlaying) return;
