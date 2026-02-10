@@ -135,6 +135,11 @@ function buildPlaylist(
         filterSong?: (song: SmartSong) => boolean;
         requiredKeywords?: string[];
         excludedKeywords?: string[];
+        minScore?: number;
+        requiredSources?: Array<"liked" | "history" | "trending">;
+        sourceFlags?: Map<string, Set<"liked" | "history" | "trending">>;
+        excludeIds?: Set<string>;
+        allowOverlapFill?: boolean;
     } = {}
 ): SmartPlaylist {
     const {
@@ -155,6 +160,11 @@ function buildPlaylist(
         filterSong,
         requiredKeywords = [],
         excludedKeywords = [],
+        minScore = -999,
+        requiredSources,
+        sourceFlags = new Map<string, Set<"liked" | "history" | "trending">>(),
+        excludeIds,
+        allowOverlapFill = true,
     } = options;
 
     const scopedCandidates = filterSong ? candidates.filter(filterSong) : candidates;
@@ -186,7 +196,12 @@ function buildPlaylist(
                     : 0;
 
                 const nameMatchOk = requireKeywordMatch ? keywordScore > 0 : true;
-                if (!requiredMatch || excludedMatch || !nameMatchOk) {
+                const flags = sourceFlags.get(song.videoId) || new Set();
+                const hasSource = requiredSources
+                    ? requiredSources.some((source) => flags.has(source))
+                    : true;
+
+                if (!requiredMatch || excludedMatch || !nameMatchOk || !hasSource) {
                     return -999;
                 }
 
@@ -211,6 +226,8 @@ function buildPlaylist(
 
     for (const item of scored) {
         if (selected.length >= maxSongs) break;
+        if (item.score < minScore) continue;
+        if (excludeIds?.has(item.song.videoId)) continue;
         if (!seen.has(item.song.videoId)) {
             const primaryArtist = splitArtists(item.song.artist)[0] || "unknown";
             if (maxPerArtist && (artistCounts.get(primaryArtist) || 0) >= maxPerArtist) {
@@ -230,6 +247,14 @@ function buildPlaylist(
                 if (maxPerArtist && (artistCounts.get(primaryArtist) || 0) >= maxPerArtist) {
                     continue;
                 }
+                if (minScore > -999) {
+                    const flags = sourceFlags.get(song.videoId) || new Set();
+                    const hasSource = requiredSources
+                        ? requiredSources.some((source) => flags.has(source))
+                        : true;
+                    if (!hasSource) continue;
+                }
+                if (!allowOverlapFill && excludeIds?.has(song.videoId)) continue;
                 seen.add(song.videoId);
                 selected.push(song);
                 artistCounts.set(primaryArtist, (artistCounts.get(primaryArtist) || 0) + 1);
@@ -283,6 +308,7 @@ export async function GET() {
         const trending = await getTopCharts().catch(() => []);
 
         const sourceWeights = new Map<string, number>();
+        const sourceFlags = new Map<string, Set<"liked" | "history" | "trending">>();
         const candidates: SmartSong[] = [];
         const likedIds = new Set<string>();
         const playCounts = new Map<string, number>();
@@ -291,17 +317,22 @@ export async function GET() {
         const keywordAffinity = new Map<string, number>();
         const now = Date.now();
         const recentHistoryIds = new Set<string>();
-        const pushCandidate = (item: any, weight: number) => {
+        const pushCandidate = (item: any, weight: number, source?: "liked" | "history" | "trending") => {
             const normalized = normalizeSong(item);
             if (!normalized) return;
             if (!sourceWeights.has(normalized.videoId)) {
                 candidates.push(normalized);
                 sourceWeights.set(normalized.videoId, weight);
             }
+            if (source) {
+                const flags = sourceFlags.get(normalized.videoId) || new Set();
+                flags.add(source);
+                sourceFlags.set(normalized.videoId, flags);
+            }
         };
 
         liked.forEach((song: any) => {
-            pushCandidate(song, 2);
+            pushCandidate(song, 2, "liked");
             if (song.videoId) likedIds.add(song.videoId);
             splitArtists(song.artist || "").forEach((artist) => {
                 artistAffinity.set(artist, (artistAffinity.get(artist) || 0) + 1.8);
@@ -312,7 +343,7 @@ export async function GET() {
         });
 
         history.forEach((song: any, index: number) => {
-            pushCandidate(song, 1.5);
+            pushCandidate(song, 1.5, "history");
             if (song.videoId) {
                 playCounts.set(song.videoId, (playCounts.get(song.videoId) || 0) + 1);
                 if (index < 45) recentHistoryIds.add(song.videoId);
@@ -331,7 +362,7 @@ export async function GET() {
                 recencyScores.set(song.videoId, Math.max(current, recency));
             }
         });
-        trending.forEach((song: any) => pushCandidate(song, 1));
+        trending.forEach((song: any) => pushCandidate(song, 1, "trending"));
 
         const topArtists = [...artistAffinity.entries()]
             .sort((a, b) => b[1] - a[1])
@@ -347,12 +378,23 @@ export async function GET() {
         const focusArtistLabel = focusArtist ? focusArtist.replace(/\b\w/g, (l) => l.toUpperCase()) : null;
         const hasSignals = history.length + liked.length > 0;
 
-        const playlists: SmartPlaylist[] = [
+        const moodKeywords = KEYWORDS.mood;
+        const tempoKeywords = KEYWORDS.tempo;
+        const timeKeywords = KEYWORDS.timeOfDay;
+
+        const playlists: SmartPlaylist[] = [];
+        const usedIds = new Set<string>();
+        const addPlaylist = (playlist: SmartPlaylist) => {
+            playlists.push(playlist);
+            playlist.songs.forEach((song) => usedIds.add(song.videoId));
+        };
+
+        addPlaylist(
             buildPlaylist(
                 "smart-favorites",
                 "Your Favorites",
                 "Songs you have liked and keep coming back to.",
-                KEYWORDS.mood,
+                moodKeywords,
                 candidates,
                 sourceWeights,
                 {
@@ -364,16 +406,22 @@ export async function GET() {
                     likedIds,
                     extraBoostIds: likedIds,
                     maxPerArtist: 5,
+                    requiredSources: ["liked"],
                     requiredKeywords: userKeywords.slice(0, 6),
+                    minScore: 2,
+                    sourceFlags,
                     insight: hasSignals ? "Built from your likes and top repeats." : "Popular picks to start your mix.",
                     personalized: hasSignals,
                 }
-            ),
+            )
+        );
+
+        addPlaylist(
             buildPlaylist(
                 "smart-on-repeat",
                 "On Repeat",
                 "Recent listens with a smooth, familiar flow.",
-                KEYWORDS.timeOfDay,
+                timeKeywords,
                 candidates,
                 sourceWeights,
                 {
@@ -385,16 +433,23 @@ export async function GET() {
                     likedIds,
                     extraBoostIds: recentHistoryIds,
                     maxPerArtist: 4,
+                    requiredSources: ["history"],
                     requiredKeywords: userKeywords.slice(0, 6),
+                    minScore: 1.5,
+                    sourceFlags,
+                    excludeIds: usedIds,
                     insight: hasSignals ? "Focused on your recent plays." : "Popular tracks with smooth pacing.",
                     personalized: hasSignals,
                 }
-            ),
+            )
+        );
+
+        addPlaylist(
             buildPlaylist(
                 "smart-mood-chill",
                 "Chill Vibes",
                 "Laid-back tracks shaped by your taste and mood.",
-                KEYWORDS.mood,
+                moodKeywords,
                 candidates,
                 sourceWeights,
                 {
@@ -406,17 +461,24 @@ export async function GET() {
                     likedIds,
                     maxPerArtist: 4,
                     requireKeywordMatch: true,
-                    requiredKeywords: KEYWORDS.mood,
-                    excludedKeywords: KEYWORDS.tempo,
+                    requiredKeywords: moodKeywords,
+                    excludedKeywords: tempoKeywords,
+                    requiredSources: hasSignals ? ["history", "liked"] : ["trending"],
+                    minScore: 1,
+                    sourceFlags,
+                    excludeIds: usedIds,
                     insight: hasSignals ? "Weighted by your favorite artists." : "Mood-based picks to get started.",
                     personalized: hasSignals,
                 }
-            ),
+            )
+        );
+
+        addPlaylist(
             buildPlaylist(
                 "smart-tempo-energy",
                 "High Energy",
                 "Up-tempo picks to keep you moving and motivated.",
-                KEYWORDS.tempo,
+                tempoKeywords,
                 candidates,
                 sourceWeights,
                 {
@@ -428,17 +490,24 @@ export async function GET() {
                     likedIds,
                     maxPerArtist: 4,
                     requireKeywordMatch: true,
-                    requiredKeywords: KEYWORDS.tempo,
-                    excludedKeywords: KEYWORDS.mood,
+                    requiredKeywords: tempoKeywords,
+                    excludedKeywords: moodKeywords,
+                    requiredSources: ["trending"],
+                    minScore: 1,
+                    sourceFlags,
+                    excludeIds: usedIds,
                     insight: hasSignals ? "Balanced by energy and your history." : "Energy picks to kick things off.",
                     personalized: hasSignals,
                 }
-            ),
+            )
+        );
+
+        addPlaylist(
             buildPlaylist(
                 "smart-time-night",
                 focusArtistLabel ? `${focusArtistLabel} Mix` : "Artist Mix",
                 "A focused artist mix based on who you play most.",
-                KEYWORDS.timeOfDay,
+                timeKeywords,
                 candidates,
                 sourceWeights,
                 {
@@ -457,6 +526,10 @@ export async function GET() {
                             return artists.includes(focusArtist);
                         }
                         : undefined,
+                    requiredSources: hasSignals ? ["history", "liked"] : undefined,
+                    sourceFlags,
+                    excludeIds: usedIds,
+                    allowOverlapFill: true,
                     insight: hasSignals
                         ? focusArtistLabel
                             ? `Top artist: ${focusArtistLabel}`
@@ -464,8 +537,8 @@ export async function GET() {
                         : "Artist mix to start your taste profile.",
                     personalized: hasSignals,
                 }
-            ),
-        ];
+            )
+        );
 
         const response = { success: true, playlists };
         cache.set(cacheKey, response, CACHE_TTL.RECOMMENDATIONS);
