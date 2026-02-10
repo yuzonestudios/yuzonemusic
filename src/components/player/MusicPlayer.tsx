@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, type CSSProperties, type MouseEvent } from "react";
+import { useEffect, useState, useRef, useCallback, type CSSProperties, type MouseEvent } from "react";
 import Image from "next/image";
 import { Download, Heart, Maximize, ListPlus, ListMusic, X, GripVertical, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -73,7 +73,10 @@ export default function MusicPlayer() {
     const [isMobile, setIsMobile] = useState(false);
     const queuePanelRef = useRef<HTMLDivElement>(null);
     const queueToggleRef = useRef<HTMLButtonElement>(null);
-    const historyTrackedRef = useRef(false);
+    const historyPostedRef = useRef<string | null>(null);
+    const lastSongRef = useRef<typeof currentSong | null>(null);
+    const lastListenRef = useRef(0);
+    const sessionIdRef = useRef<string | null>(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -139,11 +142,42 @@ export default function MusicPlayer() {
         openFullscreen();
     };
 
+    const postHistory = useCallback(async (song: typeof currentSong | null, listenDuration: number) => {
+        if (!song) return;
+        if (listenDuration < 20) return;
+        if (!sessionIdRef.current && historyPostedRef.current === song.videoId) return;
+        if (!sessionIdRef.current) {
+            historyPostedRef.current = song.videoId;
+        }
+
+        try {
+            const res = await fetch("/api/history", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ...song,
+                    listenDuration,
+                    sessionId: sessionIdRef.current,
+                }),
+            });
+
+            if (!res.ok) {
+                const error = await res.json();
+                console.error("Failed to track history:", res.status, error);
+            }
+        } catch (e) {
+            console.error("Error tracking history:", e);
+        }
+    }, []);
+
     // Track song play in history & Check Like Status
     useEffect(() => {
         if (currentSong) {
             console.log("Tracking song:", currentSong);
-            historyTrackedRef.current = false;
+            historyPostedRef.current = null;
+            lastSongRef.current = currentSong;
+            lastListenRef.current = 0;
+            sessionIdRef.current = `${currentSong.videoId}-${Date.now()}`;
             
             // 1. Check if liked
             const checkLike = async () => {
@@ -164,71 +198,38 @@ export default function MusicPlayer() {
             };
             checkLike();
 
-            // 2. Track in history after 20 seconds of listening
-            let startTime = Date.now();
-            let hasTrackedHistory = false;
-
-            const trackHistory = async (listenDuration: number) => {
-                if (historyTrackedRef.current) return;
-                historyTrackedRef.current = true;
-                hasTrackedHistory = true;
-
-                try {
-                    const res = await fetch("/api/history", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            ...currentSong,
-                            listenDuration,
-                        }),
-                    });
-
-                    if (!res.ok) {
-                        const error = await res.json();
-                        console.error("Failed to track history:", res.status, error);
-                    }
-                } catch (e) {
-                    console.error("Error tracking history:", e);
-                }
-            };
-
-            const historyCheckInterval = setInterval(async () => {
-                const listenDuration = Math.floor((Date.now() - startTime) / 1000);
-
-                // Only track once after 20 seconds
-                if (!hasTrackedHistory && listenDuration >= 20) {
-                    clearInterval(historyCheckInterval);
-                    await trackHistory(listenDuration);
-                }
-            }, 1000); // Check every second
-
-            // Cleanup interval on song change or unmount
             return () => {
-                clearInterval(historyCheckInterval);
+                if (lastSongRef.current?.videoId === currentSong.videoId) {
+                    postHistory(lastSongRef.current, Math.floor(lastListenRef.current));
+                }
             };
         }
-    }, [currentSong?.videoId]);
+    }, [currentSong?.videoId, postHistory]);
 
     useEffect(() => {
-        if (!currentSong || !duration || !currentTime || !isPlaying) return;
-        if (historyTrackedRef.current) return;
-
-        const remaining = duration - currentTime;
-        if (remaining <= 2) {
-            const listenDuration = Math.floor(duration);
-            historyTrackedRef.current = true;
-            fetch("/api/history", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    ...currentSong,
-                    listenDuration,
-                }),
-            }).catch((e) => {
-                console.error("Error tracking history at end:", e);
-            });
+        if (!currentSong) return;
+        if (currentTime > lastListenRef.current) {
+            lastListenRef.current = currentTime;
         }
-    }, [currentSong, currentTime, duration, isPlaying]);
+    }, [currentTime, currentSong?.videoId]);
+
+    useEffect(() => {
+        if (!currentSong || !isPlaying) return;
+
+        const intervalId = setInterval(() => {
+            postHistory(currentSong, Math.floor(lastListenRef.current));
+        }, 60000);
+
+        return () => clearInterval(intervalId);
+    }, [currentSong, isPlaying, postHistory]);
+
+    useEffect(() => {
+        return () => {
+            if (lastSongRef.current) {
+                postHistory(lastSongRef.current, Math.floor(lastListenRef.current));
+            }
+        };
+    }, [postHistory]);
 
     const toggleLike = async () => {
         if (!currentSong) return;

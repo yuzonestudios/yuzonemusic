@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IPlaybackHistory extends Document {
     userId: mongoose.Types.ObjectId;
+    sessionId?: string;
     videoId: string;
     title: string;
     artist: string;
@@ -18,6 +19,10 @@ const PlaybackHistorySchema = new Schema<IPlaybackHistory>(
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true,
+            index: true,
+        },
+        sessionId: {
+            type: String,
             index: true,
         },
         videoId: {

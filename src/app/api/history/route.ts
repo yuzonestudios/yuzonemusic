@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { videoId, title, artist, thumbnail, duration, listenDuration, artists } = body;
+        const { videoId, title, artist, thumbnail, duration, listenDuration, artists, sessionId } = body;
 
         // Accept either `artist` (string) or `artists` (string[]) from clients
         const artistStr = (typeof artist === "string" && artist.trim().length > 0)
@@ -129,16 +129,34 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Also add to playback history for analytics
-        await PlaybackHistory.create({
-            userId,
-            videoId,
-            title,
-            artist: artistStr,
-            thumbnail: thumbnail || "/placeholder-album.png",
-            duration: duration || "0:00",
-            listenDuration: listenDuration || 0,
-        });
+        // Also add/update playback history for analytics
+        if (sessionId) {
+            await PlaybackHistory.findOneAndUpdate(
+                { userId, sessionId },
+                {
+                    $set: {
+                        videoId,
+                        title,
+                        artist: artistStr,
+                        thumbnail: thumbnail || "/placeholder-album.png",
+                        duration: duration || "0:00",
+                    },
+                    $max: { listenDuration: listenDuration || 0 },
+                    $setOnInsert: { playedAt: new Date() },
+                },
+                { upsert: true, new: true }
+            );
+        } else {
+            await PlaybackHistory.create({
+                userId,
+                videoId,
+                title,
+                artist: artistStr,
+                thumbnail: thumbnail || "/placeholder-album.png",
+                duration: duration || "0:00",
+                listenDuration: listenDuration || 0,
+            });
+        }
 
         // Keep history long enough to compute monthly listening time
         const retentionDays = 60;
