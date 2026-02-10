@@ -3,7 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { useState, useEffect, useCallback, type FormEvent } from "react";
-import { LogOut } from "lucide-react";
+import { LogOut, UploadCloud, Sparkles, ImagePlus } from "lucide-react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useTheme } from "@/context/ThemeContext";
 import { getAvatarUrl } from "@/lib/avatar";
@@ -11,16 +11,17 @@ import styles from "./settings.module.css";
 
 export default function SettingsPage() {
     const { data: session, status } = useSession();
-    const { theme, setTheme } = useTheme();
+    const { theme, setTheme, animationTheme, setAnimationTheme, customThemeImage, setCustomThemeImage } = useTheme();
     const [displayName, setDisplayName] = useState("");
     const [savedDisplayName, setSavedDisplayName] = useState("");
     const [isEditingName, setIsEditingName] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState("");
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-    const [avatarInput, setAvatarInput] = useState("");
     const [isSavingAvatar, setIsSavingAvatar] = useState(false);
     const [avatarMessage, setAvatarMessage] = useState("");
+    const [isSavingThemeImage, setIsSavingThemeImage] = useState(false);
+    const [themeImageMessage, setThemeImageMessage] = useState("");
     const [suggestion, setSuggestion] = useState("");
     const [suggestionMessage, setSuggestionMessage] = useState<string | null>(null);
     const [isSubmittingSuggestion, setIsSubmittingSuggestion] = useState(false);
@@ -72,7 +73,6 @@ export default function SettingsPage() {
                     setDisplayName(name);
                     setSavedDisplayName(name);
                     setAvatarUrl(data.user.image || null);
-                    setAvatarInput(data.user.image || "");
                     if (data.user.audioQuality) {
                         setAudioQuality(data.user.audioQuality);
                     }
@@ -97,7 +97,6 @@ export default function SettingsPage() {
             const data = await res.json();
             if (data.success) {
                 setAvatarUrl(data.user.image || null);
-                setAvatarInput(data.user.image || "");
                 setAvatarMessage("Profile photo updated!");
                 setTimeout(() => setAvatarMessage(""), 3000);
             } else {
@@ -129,6 +128,83 @@ export default function SettingsPage() {
             }
         }
     }, [session, fetchProfile]);
+
+    const handleAvatarFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            setAvatarMessage("Please select an image file.");
+            return;
+        }
+
+        if (file.size > 1_500_000) {
+            setAvatarMessage("Image is too large. Please choose a file under 1.5MB.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async () => {
+            const result = typeof reader.result === "string" ? reader.result : "";
+            if (!result) {
+                setAvatarMessage("Unable to read the selected image.");
+                return;
+            }
+            await handleSaveAvatar(result);
+        };
+        reader.onerror = () => setAvatarMessage("Unable to read the selected image.");
+        reader.readAsDataURL(file);
+    };
+
+    const handleThemeImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            setThemeImageMessage("Please select an image file.");
+            return;
+        }
+
+        if (file.size > 1_500_000) {
+            setThemeImageMessage("Image is too large. Please choose a file under 1.5MB.");
+            return;
+        }
+
+        setIsSavingThemeImage(true);
+        setThemeImageMessage("");
+
+        const reader = new FileReader();
+        reader.onload = async () => {
+            const result = typeof reader.result === "string" ? reader.result : "";
+            if (!result) {
+                setThemeImageMessage("Unable to read the selected image.");
+                setIsSavingThemeImage(false);
+                return;
+            }
+            await setCustomThemeImage(result);
+            await setTheme("custom-image");
+            setThemeImageMessage("Custom theme image saved!");
+            setTimeout(() => setThemeImageMessage(""), 3000);
+            setIsSavingThemeImage(false);
+        };
+        reader.onerror = () => {
+            setThemeImageMessage("Unable to read the selected image.");
+            setIsSavingThemeImage(false);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleRemoveThemeImage = async () => {
+        setIsSavingThemeImage(true);
+        setThemeImageMessage("");
+        await setCustomThemeImage(null);
+        if (theme === "custom-image") {
+            await setTheme("cyber-blue");
+        }
+        setThemeImageMessage("Custom theme image removed.");
+        setTimeout(() => setThemeImageMessage(""), 3000);
+        setIsSavingThemeImage(false);
+    };
 
     const handleSaveDisplayName = async () => {
         if (!displayName.trim() || displayName.length < 2 || displayName.length > 50) {
@@ -326,34 +402,29 @@ export default function SettingsPage() {
                                 </p>
                             )}
                             <div className={styles.avatarEditor}>
-                                <label className={styles.label} htmlFor="avatarUrl">Profile photo URL</label>
+                                <label className={styles.label} htmlFor="avatarFile">Profile photo</label>
                                 <div className={styles.avatarRow}>
-                                    <input
-                                        id="avatarUrl"
-                                        type="url"
-                                        value={avatarInput}
-                                        onChange={(e) => setAvatarInput(e.target.value)}
-                                        className={styles.avatarInput}
-                                        placeholder="https://example.com/avatar.jpg"
-                                        autoComplete="off"
-                                    />
+                                    <label className={styles.fileInput}>
+                                        <UploadCloud size={16} />
+                                        Upload image
+                                        <input
+                                            id="avatarFile"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleAvatarFileChange}
+                                            disabled={isSavingAvatar}
+                                        />
+                                    </label>
                                     <button
                                         type="button"
                                         className={styles.saveBtn}
-                                        onClick={() => handleSaveAvatar(avatarInput.trim() || null)}
-                                        disabled={isSavingAvatar}
-                                    >
-                                        {isSavingAvatar ? "Saving..." : "Save"}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className={styles.cancelBtn}
                                         onClick={() => handleSaveAvatar(null)}
                                         disabled={isSavingAvatar}
                                     >
-                                        Remove
+                                        {isSavingAvatar ? "Saving..." : "Remove"}
                                     </button>
                                 </div>
+                                <p className={styles.helperText}>Upload a JPG or PNG under 1.5MB.</p>
                                 {avatarMessage && (
                                     <p className={`${styles.message} ${avatarMessage.includes("updated") ? styles.success : styles.error}`}>
                                         {avatarMessage}
@@ -424,6 +495,7 @@ export default function SettingsPage() {
                                     { id: "forest-night", label: "Forest Night", gradient: "linear-gradient(135deg, #166534 0%, #0b3b22 100%)" },
                                     { id: "gold-ember", label: "Gold Ember", gradient: "linear-gradient(135deg, #f59e0b 0%, #b45309 100%)" },
                                     { id: "ambient", label: "Ambient (Dynamic)", gradient: "linear-gradient(135deg, #eee 0%, #333 100%)" },
+                                    { id: "custom-image", label: "Custom Image", gradient: "linear-gradient(135deg, #a855f7 0%, #38bdf8 100%)" },
                                 ].map((t) => (
                                     <div
                                         key={t.id}
@@ -438,6 +510,81 @@ export default function SettingsPage() {
                                     </div>
                                 ))}
                             </div>
+                            </div>
+
+                            <div style={{ width: "100%", borderTop: "1px solid rgba(139, 92, 246, 0.2)", paddingTop: "2rem" }}>
+                                <span className={styles.label}>Custom Theme Image</span>
+                                <p className={styles.helperText} style={{ marginTop: "0.5rem", marginBottom: "1rem" }}>
+                                    Upload an image to use as your background theme (syncs across devices).
+                                </p>
+                                <div className={styles.themeImageRow}>
+                                    <div className={styles.themeImagePreview}>
+                                        {customThemeImage ? (
+                                            <img src={customThemeImage} alt="Custom theme preview" />
+                                        ) : (
+                                            <div className={styles.themeImagePlaceholder}>
+                                                <ImagePlus size={22} />
+                                                <span>No image selected</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className={styles.themeImageActions}>
+                                        <label className={styles.fileInput}>
+                                            <UploadCloud size={16} />
+                                            Upload image
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleThemeImageChange}
+                                                disabled={isSavingThemeImage}
+                                            />
+                                        </label>
+                                        <button
+                                            type="button"
+                                            className={styles.cancelBtn}
+                                            onClick={handleRemoveThemeImage}
+                                            disabled={!customThemeImage || isSavingThemeImage}
+                                        >
+                                            Remove
+                                        </button>
+                                        <span className={styles.fileHint}>PNG/JPG under 1.5MB</span>
+                                    </div>
+                                </div>
+                                {themeImageMessage && (
+                                    <p
+                                        className={`${styles.message} ${themeImageMessage.includes("saved") || themeImageMessage.includes("removed") ? styles.success : styles.error}`}
+                                    >
+                                        {themeImageMessage}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div style={{ width: "100%", borderTop: "1px solid rgba(139, 92, 246, 0.2)", paddingTop: "2rem" }}>
+                                <span className={styles.label}>Animation Theme</span>
+                                <p className={styles.helperText} style={{ marginTop: "0.5rem", marginBottom: "1rem" }}>
+                                    Add motion to your background theme.
+                                </p>
+                                <div className={styles.animationGrid}>
+                                    {[
+                                        { id: "still", label: "Still", desc: "No motion" },
+                                        { id: "pulse", label: "Pulse", desc: "Soft breathing glow" },
+                                        { id: "float", label: "Float", desc: "Slow drifting" },
+                                        { id: "shimmer", label: "Shimmer", desc: "Faster ambient" },
+                                    ].map((opt) => (
+                                        <button
+                                            key={opt.id}
+                                            type="button"
+                                            onClick={() => setAnimationTheme(opt.id as any)}
+                                            className={`${styles.animationOption} ${animationTheme === opt.id ? styles.animationActive : ""}`}
+                                        >
+                                            <div className={styles.animationLabel}>
+                                                <Sparkles size={16} />
+                                                {opt.label}
+                                            </div>
+                                            <div className={styles.animationDesc}>{opt.desc}</div>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Default Sort - Responsive */}

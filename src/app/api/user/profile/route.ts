@@ -107,7 +107,7 @@ export async function PATCH(req: NextRequest) {
             }
             if (typeof image === "string") {
                 const trimmed = image.trim();
-                if (trimmed.length > 500) {
+                if (trimmed.length > 1_500_000) {
                     return NextResponse.json(
                         { success: false, error: "Image URL is too long" },
                         { status: 400 }

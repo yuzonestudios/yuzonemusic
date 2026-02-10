@@ -13,6 +13,8 @@ export interface IUser extends Document {
     emailVerificationToken?: string;
     emailVerificationExpires?: Date;
     theme: string;
+    animationTheme?: string;
+    customThemeImage?: string | null;
     audioQuality?: 1 | 2 | 3;
     createdAt: Date;
     updatedAt: Date;
@@ -62,6 +64,14 @@ const UserSchema = new Schema<IUser>(
         theme: {
             type: String,
             default: "cyber-blue",
+        },
+        animationTheme: {
+            type: String,
+            default: "still",
+        },
+        customThemeImage: {
+            type: String,
+            default: null,
         },
         audioQuality: {
             type: Number,

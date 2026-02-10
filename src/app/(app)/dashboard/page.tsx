@@ -14,8 +14,14 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
     const [monthlyMinutes, setMonthlyMinutes] = useState<number | null>(null);
+    const [isSummaryLoaded, setIsSummaryLoaded] = useState(false);
 
     useEffect(() => {
+        const cachedMinutes = readListeningMinutesCookie();
+        if (cachedMinutes !== null) {
+            setMonthlyMinutes(cachedMinutes);
+        }
+
         const fetchData = async () => {
             try {
                 // Fetch recently played
@@ -59,12 +65,15 @@ export default function DashboardPage() {
                 if (summaryRes.ok) {
                     const summaryData = await summaryRes.json();
                     if (summaryData.success) {
-                        setMonthlyMinutes(summaryData.totalListenMinutes ?? 0);
+                        const minutes = summaryData.totalListenMinutes ?? 0;
+                        setMonthlyMinutes(minutes);
+                        writeListeningMinutesCookie(minutes);
                     }
                 }
             } catch (error) {
                 console.error("Failed to fetch data:", error);
             } finally {
+                setIsSummaryLoaded(true);
                 setLoading(false);
             }
         };
@@ -144,6 +153,9 @@ export default function DashboardPage() {
                                 <div className={styles.statValue}>
                                     {monthlyMinutes === null ? "—" : `${monthlyMinutes} min`}
                                 </div>
+                                {!isSummaryLoaded && monthlyMinutes !== null && (
+                                    <div className={styles.statHint}>Syncing latest total...</div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -242,4 +254,35 @@ function getTimeGreeting(): string {
     if (hour < 12) return "Morning";
     if (hour < 18) return "Afternoon";
     return "Evening";
+}
+
+const LISTEN_MINUTES_COOKIE_PREFIX = "yuzone_listen_minutes";
+const LISTEN_COOKIE_DAYS = 40;
+
+function readListeningMinutesCookie(): number | null {
+    if (typeof document === "undefined") return null;
+    const cookieKey = getListeningCookieKey();
+    const match = document.cookie
+        .split(";")
+        .map((part) => part.trim())
+        .find((part) => part.startsWith(`${cookieKey}=`));
+
+    if (!match) return null;
+    const value = match.split("=")[1];
+    const parsed = Number.parseInt(decodeURIComponent(value), 10);
+    return Number.isFinite(parsed) ? parsed : null;
+}
+
+function writeListeningMinutesCookie(minutes: number) {
+    if (typeof document === "undefined") return;
+    const cookieKey = getListeningCookieKey();
+    const expires = new Date();
+    expires.setDate(expires.getDate() + LISTEN_COOKIE_DAYS);
+    document.cookie = `${cookieKey}=${encodeURIComponent(minutes)}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+}
+
+function getListeningCookieKey(): string {
+    const now = new Date();
+    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    return `${LISTEN_MINUTES_COOKIE_PREFIX}_${month}`;
 }

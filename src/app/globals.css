@@ -74,6 +74,7 @@ html {
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
   --transition-slow: 400ms ease;
+  --custom-theme-image: none;
 }
 
 /* New User Requested Themes */
@@ -226,6 +227,18 @@ html {
   --accent-glow: rgba(139, 92, 246, 0.4);
 }
 
+[data-theme='custom-image'] {
+  --bg-primary: #0b0b12;
+  --bg-secondary: rgba(12, 12, 20, 0.9);
+  --bg-tertiary: rgba(20, 20, 32, 0.9);
+  --bg-card: rgba(18, 18, 28, 0.75);
+  --bg-glass: rgba(18, 18, 28, 0.55);
+  --accent-primary: #a855f7;
+  --accent-secondary: #38bdf8;
+  --accent-gradient: linear-gradient(135deg, #a855f7 0%, #38bdf8 100%);
+  --accent-glow: rgba(168, 85, 247, 0.35);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -265,10 +278,14 @@ body::before {
   right: 0;
   bottom: 0;
   /* Richer, multi-layered gradient based on theme variables */
-  background:
+  background-image:
+    var(--custom-theme-image),
     radial-gradient(circle at 15% 50%, var(--accent-glow) 0%, transparent 25%),
     radial-gradient(circle at 85% 30%, var(--accent-glow) 0%, transparent 25%),
     radial-gradient(circle at 50% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+  background-size: cover, auto, auto, auto;
+  background-position: center, center, center, center;
+  background-repeat: no-repeat;
   opacity: 0.6;
   z-index: -1;
   pointer-events: none;
@@ -442,4 +459,17 @@ button:focus {
   50% {
     transform: translateY(-10px);
   }
+}
+
+[data-motion='pulse'] body::before {
+  animation: bgPulse 8s ease-in-out infinite alternate;
+}
+
+[data-motion='float'] body::before,
+[data-motion='float'] body::after {
+  animation: bgFloat 16s ease-in-out infinite alternate;
+}
+
+[data-motion='shimmer'] body::before {
+  animation: bgPulse 5s ease-in-out infinite;
 }
