@@ -97,12 +97,10 @@ export default function DashboardPage() {
 
         const handleLocalListen = (event: Event) => {
             const detail = (event as CustomEvent).detail as { minutes?: number } | undefined;
-            if (!detail) return;
-            const minutes = Number.isFinite(detail.minutes) ? detail.minutes : null;
-            if (minutes !== null) {
-                setMonthlyMinutes(minutes);
-                writeListeningMinutesCookie(minutes);
-            }
+            if (!detail || !Number.isFinite(detail.minutes)) return;
+            const minutes = detail.minutes as number;
+            setMonthlyMinutes(minutes);
+            writeListeningMinutesCookie(minutes);
         };
 
         window.addEventListener("listenMinutesLocal", handleLocalListen);
