@@ -130,6 +130,21 @@
     color: var(--text-secondary);
     font-size: 0.85rem;
     font-weight: 500;
+    flex-wrap: wrap;
+}
+
+.personalizedBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: rgba(139, 92, 246, 0.15);
+    color: var(--accent-primary);
+    border: 1px solid rgba(139, 92, 246, 0.4);
 }
 
 .playlistDescription {
@@ -144,6 +159,12 @@
     flex: 1;
     position: relative;
     z-index: 1;
+}
+
+.playlistInsight {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin: -0.6rem 0 1rem;
 }
 
 .playlistActions {

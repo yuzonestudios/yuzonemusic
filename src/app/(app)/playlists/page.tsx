@@ -31,8 +31,10 @@ interface SmartPlaylist {
     id: string;
     name: string;
     description: string;
+    insight?: string;
     thumbnail?: string;
     songCount: number;
+    personalized?: boolean;
     songs: Array<{
         videoId: string;
         title: string;
@@ -248,7 +250,7 @@ export default function PlaylistsPage() {
                 ) : (
                     <section className={styles.section}>
                         <h2 className={styles.sectionTitle}>Smart Playlists</h2>
-                        <p className={styles.sectionSubtitle}>Mood, tempo, and time-of-day mixes tailored to you.</p>
+                        <p className={styles.sectionSubtitle}>Personalized mixes shaped by your likes and listening history.</p>
                         {smartPlaylists.length > 0 ? (
                             <div className={styles.grid}>
                                 {smartPlaylists.map((playlist) => (

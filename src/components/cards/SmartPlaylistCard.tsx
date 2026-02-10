@@ -9,8 +9,10 @@ interface SmartPlaylistCardProps {
         id: string;
         name: string;
         description: string;
+        insight?: string;
         thumbnail?: string;
         songCount: number;
+        personalized?: boolean;
     };
     onPlay: (playlistId: string) => void;
 }
@@ -42,12 +44,18 @@ export default function SmartPlaylistCard({ playlist, onPlay }: SmartPlaylistCar
                 <div className={styles.playlistInfo}>
                     <h3 className={styles.playlistName}>{playlist.name}</h3>
                     <div className={styles.playlistMeta}>
+                        {playlist.personalized && (
+                            <span className={styles.personalizedBadge}>Personalized</span>
+                        )}
                         <span>{playlist.songCount} {playlist.songCount === 1 ? "song" : "songs"}</span>
                     </div>
                 </div>
             </div>
 
             <p className={styles.playlistDescription}>{playlist.description}</p>
+            {playlist.insight && (
+                <p className={styles.playlistInsight}>{playlist.insight}</p>
+            )}
 
             <div className={styles.playlistActions}>
                 <button
