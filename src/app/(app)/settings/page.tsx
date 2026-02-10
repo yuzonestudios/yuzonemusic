@@ -322,6 +322,19 @@ export default function SettingsPage() {
                 <h1 className={`${styles.title} neon-text`}>Settings</h1>
 
                 <div className={`glass-panel ${styles.section}`}>
+                    <h2 className={styles.sectionHeader}>Latest Update</h2>
+                    <p className={styles.helperText}>
+                        Highlights from the most recent release:
+                    </p>
+                    <div className={styles.updateList}>
+                        <div className={styles.updateItem}>Funky personalized playbar with vibe tags and animated viz.</div>
+                        <div className={styles.updateItem}>Custom theme image upload (file-only).</div>
+                        <div className={styles.updateItem}>Animation themes for background motion.</div>
+                        <div className={styles.updateItem}>Monthly listening time caching and sync tweaks.</div>
+                    </div>
+                </div>
+
+                <div className={`glass-panel ${styles.section}`}>
                     <h2 className={styles.sectionHeader}>Account</h2>
                     <div className={styles.profile}>
                         <img

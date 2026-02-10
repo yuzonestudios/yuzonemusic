@@ -230,6 +230,21 @@
     line-height: 1.5;
 }
 
+.updateList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.updateItem {
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .suggestionInput {
     width: 100%;
     min-height: 120px;

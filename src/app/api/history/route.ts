@@ -4,13 +4,14 @@ import { authOptions } from "@/lib/auth";
 import connectDB from "@/lib/mongodb";
 import RecentlyPlayed from "@/models/RecentlyPlayed";
 import PlaybackHistory from "@/models/PlaybackHistory";
+import User from "@/models/User";
 
 // Get recently played songs
 export async function GET(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
 
-        if (!session?.user?.id) {
+        if (!session?.user?.email) {
             return NextResponse.json(
                 { success: false, error: "Unauthorized" },
                 { status: 401 }
@@ -22,7 +23,20 @@ export async function GET(request: NextRequest) {
 
         await connectDB();
 
-        const recentlyPlayed = await RecentlyPlayed.find({ userId: session.user.id })
+        let userId = (session.user as any)?.id || (session.user as any)?.sub;
+        if (!userId && session.user.email) {
+            const user = await User.findOne({ email: session.user.email }).select("_id").lean();
+            userId = user?._id;
+        }
+
+        if (!userId) {
+            return NextResponse.json(
+                { success: false, error: "User not found" },
+                { status: 404 }
+            );
+        }
+
+        const recentlyPlayed = await RecentlyPlayed.find({ userId })
             .sort({ playedAt: -1 })
             .limit(limit)
             .lean();
@@ -42,7 +56,7 @@ export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
 
-        if (!session?.user?.id) {
+        if (!session?.user?.email) {
             return NextResponse.json(
                 { success: false, error: "Unauthorized" },
                 { status: 401 }
@@ -77,9 +91,22 @@ export async function POST(request: NextRequest) {
 
         await connectDB();
 
+        let userId = (session.user as any)?.id || (session.user as any)?.sub;
+        if (!userId && session.user.email) {
+            const user = await User.findOne({ email: session.user.email }).select("_id").lean();
+            userId = user?._id;
+        }
+
+        if (!userId) {
+            return NextResponse.json(
+                { success: false, error: "User not found" },
+                { status: 404 }
+            );
+        }
+
         // Update or create recently played entry
         await RecentlyPlayed.findOneAndUpdate(
-            { userId: session.user.id, videoId },
+            { userId, videoId },
             {
                 title,
                 artist: artistStr,
@@ -91,9 +118,9 @@ export async function POST(request: NextRequest) {
         );
 
         // Check if count exceeds 50 and delete oldest if needed
-        const count = await RecentlyPlayed.countDocuments({ userId: session.user.id });
+        const count = await RecentlyPlayed.countDocuments({ userId });
         if (count > 50) {
-            const oldestEntry = await RecentlyPlayed.findOne({ userId: session.user.id })
+            const oldestEntry = await RecentlyPlayed.findOne({ userId })
                 .sort({ playedAt: 1 })
                 .lean();
             
@@ -104,7 +131,7 @@ export async function POST(request: NextRequest) {
 
         // Also add to playback history for analytics
         await PlaybackHistory.create({
-            userId: session.user.id,
+            userId,
             videoId,
             title,
             artist: artistStr,
@@ -117,15 +144,15 @@ export async function POST(request: NextRequest) {
         const retentionDays = 60;
         const cutoffDate = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
         await PlaybackHistory.deleteMany({
-            userId: session.user.id,
+            userId,
             playedAt: { $lt: cutoffDate },
         });
 
         // Safety cap to prevent unbounded growth
-        const historyCount = await PlaybackHistory.countDocuments({ userId: session.user.id });
+        const historyCount = await PlaybackHistory.countDocuments({ userId });
         const maxHistoryEntries = 3000;
         if (historyCount > maxHistoryEntries) {
-            const entriesToDelete = await PlaybackHistory.find({ userId: session.user.id })
+            const entriesToDelete = await PlaybackHistory.find({ userId })
                 .sort({ playedAt: 1 })
                 .limit(historyCount - maxHistoryEntries)
                 .lean();
@@ -152,7 +179,7 @@ export async function DELETE() {
     try {
         const session = await getServerSession(authOptions);
 
-        if (!session?.user?.id) {
+        if (!session?.user?.email) {
             return NextResponse.json(
                 { success: false, error: "Unauthorized" },
                 { status: 401 }
@@ -161,7 +188,20 @@ export async function DELETE() {
 
         await connectDB();
 
-        await RecentlyPlayed.deleteMany({ userId: session.user.id });
+        let userId = (session.user as any)?.id || (session.user as any)?.sub;
+        if (!userId && session.user.email) {
+            const user = await User.findOne({ email: session.user.email }).select("_id").lean();
+            userId = user?._id;
+        }
+
+        if (!userId) {
+            return NextResponse.json(
+                { success: false, error: "User not found" },
+                { status: 404 }
+            );
+        }
+
+        await RecentlyPlayed.deleteMany({ userId });
 
         return NextResponse.json({ success: true });
     } catch (error) {
