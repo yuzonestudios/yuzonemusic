@@ -389,14 +389,33 @@ export async function GET() {
             playlist.songs.forEach((song) => usedIds.add(song.videoId));
         };
 
+        const buildWithFallback = (
+            id: string,
+            name: string,
+            description: string,
+            keywords: string[],
+            options: Parameters<typeof buildPlaylist>[6]
+        ) => {
+            const primary = buildPlaylist(id, name, description, keywords, candidates, sourceWeights, options);
+            if (primary.songCount > 0) return primary;
+
+            return buildPlaylist(id, name, description, keywords, candidates, sourceWeights, {
+                ...options,
+                requiredKeywords: [],
+                excludedKeywords: [],
+                requiredSources: undefined,
+                requireKeywordMatch: false,
+                minScore: -999,
+                excludeIds: undefined,
+            });
+        };
+
         addPlaylist(
-            buildPlaylist(
+            buildWithFallback(
                 "smart-favorites",
                 "Your Favorites",
                 "Songs you have liked and keep coming back to.",
                 moodKeywords,
-                candidates,
-                sourceWeights,
                 {
                     includeUserKeywords: true,
                     userKeywords,
@@ -417,13 +436,11 @@ export async function GET() {
         );
 
         addPlaylist(
-            buildPlaylist(
+            buildWithFallback(
                 "smart-on-repeat",
                 "On Repeat",
                 "Recent listens with a smooth, familiar flow.",
                 timeKeywords,
-                candidates,
-                sourceWeights,
                 {
                     includeUserKeywords: true,
                     userKeywords,
@@ -445,13 +462,11 @@ export async function GET() {
         );
 
         addPlaylist(
-            buildPlaylist(
+            buildWithFallback(
                 "smart-mood-chill",
                 "Chill Vibes",
                 "Laid-back tracks shaped by your taste and mood.",
                 moodKeywords,
-                candidates,
-                sourceWeights,
                 {
                     includeUserKeywords: true,
                     userKeywords,
@@ -474,13 +489,11 @@ export async function GET() {
         );
 
         addPlaylist(
-            buildPlaylist(
+            buildWithFallback(
                 "smart-tempo-energy",
                 "High Energy",
                 "Up-tempo picks to keep you moving and motivated.",
                 tempoKeywords,
-                candidates,
-                sourceWeights,
                 {
                     includeUserKeywords: true,
                     userKeywords,
@@ -503,13 +516,11 @@ export async function GET() {
         );
 
         addPlaylist(
-            buildPlaylist(
+            buildWithFallback(
                 "smart-time-night",
                 focusArtistLabel ? `${focusArtistLabel} Mix` : "Artist Mix",
                 "A focused artist mix based on who you play most.",
                 timeKeywords,
-                candidates,
-                sourceWeights,
                 {
                     includeUserKeywords: true,
                     userKeywords,

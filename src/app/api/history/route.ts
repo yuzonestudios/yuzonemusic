@@ -113,15 +113,23 @@ export async function POST(request: NextRequest) {
             listenDuration: listenDuration || 0,
         });
 
-        // Check if playback history count exceeds 50 and delete oldest if needed
+        // Keep history long enough to compute monthly listening time
+        const retentionDays = 60;
+        const cutoffDate = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
+        await PlaybackHistory.deleteMany({
+            userId: session.user.id,
+            playedAt: { $lt: cutoffDate },
+        });
+
+        // Safety cap to prevent unbounded growth
         const historyCount = await PlaybackHistory.countDocuments({ userId: session.user.id });
-        if (historyCount > 50) {
-            // Delete oldest entries to keep only the latest 50
+        const maxHistoryEntries = 3000;
+        if (historyCount > maxHistoryEntries) {
             const entriesToDelete = await PlaybackHistory.find({ userId: session.user.id })
                 .sort({ playedAt: 1 })
-                .limit(historyCount - 50)
+                .limit(historyCount - maxHistoryEntries)
                 .lean();
-            
+
             if (entriesToDelete.length > 0) {
                 const idsToDelete = entriesToDelete.map((entry: any) => entry._id);
                 await PlaybackHistory.deleteMany({ _id: { $in: idsToDelete } });

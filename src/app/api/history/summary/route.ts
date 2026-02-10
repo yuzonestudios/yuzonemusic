@@ -3,12 +3,13 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import connectDB from "@/lib/mongodb";
 import PlaybackHistory from "@/models/PlaybackHistory";
+import User from "@/models/User";
 
 export async function GET(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
 
-        if (!session?.user?.id) {
+        if (!session?.user?.email) {
             return NextResponse.json(
                 { success: false, error: "Unauthorized" },
                 { status: 401 }
@@ -20,10 +21,23 @@ export async function GET(request: NextRequest) {
 
         await connectDB();
 
+        let userId = (session.user as any)?.id || (session.user as any)?.sub;
+        if (!userId && session.user.email) {
+            const user = await User.findOne({ email: session.user.email }).select("_id").lean();
+            userId = user?._id;
+        }
+
+        if (!userId) {
+            return NextResponse.json(
+                { success: false, error: "User not found" },
+                { status: 404 }
+            );
+        }
+
         const [summary] = await PlaybackHistory.aggregate([
             {
                 $match: {
-                    userId: session.user.id,
+                    userId,
                     playedAt: { $gte: monthStart },
                 },
             },

@@ -102,7 +102,14 @@ function LoginClient() {
                         className={styles.primaryBtn}
                         disabled={isSubmitting || isGoogleLoading}
                     >
-                        {isSubmitting ? "Signing in..." : "Sign in"}
+                        {isSubmitting ? (
+                            <span className={styles.loadingText}>
+                                <span className={styles.spinner} />
+                                Signing in...
+                            </span>
+                        ) : (
+                            "Sign in"
+                        )}
                     </button>
                 </form>
 

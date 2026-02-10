@@ -33,6 +33,7 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
     const { isPlaying, queueSource } = usePlayerStore();
     const { isDownloading, error: downloadError, downloadPlaylist, clearError, reset } = usePlaylistDownload();
     const [showDownloadError, setShowDownloadError] = useState(false);
+    const [isOpening, setIsOpening] = useState(false);
 
     const isPlayingFromThisPlaylist =
         isPlaying && queueSource?.type === "playlist" && queueSource?.id === playlist._id;
@@ -69,11 +70,22 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
     };
 
     const handleClick = () => {
+        if (isOpening) return;
+        setIsOpening(true);
         router.push(`/playlists/${playlist._id}`);
     };
 
     return (
-        <div className={`${styles.playlistCard} ${isPlayingFromThisPlaylist ? styles.playing : ""}`} onClick={handleClick}>
+        <div
+            className={`${styles.playlistCard} ${isPlayingFromThisPlaylist ? styles.playing : ""}`}
+            onClick={handleClick}
+        >
+            {isOpening && (
+                <div className={styles.loadingOverlay}>
+                    <div className={styles.loadingSpinner} />
+                    <span>Loading playlist...</span>
+                </div>
+            )}
             <div className={styles.playlistHeader}>
                 <div className={styles.playlistThumbnail}>
                     {playlist.thumbnail ? (
@@ -110,7 +122,7 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
                     type="button"
                     className={`${styles.actionBtn} ${styles.playBtn}`}
                     onClick={handlePlay}
-                    disabled={playlist.songCount === 0}
+                    disabled={playlist.songCount === 0 || isOpening}
                 >
                     <Play size={16} />
                     Play
@@ -119,7 +131,7 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
                     type="button"
                     className={`${styles.actionBtn} ${styles.downloadBtn}`}
                     onClick={handleDownload}
-                    disabled={playlist.songCount === 0 || isDownloading}
+                    disabled={playlist.songCount === 0 || isDownloading || isOpening}
                     title="Download playlist as ZIP"
                 >
                     <Download size={16} />
@@ -128,6 +140,7 @@ export default function PlaylistCard({ playlist, onDelete, onPlay }: PlaylistCar
                 <button
                     className={`${styles.actionBtn} ${styles.deleteBtn}`}
                     onClick={handleDelete}
+                    disabled={isOpening}
                 >
                     <Trash2 size={16} />
                     Delete
