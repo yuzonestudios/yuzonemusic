@@ -300,6 +300,26 @@
     padding: 0.6rem 0.25rem;
 }
 
+.metaChips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0.6rem 0 0.8rem;
+}
+
+.metaChip {
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    letter-spacing: 0.01em;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+}
+
 .badgeRow {
     display: flex;
     align-items: center;
@@ -547,82 +567,49 @@
 
 .progressBar {
     cursor: pointer;
-    padding: 12px 0;
+    padding: 14px 0;
     position: relative;
-    height: 18px;
+    height: 16px;
 }
 
-.waveTrack,
-.waveFill {
+.progressTrack,
+.progressFill {
     position: absolute;
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    height: 12px;
+    height: 6px;
+    border-radius: 999px;
 }
 
-.waveTrack {
+.progressTrack {
     width: 100%;
-    color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
-.waveFill {
-    color: var(--accent-primary);
+.progressFill {
+    background: linear-gradient(90deg, rgba(139, 92, 246, 0.95), rgba(56, 189, 248, 0.95));
     overflow: hidden;
-    transition: width 100ms linear;
-    box-shadow: 0 0 var(--wave-glow, 18px) rgba(139, 92, 246, 0.5);
+    transition: width 120ms linear;
+    box-shadow: 0 0 var(--progress-glow, 16px) rgba(139, 92, 246, 0.5);
 }
 
-.waveSvg {
-    width: 100%;
-    height: 100%;
-    display: block;
-    stroke: currentColor;
-    stroke-width: 2.6;
-    fill: none;
-    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.4));
+.progressThumb {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.4), 0 6px 16px rgba(0, 0, 0, 0.45);
+    transition: transform 120ms ease, box-shadow 120ms ease;
 }
 
-.waveAnimated .waveFill {
-    animation: wavePulse 1.8s ease-in-out infinite;
-}
-
-.waveAnimated .waveFill .waveSvg {
-    stroke-dasharray: 16 10;
-    animation: waveShift var(--wave-speed, 1.6s) linear infinite;
-}
-
-@keyframes waveShift {
-    to {
-        stroke-dashoffset: -26;
-    }
-}
-
-@keyframes wavePulse {
-
-    0%,
-    100% {
-        transform: translateY(-50%) scaleY(0.85);
-    }
-
-    50% {
-        transform: translateY(-50%) scaleY(1.15);
-    }
-}
-
-.progressBar:hover .waveTrack,
-.progressBar:hover .waveFill {
-    transform: translateY(-50%) scaleY(1.15);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .waveAnimated .waveFill {
-        animation: none;
-    }
-
-    .waveAnimated .waveFill .waveSvg {
-        animation: none;
-    }
+.progressBar:hover .progressThumb {
+    transform: translate(-50%, -50%) scale(1.08);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.5), 0 8px 20px rgba(0, 0, 0, 0.5);
 }
 
 .timeInfo {
@@ -633,6 +620,31 @@
 }
 
 /* Controls */
+.controlDock {
+    width: min(880px, 92vw);
+    background: rgba(10, 10, 20, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 28px;
+    padding: 1.25rem 1.4rem 1.1rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(18px);
+    display: grid;
+    gap: 1.1rem;
+}
+
+.controlsRow,
+.actionRow,
+.utilityRow {
+    display: flex;
+    justify-content: center;
+}
+
+.utilityRow {
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
 .controls {
     display: flex;
     align-items: center;
