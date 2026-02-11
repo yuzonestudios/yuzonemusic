@@ -81,7 +81,7 @@ export default async function SongPage({ params }: SongPageProps) {
         thumbnail: "/placeholder-album.png",
         duration: "0:00",
     };
-    const playbackVideoId = videoId || resolvedSong.videoId;
+    const playbackVideoId = videoId || resolvedSong.videoId;    
 
     const songUrl = new URL(`/song/${playbackVideoId}`, siteUrl).toString();
     const jsonLd = {

@@ -55,7 +55,32 @@ export default function FullscreenPlayer() {
     const [showLyrics, setShowLyrics] = useState(false);
     const [waveIntensity, setWaveIntensity] = useState(0);
     const [isLowPowerMode, setIsLowPowerMode] = useState(false);
+    const [ambientColor, setAmbientColor] = useState<string | null>(null);
     const originalUrlRef = useRef<string | null>(null);
+
+    // Extract dominant color from thumbnail
+    const extractColorFromImage = async (imageUrl: string) => {
+        try {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 1;
+                canvas.height = 1;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0, 1, 1);
+                    const imageData = ctx.getImageData(0, 0, 1, 1);
+                    const data = imageData.data;
+                    const color = `rgba(${data[0]}, ${data[1]}, ${data[2]}, 0.15)`;
+                    setAmbientColor(color);
+                }
+            };
+            img.src = imageUrl;
+        } catch (error) {
+            console.error("Error extracting color:", error);
+        }
+    };
 
     useEffect(() => {
         if (typeof window === "undefined") return;
@@ -65,6 +90,13 @@ export default function FullscreenPlayer() {
         media.addEventListener("change", handleChange);
         return () => media.removeEventListener("change", handleChange);
     }, []);
+
+    // Extract color from thumbnail when fullscreen opens
+    useEffect(() => {
+        if (isFullscreenOpen && currentSong?.thumbnail) {
+            extractColorFromImage(currentSong.thumbnail);
+        }
+    }, [isFullscreenOpen, currentSong?.thumbnail]);
 
     // Listen for browser back button (popstate) to close fullscreen and sync URL
     useEffect(() => {
@@ -328,7 +360,14 @@ export default function FullscreenPlayer() {
     if (!isFullscreenOpen) return null;
 
     return (
-        <div className={styles.overlay}>
+        <div 
+            className={styles.overlay}
+            style={{
+                background: ambientColor 
+                    ? `linear-gradient(135deg, ${ambientColor} 0%, rgba(10, 10, 20, 0.98) 60%)`
+                    : undefined
+            }}
+        >
             {currentSong && currentSong.thumbnail && (
                 <Image
                     src={currentSong.thumbnail.replace(/=w\d+-h\d+/, '=w1280-h720')}
