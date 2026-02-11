@@ -16,6 +16,7 @@ export default function SongPlayer({ videoId }: SongPlayerProps) {
     const [isBusy, setIsBusy] = useState(false);
     const router = useRouter();
     const { openFullscreen } = usePlayerStore();
+    const isValidVideoId = Boolean(videoId && videoId.trim());
 
     const emitSongUrl = useCallback(() => {
         if (typeof window === "undefined") return;
@@ -40,7 +41,7 @@ export default function SongPlayer({ videoId }: SongPlayerProps) {
     }, [videoId]);
 
     const togglePlay = useCallback(async () => {
-        if (!audioRef.current || isBusy) return;
+        if (!isValidVideoId || !audioRef.current || isBusy) return;
         setIsBusy(true);
 
         try {
@@ -63,6 +64,7 @@ export default function SongPlayer({ videoId }: SongPlayerProps) {
     const handleOpenFullscreen = useCallback(() => {
         try {
             console.log("[SongPlayer] Opening fullscreen for videoId:", videoId);
+            if (!isValidVideoId) return;
             openFullscreen();
             // Update URL to reflect fullscreen state without page reload
             const fullUrl = `/song/${videoId}?fullscreen=true`;
@@ -79,7 +81,7 @@ export default function SongPlayer({ videoId }: SongPlayerProps) {
         <div className={styles.player}>
             <audio
                 ref={audioRef}
-                src={`/api/stream?id=${encodeURIComponent(videoId)}`}
+                src={isValidVideoId ? `/api/stream?id=${encodeURIComponent(videoId)}` : undefined}
                 preload="metadata"
                 onEnded={() => setIsPlaying(false)}
             />
@@ -88,6 +90,7 @@ export default function SongPlayer({ videoId }: SongPlayerProps) {
                 className={styles.playButton}
                 onClick={togglePlay}
                 aria-pressed={isPlaying}
+                disabled={!isValidVideoId}
             >
                 {isPlaying ? <Pause size={20} /> : <Play size={20} />}
                 <span>{isPlaying ? "Pause" : "Play"}</span>
@@ -98,6 +101,7 @@ export default function SongPlayer({ videoId }: SongPlayerProps) {
                 onClick={handleOpenFullscreen}
                 title="Open fullscreen player"
                 aria-label="Open fullscreen player"
+                disabled={!isValidVideoId}
             >
                 ⛶
             </button>

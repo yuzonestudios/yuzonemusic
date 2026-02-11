@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import SongPlayer from "./SongPlayer";
 import styles from "./page.module.css";
 import { getSongInfo } from "@/lib/youtube-music";
@@ -11,6 +10,7 @@ interface SongPageProps {
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 function toIsoDuration(time: string) {
     const parts = time.split(":").map((part) => Number.parseInt(part, 10));
@@ -71,13 +71,10 @@ export async function generateMetadata({ params }: SongPageProps): Promise<Metad
 
 export default async function SongPage({ params }: SongPageProps) {
     const videoId = typeof params?.id === "string" ? params.id.trim() : "";
-    if (!videoId) {
-        notFound();
-    }
 
-    const song = await getSongInfo(videoId);
+    const song = videoId ? await getSongInfo(videoId) : null;
     const resolvedSong = song ?? {
-        videoId,
+        videoId: videoId || "unknown",
         title: "Unknown Title",
         artist: "Unknown Artist",
         thumbnail: "/placeholder-album.png",
