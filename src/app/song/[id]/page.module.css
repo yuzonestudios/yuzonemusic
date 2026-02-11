@@ -146,3 +146,154 @@
         padding: 1.5rem;
     }
 }
+
+.guestFullscreen {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    padding: 2rem 1rem;
+    isolation: isolate;
+}
+
+.guestBackdrop {
+    position: absolute;
+    inset: -2rem;
+    z-index: -3;
+}
+
+.guestBackdrop img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(40px) saturate(1.2) brightness(0.5);
+    transform: scale(1.1);
+}
+
+.guestBackdropOverlay {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.14), transparent 60%),
+        linear-gradient(180deg, rgba(6, 7, 12, 0.2) 0%, rgba(6, 7, 12, 0.78) 100%);
+}
+
+.guestPanel {
+    width: min(520px, 100%);
+    border-radius: 28px;
+    padding: 1.5rem;
+    background: rgba(10, 12, 20, 0.62);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+
+.guestArtWrap {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 22px;
+    overflow: hidden;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 20px 42px rgba(0, 0, 0, 0.4);
+}
+
+.guestArt {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.guestInfo {
+    margin-bottom: 1rem;
+}
+
+.guestNowPlaying {
+    display: inline-flex;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 0.65rem;
+}
+
+.guestTitle {
+    margin: 0;
+    font-size: clamp(1.35rem, 3.8vw, 2rem);
+    line-height: 1.2;
+}
+
+.guestArtist {
+    margin: 0.45rem 0 0;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.guestControls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.guestPlayButton {
+    width: 68px;
+    height: 68px;
+    border-radius: 999px;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    color: #111;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.33);
+}
+
+.guestPlayButton:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.guestProgressWrap {
+    flex: 1;
+}
+
+.guestProgress {
+    width: 100%;
+    accent-color: #fff;
+}
+
+.guestTimes {
+    margin-top: 0.3rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.guestLoading {
+    margin: 0.8rem 0 0;
+    font-size: 0.86rem;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+@media (max-width: 640px) {
+    .guestPanel {
+        padding: 1rem;
+        border-radius: 20px;
+    }
+
+    .guestArtWrap {
+        border-radius: 14px;
+    }
+
+    .guestPlayButton {
+        width: 58px;
+        height: 58px;
+    }
+}
