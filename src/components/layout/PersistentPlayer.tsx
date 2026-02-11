@@ -2,6 +2,7 @@
 
 import MusicPlayer from "@/components/player/MusicPlayer";
 import FullscreenPlayer from "@/components/player/FullscreenPlayer";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 /**
  * PersistentPlayer component that wraps the music player components
@@ -11,9 +12,9 @@ import FullscreenPlayer from "@/components/player/FullscreenPlayer";
  */
 export default function PersistentPlayer() {
     return (
-        <>
+        <ErrorBoundary>
             <MusicPlayer />
             <FullscreenPlayer />
-        </>
+        </ErrorBoundary>
     );
 }

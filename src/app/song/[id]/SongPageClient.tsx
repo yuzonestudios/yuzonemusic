@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { usePlayerStore } from "@/store/playerStore";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 interface SongPageClientProps {
     song: {
@@ -65,59 +66,61 @@ export default function SongPageClient({ song }: SongPageClientProps) {
     ]);
 
     return (
-        <div style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            minHeight: "60vh",
-            padding: "2rem",
-            textAlign: "center",
-        }}>
+        <ErrorBoundary>
             <div style={{
-                background: "rgba(255, 255, 255, 0.05)",
-                borderRadius: "16px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: "60vh",
                 padding: "2rem",
-                maxWidth: "500px",
-                width: "100%",
+                textAlign: "center",
             }}>
-                <img
-                    src={song.thumbnail}
-                    alt={song.title}
-                    style={{
-                        width: "200px",
-                        height: "200px",
-                        objectFit: "cover",
-                        borderRadius: "12px",
+                <div style={{
+                    background: "rgba(255, 255, 255, 0.05)",
+                    borderRadius: "16px",
+                    padding: "2rem",
+                    maxWidth: "500px",
+                    width: "100%",
+                }}>
+                    <img
+                        src={song.thumbnail}
+                        alt={song.title}
+                        style={{
+                            width: "200px",
+                            height: "200px",
+                            objectFit: "cover",
+                            borderRadius: "12px",
+                            marginBottom: "1.5rem",
+                        }}
+                    />
+                    <h1 style={{
+                        fontSize: "1.75rem",
+                        fontWeight: "600",
+                        marginBottom: "0.5rem",
+                        color: "white",
+                    }}>
+                        {song.title}
+                    </h1>
+                    <p style={{
+                        fontSize: "1.125rem",
+                        color: "rgba(255, 255, 255, 0.7)",
                         marginBottom: "1.5rem",
-                    }}
-                />
-                <h1 style={{
-                    fontSize: "1.75rem",
-                    fontWeight: "600",
-                    marginBottom: "0.5rem",
-                    color: "white",
-                }}>
-                    {song.title}
-                </h1>
-                <p style={{
-                    fontSize: "1.125rem",
-                    color: "rgba(255, 255, 255, 0.7)",
-                    marginBottom: "1.5rem",
-                }}>
-                    {song.artist}
-                </p>
-                <p style={{
-                    fontSize: "0.875rem",
-                    color: "rgba(255, 255, 255, 0.5)",
-                }}>
-                    {status === "loading" 
-                        ? "Loading..." 
-                        : !session 
-                        ? "Opening player..." 
-                        : "Now playing - Use player controls at the bottom"}
-                </p>
+                    }}>
+                        {song.artist}
+                    </p>
+                    <p style={{
+                        fontSize: "0.875rem",
+                        color: "rgba(255, 255, 255, 0.5)",
+                    }}>
+                        {status === "loading" 
+                            ? "Loading..." 
+                            : !session 
+                            ? "Opening player..." 
+                            : "Now playing - Use player controls at the bottom"}
+                    </p>
+                </div>
             </div>
-        </div>
+        </ErrorBoundary>
     );
 }
