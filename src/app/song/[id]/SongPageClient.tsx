@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { usePlayerStore } from "@/store/playerStore";
 
@@ -21,9 +21,26 @@ export default function SongPageClient({ song }: SongPageClientProps) {
         setCurrentSong: state.setCurrentSong,
         openFullscreen: state.openFullscreen,
     }));
+    const lastSongSignatureRef = useRef<string | null>(null);
+    const fullscreenOpenedRef = useRef(false);
 
     useEffect(() => {
-        // Load song into the global player
+        const signature = [
+            song.videoId,
+            song.title,
+            song.artist,
+            song.thumbnail,
+            song.duration,
+            song.album ?? "",
+        ].join("|");
+
+        if (!song.videoId || lastSongSignatureRef.current === signature) {
+            return;
+        }
+
+        lastSongSignatureRef.current = signature;
+
+        // Load song into the global player once per song change
         setCurrentSong({
             videoId: song.videoId,
             title: song.title,
@@ -32,20 +49,26 @@ export default function SongPageClient({ song }: SongPageClientProps) {
             duration: song.duration,
             album: song.album,
         });
+    }, [
+        song.videoId,
+        song.title,
+        song.artist,
+        song.thumbnail,
+        song.duration,
+        song.album,
+        setCurrentSong,
+    ]);
 
-        // Wait for session status to be determined
-        if (status === "loading") return;
+    useEffect(() => {
+        if (status === "loading" || session || fullscreenOpenedRef.current) return;
 
-        // If user is not logged in, open fullscreen player as temporary player
-        if (!session) {
-            const timer = setTimeout(() => {
-                openFullscreen();
-            }, 300);
-            return () => clearTimeout(timer);
-        }
+        fullscreenOpenedRef.current = true;
+        const timer = setTimeout(() => {
+            openFullscreen();
+        }, 300);
 
-        // If logged in, just let the song play normally (no redirect)
-    }, [song, setCurrentSong, session, status, openFullscreen]);
+        return () => clearTimeout(timer);
+    }, [session, status, openFullscreen]);
 
     return (
         <div style={{
