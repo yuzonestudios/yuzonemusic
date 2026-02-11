@@ -27,9 +27,8 @@ export default function SongPageClient({ song }: SongPageClientProps) {
     const didRedirectRef = useRef(false);
 
     useEffect(() => {
-        if (status !== "authenticated") {
-            return;
-        }
+        if (status !== "authenticated") return;
+        if (!song.videoId) return;
 
         const signature = [
             song.videoId,
@@ -40,26 +39,20 @@ export default function SongPageClient({ song }: SongPageClientProps) {
             song.album ?? "",
         ].join("|");
 
-        if (!song.videoId || lastSongSignatureRef.current === signature) {
-            return;
-        }
-
-        if (currentVideoId === song.videoId) {
+        if (lastSongSignatureRef.current !== signature && currentVideoId !== song.videoId) {
             lastSongSignatureRef.current = signature;
-            return;
+
+            // Load song into the global player once per song change
+            setCurrentSong({
+                videoId: song.videoId,
+                title: song.title,
+                artist: song.artist,
+                thumbnail: song.thumbnail,
+                duration: song.duration,
+                album: song.album,
+            });
         }
 
-        lastSongSignatureRef.current = signature;
-
-        // Load song into the global player once per song change
-        setCurrentSong({
-            videoId: song.videoId,
-            title: song.title,
-            artist: song.artist,
-            thumbnail: song.thumbnail,
-            duration: song.duration,
-            album: song.album,
-        });
         if (!didRedirectRef.current) {
             didRedirectRef.current = true;
             router.replace("/dashboard");
