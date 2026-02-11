@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
         try {
             const externalApiUrl = "https://api.yuzone.me/download";
 
+            console.log(`[StreamAPI] Trying external API for videoId: ${videoId}`);
             const response = await fetch(externalApiUrl, {
                 method: "POST",
                 headers: {
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest) {
             });
 
             if (response.ok) {
+                console.log(`[StreamAPI] External API success for ${videoId}`);
                 const contentType = response.headers.get("Content-Type") || "audio/mpeg";
                 const contentLength = response.headers.get("Content-Length");
 
@@ -56,6 +58,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Fallback to Internal Proxy
+        console.log(`[StreamAPI] Falling back to internal proxy for ${videoId}`);
         const rangeHeader = request.headers.get("range");
         const headers: Record<string, string> = {};
         if (rangeHeader) {
@@ -64,11 +67,19 @@ export async function GET(request: NextRequest) {
 
         const proxyResponse = await getProxyStream(videoId, headers);
 
-        if (!proxyResponse || !proxyResponse.ok) {
-            console.error(`[StreamAPI] Internal proxy failed: ${proxyResponse?.status} ${proxyResponse?.statusText}`);
+        if (!proxyResponse) {
+            console.error(`[StreamAPI] Internal proxy failed: Could not fetch stream URL for ${videoId}`);
             return NextResponse.json(
-                { success: false, error: `Stream failed: ${proxyResponse?.statusText || 'Unknown error'}` },
-                { status: proxyResponse?.status || 500 }
+                { success: false, error: "Stream unavailable - could not fetch audio URL" },
+                { status: 500 }
+            );
+        }
+
+        if (!proxyResponse.ok) {
+            console.error(`[StreamAPI] Internal proxy failed: ${proxyResponse.status} ${proxyResponse.statusText}`);
+            return NextResponse.json(
+                { success: false, error: `Stream failed: ${proxyResponse.statusText || 'Unknown error'}` },
+                { status: proxyResponse.status || 500 }
             );
         }
 

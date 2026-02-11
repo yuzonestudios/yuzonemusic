@@ -349,6 +349,11 @@ export async function getProxyStream(videoId: string, headers?: Record<string, s
 
 export async function getStreamUrl(videoId: string): Promise<string | null> {
     try {
+        if (!videoId || typeof videoId !== "string" || !videoId.trim()) {
+            console.error("[getStreamUrl] Invalid videoId:", videoId);
+            return null;
+        }
+
         // Check cache first (URLs are valid for ~6 hours)
         const cacheKey = `stream-url:${videoId}`;
         const cached = cache.get<string>(cacheKey);
@@ -357,7 +362,7 @@ export async function getStreamUrl(videoId: string): Promise<string | null> {
         }
 
         const yt = await getInnertube();
-        const info = await yt.getBasicInfo(videoId);
+        const info = await yt.getBasicInfo(videoId.trim());
 
         const audioFormats = info.streaming_data?.adaptive_formats?.filter(
             (f) => f.has_audio && !f.has_video
@@ -386,7 +391,10 @@ export async function getStreamUrl(videoId: string): Promise<string | null> {
 
         return null;
     } catch (error) {
-        console.error("Error getting stream URL:", error);
+        const message = error instanceof Error ? error.message : String(error);
+        if (!message.includes("video_id is missing")) {
+            console.error("[getStreamUrl] Error getting stream URL:", error);
+        }
         return null; // Return null gracefully instead of throwing
     }
 }
