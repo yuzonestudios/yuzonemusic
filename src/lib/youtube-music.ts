@@ -409,6 +409,6 @@ export async function getSongInfo(videoId: string): Promise<YTMusicSong | null> 
         return null;
     } catch (error) {
         console.error("Error getting song info:", error);
-        throw error;
+        return null;
     }
 }
