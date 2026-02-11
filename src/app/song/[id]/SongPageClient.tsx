@@ -18,10 +18,8 @@ interface SongPageClientProps {
 
 export default function SongPageClient({ song }: SongPageClientProps) {
     const { data: session, status } = useSession();
-    const { setCurrentSong, currentVideoId } = usePlayerStore((state) => ({
-        setCurrentSong: state.setCurrentSong,
-        currentVideoId: state.currentSong?.videoId || null,
-    }));
+    const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
+    const currentVideoId = usePlayerStore((state) => state.currentSong?.videoId || null);
     const lastSongSignatureRef = useRef<string | null>(null);
 
     useEffect(() => {
@@ -113,10 +111,10 @@ export default function SongPageClient({ song }: SongPageClientProps) {
                         fontSize: "0.875rem",
                         color: "rgba(255, 255, 255, 0.5)",
                     }}>
-                        {status === "loading" 
-                            ? "Loading..." 
-                            : !session 
-                            ? "Opening player..." 
+                        {status === "loading"
+                            ? "Loading..."
+                            : !session
+                            ? "Opening player..."
                             : "Now playing - Use player controls at the bottom"}
                     </p>
                 </div>
