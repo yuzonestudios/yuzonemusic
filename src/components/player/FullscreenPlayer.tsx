@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { X, SkipBack, Play, Pause, SkipForward, Volume2, Repeat, Shuffle, Heart, ListPlus, Download, Share } from "lucide-react";
@@ -62,6 +62,7 @@ export default function FullscreenPlayer() {
     const [waveIntensity, setWaveIntensity] = useState(0);
     const [showSpeedMenu, setShowSpeedMenu] = useState(false);
     const [isLowPowerMode, setIsLowPowerMode] = useState(false);
+    const originalUrlRef = useRef<string | null>(null);
 
     useEffect(() => {
         if (typeof window === "undefined") return;
@@ -96,6 +97,28 @@ export default function FullscreenPlayer() {
             document.body.style.overflow = "unset";
         };
     }, [isFullscreenOpen]);
+
+    // Cosmetic URL change when fullscreen opens
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        if (isFullscreenOpen && currentSong?.videoId) {
+            // Store original URL before changing
+            if (!originalUrlRef.current) {
+                originalUrlRef.current = window.location.pathname + window.location.search;
+            }
+            
+            // Push cosmetic URL showing song page
+            const songUrl = `/song/${currentSong.videoId}`;
+            if (window.location.pathname !== songUrl) {
+                window.history.pushState({}, "", songUrl);
+            }
+        } else if (!isFullscreenOpen && originalUrlRef.current) {
+            // Restore original URL when fullscreen closes
+            window.history.pushState({}, "", originalUrlRef.current);
+            originalUrlRef.current = null;
+        }
+    }, [isFullscreenOpen, currentSong?.videoId]);
 
     useEffect(() => {
         if (currentSong) {

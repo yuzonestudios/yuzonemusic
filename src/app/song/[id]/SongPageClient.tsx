@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { usePlayerStore } from "@/store/playerStore";
 
 interface SongPageClientProps {
@@ -17,7 +18,11 @@ interface SongPageClientProps {
 
 export default function SongPageClient({ song }: SongPageClientProps) {
     const router = useRouter();
-    const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
+    const { data: session, status } = useSession();
+    const { setCurrentSong, openFullscreen } = usePlayerStore((state) => ({
+        setCurrentSong: state.setCurrentSong,
+        openFullscreen: state.openFullscreen,
+    }));
 
     useEffect(() => {
         // Load song into the global player
@@ -30,13 +35,24 @@ export default function SongPageClient({ song }: SongPageClientProps) {
             album: song.album,
         });
 
-        // Redirect to dashboard where the normal player UI exists
+        // Wait for session status to be determined
+        if (status === "loading") return;
+
+        // If user is not logged in, open fullscreen player as temporary player
+        if (!session) {
+            const timer = setTimeout(() => {
+                openFullscreen();
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+
+        // If logged in, redirect to dashboard where the normal player UI exists
         const timer = setTimeout(() => {
             router.push("/dashboard");
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [song, setCurrentSong, router]);
+    }, [song, setCurrentSong, session, status, openFullscreen, router]);
 
     return (
         <div style={{
@@ -85,7 +101,11 @@ export default function SongPageClient({ song }: SongPageClientProps) {
                     fontSize: "0.875rem",
                     color: "rgba(255, 255, 255, 0.5)",
                 }}>
-                    Loading player...
+                    {status === "loading" 
+                        ? "Loading..." 
+                        : !session 
+                        ? "Opening player..." 
+                        : "Loading player..."}
                 </p>
             </div>
         </div>

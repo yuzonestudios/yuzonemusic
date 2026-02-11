@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getProxyStream } from "@/lib/youtube-music";
+import { getProxyStream, getSongInfo } from "@/lib/youtube-music";
 
 export async function GET(request: NextRequest) {
     try {
@@ -12,6 +12,9 @@ export async function GET(request: NextRequest) {
                 { status: 400 }
             );
         }
+
+        // Track song play in seosongs DB (fire and forget)
+        trackSongPlay(videoId).catch(() => {});
 
         // Try External API First (as requested by user)
         try {
@@ -104,5 +107,27 @@ export async function GET(request: NextRequest) {
             { success: false, error: `Stream error: ${error.message}` },
             { status: 500 }
         );
+    }
+}
+
+async function trackSongPlay(videoId: string): Promise<void> {
+    try {
+        // Get song info which automatically saves/updates in seosongs
+        await getSongInfo(videoId);
+        
+        // Also update lastPlayedAt timestamp
+        const { default: connectDB } = await import("@/lib/mongodb");
+        const { default: SeoSong } = await import("@/models/SeoSong");
+        
+        await connectDB();
+        await SeoSong.findOneAndUpdate(
+            { videoId },
+            { $set: { lastPlayedAt: new Date() } },
+            { upsert: false }
+        );
+        
+        console.log(`[trackSongPlay] Tracked play for ${videoId}`);
+    } catch (error) {
+        console.error(`[trackSongPlay] Error tracking play for ${videoId}:`, error);
     }
 }
