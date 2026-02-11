@@ -4,6 +4,7 @@ import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { useEffect } from "react";
 import { usePlayerStore } from "@/store/playerStore";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
     const { currentSong, isPlaying } = usePlayerStore();
@@ -20,7 +21,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
     return (
         <SessionProvider>
-            <ThemeProvider>{children}</ThemeProvider>
+            <ErrorBoundary>
+                <ThemeProvider>{children}</ThemeProvider>
+            </ErrorBoundary>
         </SessionProvider>
     );
 }
