@@ -23,6 +23,36 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
         // Log component stack to help locate production-only errors.
         console.error("[ErrorBoundary] Caught error:", error);
         console.error("[ErrorBoundary] Component stack:", info.componentStack);
+
+        if (typeof window !== "undefined") {
+            const payload = {
+                message: error?.message || String(error),
+                name: error?.name || "Error",
+                stack: error?.stack || null,
+                componentStack: info.componentStack || null,
+                url: window.location.href,
+                userAgent: navigator.userAgent,
+                timestamp: new Date().toISOString(),
+            };
+
+            try {
+                if (navigator.sendBeacon) {
+                    const blob = new Blob([JSON.stringify(payload)], {
+                        type: "application/json",
+                    });
+                    navigator.sendBeacon("/api/error-log", blob);
+                } else {
+                    fetch("/api/error-log", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                        keepalive: true,
+                    }).catch(() => undefined);
+                }
+            } catch (sendError) {
+                console.error("[ErrorBoundary] Failed to report error:", sendError);
+            }
+        }
     }
 
     render() {
