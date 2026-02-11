@@ -73,8 +73,8 @@ export default function SongPlayer({ videoId }: SongPlayerProps) {
     const handleOpenFullscreen = useCallback(() => {
         openFullscreen();
         // Update URL to reflect fullscreen state without page reload
-        router.push(`?fullscreen=true`, { scroll: false });
-    }, [openFullscreen, router]);
+        router.push(`/song/${videoId}?fullscreen=true`, { scroll: false });
+    }, [openFullscreen, router, videoId]);
 
     return (
         <div className={styles.player}>

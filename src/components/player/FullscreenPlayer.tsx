@@ -196,7 +196,9 @@ export default function FullscreenPlayer() {
     const handleCloseFullscreen = () => {
         closeFullscreen();
         // Remove fullscreen query param from URL without page reload
-        router.push("", { scroll: false });
+        if (currentSong?.videoId) {
+            router.push(`/song/${currentSong.videoId}`, { scroll: false });
+        }
     };
 
     const toggleLike = async () => {
