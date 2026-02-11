@@ -2,8 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { usePlayerStore } from "@/store/playerStore";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import SongPlayer from "./SongPlayer";
 
 interface SongPageClientProps {
     song: {
@@ -18,11 +20,17 @@ interface SongPageClientProps {
 
 export default function SongPageClient({ song }: SongPageClientProps) {
     const { data: session, status } = useSession();
+    const router = useRouter();
     const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
     const currentVideoId = usePlayerStore((state) => state.currentSong?.videoId || null);
     const lastSongSignatureRef = useRef<string | null>(null);
+    const didRedirectRef = useRef(false);
 
     useEffect(() => {
+        if (status !== "authenticated") {
+            return;
+        }
+
         const signature = [
             song.videoId,
             song.title,
@@ -52,7 +60,12 @@ export default function SongPageClient({ song }: SongPageClientProps) {
             duration: song.duration,
             album: song.album,
         });
+        if (!didRedirectRef.current) {
+            didRedirectRef.current = true;
+            router.replace("/dashboard");
+        }
     }, [
+        status,
         song.videoId,
         song.title,
         song.artist,
@@ -61,6 +74,7 @@ export default function SongPageClient({ song }: SongPageClientProps) {
         song.album,
         setCurrentSong,
         currentVideoId,
+        router,
     ]);
 
     return (
@@ -114,9 +128,12 @@ export default function SongPageClient({ song }: SongPageClientProps) {
                         {status === "loading"
                             ? "Loading..."
                             : !session
-                            ? "Opening player..."
+                            ? "Tap play to listen"
                             : "Now playing - Use player controls at the bottom"}
                     </p>
+                    {!session && status !== "loading" && (
+                        <SongPlayer videoId={song.videoId} />
+                    )}
                 </div>
             </div>
         </ErrorBoundary>
