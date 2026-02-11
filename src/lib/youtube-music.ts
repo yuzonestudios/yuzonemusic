@@ -439,10 +439,11 @@ async function fetchSongInfoFromExternal(videoId: string): Promise<YTMusicSong |
             return null;
         }
 
-        const results = (await response.json()) as Array<any>;
+        const payload = await response.json();
+        const results = Array.isArray(payload) ? payload : payload?.results || [];
         const match = results.find(
-            (song) => song?.videoId === videoId || song?.id === videoId
-        );
+            (song: any) => song?.videoId === videoId || song?.id === videoId
+        ) || results[0];
 
         if (!match) {
             return null;
