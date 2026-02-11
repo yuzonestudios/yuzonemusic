@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useRef, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Pause, Play } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import styles from "./page.module.css";
@@ -15,17 +15,7 @@ export default function SongPlayer({ videoId }: SongPlayerProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isBusy, setIsBusy] = useState(false);
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const { openFullscreen, closeFullscreen } = usePlayerStore();
-
-    const isFullscreenFromUrl = searchParams.get("fullscreen") === "true";
-
-    // Sync URL fullscreen state to store on mount
-    useEffect(() => {
-        if (isFullscreenFromUrl) {
-            openFullscreen();
-        }
-    }, [isFullscreenFromUrl, openFullscreen]);
+    const { openFullscreen } = usePlayerStore();
 
     const emitSongUrl = useCallback(() => {
         if (typeof window === "undefined") return;
