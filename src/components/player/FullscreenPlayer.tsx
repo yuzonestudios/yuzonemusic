@@ -61,7 +61,7 @@ export default function FullscreenPlayer() {
     // Extract dominant color from thumbnail
     const extractColorFromImage = async (imageUrl: string) => {
         try {
-            const img = new Image();
+            const img = new (window as any).Image();
             img.crossOrigin = "anonymous";
             img.onload = () => {
                 const canvas = document.createElement('canvas');

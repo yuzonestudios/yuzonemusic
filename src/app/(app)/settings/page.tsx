@@ -327,10 +327,11 @@ export default function SettingsPage() {
                         Highlights from the most recent release:
                     </p>
                     <div className={styles.updateList}>
-                        <div className={styles.updateItem}>Funky personalized playbar with vibe tags and animated viz.</div>
-                        <div className={styles.updateItem}>Custom theme image upload (file-only).</div>
-                        <div className={styles.updateItem}>Animation themes for background motion.</div>
-                        <div className={styles.updateItem}>Monthly listening time caching and sync tweaks.</div>
+                        <div className={styles.updateItem}>🎨 Redesigned fullscreen player with split layout (player + lyrics).</div>
+                        <div className={styles.updateItem}>✨ Dynamic ambient background colors extracted from song thumbnails.</div>
+                        <div className={styles.updateItem}>🎭 Glowing purple & cyan borders for premium fullscreen experience.</div>
+                        <div className={styles.updateItem}>📱 Responsive split view - centered player on no-lyrics mode.</div>
+                        <div className={styles.updateItem}>⚡ Cleaned up UI - removed speed, repeat, and shuffle controls from fullscreen.</div>
                     </div>
                 </div>
 
