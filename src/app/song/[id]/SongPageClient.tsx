@@ -17,12 +17,11 @@ interface SongPageClientProps {
 
 export default function SongPageClient({ song }: SongPageClientProps) {
     const { data: session, status } = useSession();
-    const { setCurrentSong, openFullscreen } = usePlayerStore((state) => ({
+    const { setCurrentSong, currentVideoId } = usePlayerStore((state) => ({
         setCurrentSong: state.setCurrentSong,
-        openFullscreen: state.openFullscreen,
+        currentVideoId: state.currentSong?.videoId || null,
     }));
     const lastSongSignatureRef = useRef<string | null>(null);
-    const fullscreenOpenedRef = useRef(false);
 
     useEffect(() => {
         const signature = [
@@ -35,6 +34,11 @@ export default function SongPageClient({ song }: SongPageClientProps) {
         ].join("|");
 
         if (!song.videoId || lastSongSignatureRef.current === signature) {
+            return;
+        }
+
+        if (currentVideoId === song.videoId) {
+            lastSongSignatureRef.current = signature;
             return;
         }
 
@@ -57,18 +61,8 @@ export default function SongPageClient({ song }: SongPageClientProps) {
         song.duration,
         song.album,
         setCurrentSong,
+        currentVideoId,
     ]);
-
-    useEffect(() => {
-        if (status === "loading" || session || fullscreenOpenedRef.current) return;
-
-        fullscreenOpenedRef.current = true;
-        const timer = setTimeout(() => {
-            openFullscreen();
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [session, status, openFullscreen]);
 
     return (
         <div style={{
