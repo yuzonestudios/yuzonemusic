@@ -406,20 +406,33 @@ export async function getSongInfo(videoId: string): Promise<YTMusicSong | null> 
             return null;
         }
 
-        // Try Innertube first (most reliable for metadata)
+        // Try external API first (primary source)
+        console.log(`[getSongInfo] Trying external API for ${videoId}`);
+        const external = await fetchSongInfoFromExternal(videoId);
+        if (external) {
+            console.log(`[getSongInfo] Got info from external API for ${videoId}:`, external.title);
+            // Store in DB for future use
+            saveSongToDB(external).catch(() => {});
+            return external;
+        }
+
+        // Fallback to Innertube
         try {
             const yt = await getInnertube();
             const info = await yt.getBasicInfo(videoId.trim());
 
             if (info.basic_info) {
                 console.log(`[getSongInfo] Got info from Innertube for ${videoId}:`, info.basic_info.title);
-                return {
+                const result = {
                     videoId: info.basic_info.id || videoId,
                     title: info.basic_info.title || "Unknown Title",
                     artist: info.basic_info.author || "Unknown Artist",
                     thumbnail: info.basic_info.thumbnail?.[0]?.url || "/placeholder-album.png",
                     duration: formatDuration(info.basic_info.duration),
                 };
+                // Store in DB for future use
+                saveSongToDB(result).catch(() => {});
+                return result;
             }
         } catch (innertubeError: any) {
             const message = innertubeError?.message || String(innertubeError);
@@ -428,12 +441,12 @@ export async function getSongInfo(videoId: string): Promise<YTMusicSong | null> 
             }
         }
 
-        // Fallback to external API
-        console.log(`[getSongInfo] Trying external API for ${videoId}`);
-        const external = await fetchSongInfoFromExternal(videoId);
-        if (external) {
-            console.log(`[getSongInfo] Got info from external API for ${videoId}:`, external.title);
-            return external;
+        // Final fallback: check SeoSong DB
+        console.log(`[getSongInfo] Trying SeoSong DB for ${videoId}`);
+        const fromDB = await getSongInfoFromDB(videoId);
+        if (fromDB) {
+            console.log(`[getSongInfo] Got info from DB for ${videoId}:`, fromDB.title);
+            return fromDB;
         }
 
         console.error(`[getSongInfo] All methods failed for ${videoId}`);
@@ -500,4 +513,55 @@ async function fetchSongInfoFromExternal(videoId: string): Promise<YTMusicSong |
     }
 }
 
+async function getSongInfoFromDB(videoId: string): Promise<YTMusicSong | null> {
+    try {
+        // Dynamic import to avoid circular dependencies
+        const { default: connectDB } = await import("./mongodb");
+        const { default: SeoSong } = await import("@/models/SeoSong");
+
+        await connectDB();
+        const song = await SeoSong.findOne({ videoId }).lean();
+
+        if (!song) {
+            return null;
+        }
+
+        return {
+            videoId: song.videoId,
+            title: song.title,
+            artist: song.artist,
+            thumbnail: song.thumbnail,
+            duration: song.duration,
+        };
+    } catch (error) {
+        console.error(`[getSongInfoFromDB] Error:`, error);
+        return null;
+    }
+}
+
+async function saveSongToDB(song: YTMusicSong): Promise<void> {
+    try {
+        // Dynamic import to avoid circular dependencies
+        const { default: connectDB } = await import("./mongodb");
+        const { default: SeoSong } = await import("@/models/SeoSong");
+
+        await connectDB();
+        await SeoSong.findOneAndUpdate(
+            { videoId: song.videoId },
+            {
+                $set: {
+                    title: song.title,
+                    artist: song.artist,
+                    thumbnail: song.thumbnail,
+                    duration: song.duration,
+                    lastPlayedAt: new Date(),
+                },
+            },
+            { upsert: true, new: true }
+        );
+        console.log(`[saveSongToDB] Saved ${song.videoId} to DB`);
+    } catch (error) {
+        console.error(`[saveSongToDB] Error:`, error);
+    }
+}
 

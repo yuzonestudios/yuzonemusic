@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import SongPlayer from "./SongPlayer";
-import styles from "./page.module.css";
 import { getSongInfo } from "@/lib/youtube-music";
+import SongPageClient from "./SongPageClient";
 
 interface SongPageProps {
     params: Promise<{ id: string }>;
@@ -105,28 +104,12 @@ export default async function SongPage({ params }: SongPageProps) {
     };
 
     return (
-        <div className={styles.container}>
-            <div className={styles.card}>
-                <div className={styles.artwork}>
-                    <img src={resolvedSong.thumbnail} alt={`${resolvedSong.title} cover`} />
-                </div>
-                <div className={styles.content}>
-                    <h1 className={styles.title}>{resolvedSong.title}</h1>
-                    <p className={styles.artist}>{resolvedSong.artist}</p>
-                    <div className={styles.meta}>
-                        <span className={styles.metaBadge}>Duration: {resolvedSong.duration}</span>
-                        <span className={styles.metaBadge}>Source: YouTube Music</span>
-                    </div>
-                    <SongPlayer videoId={playbackVideoId} />
-                    <p className={styles.footerNote}>
-                        Tip: Add "Yuzone Music" to your search to find this track faster.
-                    </p>
-                </div>
-            </div>
+        <>
+            <SongPageClient song={resolvedSong} />
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
-        </div>
+        </>
     );
 }
