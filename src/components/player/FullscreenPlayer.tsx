@@ -179,7 +179,9 @@ export default function FullscreenPlayer() {
         return () => controller.abort();
     }, [isFullscreenOpen, currentSong?.videoId, showLyrics]);
 
-    const handleCloseFullscreen = () => {
+    const handleCloseFullscreen = (event?: React.MouseEvent<HTMLButtonElement>) => {
+        event?.preventDefault();
+        event?.stopPropagation();
         closeFullscreen();
         try {
             // Get song ID from currentSong or extract from URL

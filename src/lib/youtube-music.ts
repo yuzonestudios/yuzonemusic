@@ -396,6 +396,12 @@ export async function getSongInfo(videoId: string): Promise<YTMusicSong | null> 
         if (!videoId || typeof videoId !== "string" || !videoId.trim()) {
             return null;
         }
+
+        const external = await fetchSongInfoFromExternal(videoId);
+        if (external) {
+            return external;
+        }
+
         const yt = await getInnertube();
         const info = await yt.getBasicInfo(videoId);
 
@@ -415,6 +421,46 @@ export async function getSongInfo(videoId: string): Promise<YTMusicSong | null> 
         if (!message.includes("video_id is missing")) {
             console.error("Error getting song info:", error);
         }
+        const external = await fetchSongInfoFromExternal(videoId);
+        return external ?? null;
+    }
+}
+
+async function fetchSongInfoFromExternal(videoId: string): Promise<YTMusicSong | null> {
+    try {
+        const externalApiUrl = `https://api.yuzone.me/search?q=${encodeURIComponent(videoId)}`;
+        const response = await fetch(externalApiUrl, {
+            headers: {
+                "User-Agent": "YuzoneMusic/1.0",
+            },
+        });
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const results = (await response.json()) as Array<any>;
+        const match = results.find(
+            (song) => song?.videoId === videoId || song?.id === videoId
+        );
+
+        if (!match) {
+            return null;
+        }
+
+        return {
+            videoId: match.videoId || match.id || videoId,
+            title: match.title || "Unknown Title",
+            artist: Array.isArray(match.artists)
+                ? match.artists.join(", ")
+                : match.artist || match.artists || "Unknown Artist",
+            thumbnail:
+                match.thumbnail || match.thumbnails?.[0]?.url || "/placeholder-album.png",
+            duration: match.duration || "0:00",
+            album: match.album,
+        };
+    } catch (error) {
+        console.error("Error fetching external song info:", error);
         return null;
     }
 }
