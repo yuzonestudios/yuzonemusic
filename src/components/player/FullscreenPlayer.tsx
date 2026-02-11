@@ -347,206 +347,212 @@ export default function FullscreenPlayer() {
                     <X size={28} />
                 </button>
 
-                {/* Album Art */}
-                <div className={styles.albumArtContainer}>
-                    {currentSong && currentSong.thumbnail ? (
-                        <div className={`${styles.albumArt} ${isPlaying ? styles.playingArt : ""}`}>
-                            <Image
-                                src={currentSong.thumbnail.replace(/=w\d+-h\d+/, '=w720-h720')}
-                                alt={currentSong.title}
-                                width={720}
-                                height={720}
-                                priority
-                                quality={95}
-                                className={styles.albumImage}
-                            />
-                            <div className={styles.albumShine} />
-                            <div className={styles.albumRings} />
-                            <div className={`${styles.albumGlow} ${isPlaying ? styles.playing : ""}`} />
-                        </div>
-                    ) : (
-                        <div className={styles.noSongPlaceholder}>
-                            <span>No Song Playing</span>
+                {/* Left Column - Player */}
+                <div className={styles.leftColumn}>
+                    {/* Album Art */}
+                    <div className={styles.albumArtContainer}>
+                        {currentSong && currentSong.thumbnail ? (
+                            <div className={`${styles.albumArt} ${isPlaying ? styles.playingArt : ""}`}>
+                                <Image
+                                    src={currentSong.thumbnail.replace(/=w\d+-h\d+/, '=w720-h720')}
+                                    alt={currentSong.title}
+                                    width={720}
+                                    height={720}
+                                    priority
+                                    quality={95}
+                                    className={styles.albumImage}
+                                />
+                                <div className={styles.albumShine} />
+                                <div className={styles.albumRings} />
+                                <div className={`${styles.albumGlow} ${isPlaying ? styles.playing : ""}`} />
+                            </div>
+                        ) : (
+                            <div className={styles.noSongPlaceholder}>
+                                <span>No Song Playing</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Song Info */}
+                    {currentSong && (
+                        <div className={styles.songInfo}>
+                            <div className={styles.badgeRow}>
+                                <span className={styles.nowPlayingBadge}>
+                                    <span className={styles.pulseDot} /> Now Playing
+                                </span>
+                                <span className={styles.personalBadge}>Personalized for you</span>
+                            </div>
+                            <div className={`${styles.equalizer} ${isPlaying ? styles.equalizerPlaying : ""}`}>
+                                <span className={styles.eqBar} />
+                                <span className={styles.eqBar} />
+                                <span className={styles.eqBar} />
+                                <span className={styles.eqBar} />
+                            </div>
+                            <h1 className={styles.title}>{currentSong.title}</h1>
+                            <p 
+                                className={styles.artist}
+                                onClick={() => setIsArtistModalOpen(true)}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        setIsArtistModalOpen(true);
+                                    }
+                                }}
+                            >
+                                {currentSong.artist}
+                            </p>
+                            <div className={styles.metaChips}>
+                                <span className={styles.metaChip}>Time left {formatTime(timeLeft)}</span>
+                            </div>
+                            <div className={styles.metaRow}>
+                                <button
+                                    className={`${styles.lyricsToggle} ${showLyrics ? styles.active : ""}`}
+                                    onClick={() => setShowLyrics((prev) => !prev)}
+                                    disabled={!currentSong}
+                                >
+                                    {showLyrics ? "Hide Lyrics" : "Show Lyrics"}
+                                </button>
+                            </div>
                         </div>
                     )}
+
+                    <div className={styles.controlDock}>
+                        {/* Progress Bar */}
+                        <div className={styles.progressSection}>
+                            <div className={styles.progressBar} onClick={handleProgressClick}>
+                                <div className={styles.progressTrack} aria-hidden="true" />
+                                <div className={styles.progressFill} style={progressStyle} aria-hidden="true" />
+                                <div
+                                    className={styles.progressThumb}
+                                    style={{ left: `${progress}%` }}
+                                    aria-hidden="true"
+                                />
+                            </div>
+                            <div className={styles.timeInfo}>
+                                <span>{formatTime(currentTime)}</span>
+                                <span>{formatTime(duration)}</span>
+                            </div>
+                        </div>
+
+                        {/* Controls */}
+                        <div className={styles.controlsRow}>
+                            <div className={styles.controls}>
+                                <button
+                                    onClick={previousSong}
+                                    className={styles.controlBtn}
+                                    disabled={!currentSong}
+                                    title="Previous"
+                                >
+                                    <SkipBack size={24} />
+                                </button>
+
+                                <button
+                                    onClick={togglePlay}
+                                    className={`${styles.playBtn}`}
+                                    disabled={!currentSong}
+                                    title={isPlaying ? "Pause" : "Play"}
+                                >
+                                    {isPlaying ? <Pause size={32} /> : <Play size={32} />}
+                                </button>
+
+                                <button
+                                    onClick={nextSong}
+                                    className={styles.controlBtn}
+                                    disabled={!currentSong}
+                                    title="Next"
+                                >
+                                    <SkipForward size={24} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Secondary Controls */}
+                        <div className={styles.actionRow}>
+                            <div className={styles.secondaryControls}>
+                                <button
+                                    onClick={toggleLike}
+                                    className={`${styles.secondaryBtn} ${isLiked ? styles.active : ""}`}
+                                    title={isLiked ? "Unlike" : "Like"}
+                                    disabled={!currentSong}
+                                >
+                                    <Heart size={22} fill={isLiked ? "currentColor" : "none"} />
+                                </button>
+
+                                <button
+                                    onClick={() => setIsPlaylistModalOpen(true)}
+                                    className={styles.secondaryBtn}
+                                    title="Add to Playlist"
+                                    disabled={!currentSong}
+                                >
+                                    <ListPlus size={22} />
+                                </button>
+
+                                <button
+                                    onClick={() => setIsShareModalOpen(true)}
+                                    className={styles.secondaryBtn}
+                                    title="Share"
+                                    disabled={!currentSong}
+                                >
+                                    <Share size={22} />
+                                </button>
+
+                                <a
+                                    href={currentSong ? `/api/stream?id=${currentSong.videoId}` : "#"}
+                                    download={currentSong ? `${currentSong.title}.mp4` : undefined}
+                                    className={styles.secondaryBtn}
+                                    title="Download"
+                                >
+                                    <Download size={22} />
+                                </a>
+                            </div>
+                        </div>
+
+                        <div className={styles.utilityRow}>
+                            {/* Volume Control */}
+                            <div className={styles.volumeSection}>
+                                <Volume2 size={20} />
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="1"
+                                    step="0.01"
+                                    value={volume}
+                                    onChange={handleVolumeChange}
+                                    className={styles.volumeSlider}
+                                />
+                                <span className={styles.volumeValue}>{Math.round(volume * 100)}%</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Song Info */}
-                {currentSong && (
-                    <div className={styles.songInfo}>
-                        <div className={styles.badgeRow}>
-                            <span className={styles.nowPlayingBadge}>
-                                <span className={styles.pulseDot} /> Now Playing
-                            </span>
-                            <span className={styles.personalBadge}>Personalized for you</span>
+                {/* Right Column - Lyrics */}
+                <div className={styles.rightColumn}>
+                    {/* Lyrics */}
+                    {currentSong && showLyrics && (
+                        <div className={styles.lyricsPanel}>
+                            <div className={styles.lyricsHeader}>
+                                <span>Lyrics</span>
+                                {lyricsLoading && <span className={styles.lyricsStatus}>Loading…</span>}
+                                {lyricsError && !lyricsLoading && (
+                                    <span className={styles.lyricsError}>{lyricsError}</span>
+                                )}
+                            </div>
+                            <div className={styles.lyricsBody}>
+                                {lyricsLoading && <span className={styles.lyricsStatus}>Fetching lyrics…</span>}
+                                {!lyricsLoading && lyrics && lyrics.split(/\r?\n/).map((line, idx) => (
+                                    <p key={idx} className={styles.lyricsLine}>{line || "\u00a0"}</p>
+                                ))}
+                                {!lyricsLoading && !lyrics && !lyricsError && (
+                                    <span className={styles.lyricsStatus}>Lyrics not available.</span>
+                                )}
+                                {!lyricsLoading && lyricsError && (
+                                    <span className={styles.lyricsStatus}>{lyricsError}</span>
+                                )}
+                            </div>
                         </div>
-                        <div className={`${styles.equalizer} ${isPlaying ? styles.equalizerPlaying : ""}`}>
-                            <span className={styles.eqBar} />
-                            <span className={styles.eqBar} />
-                            <span className={styles.eqBar} />
-                            <span className={styles.eqBar} />
-                        </div>
-                        <h1 className={styles.title}>{currentSong.title}</h1>
-                        <p 
-                            className={styles.artist}
-                            onClick={() => setIsArtistModalOpen(true)}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    setIsArtistModalOpen(true);
-                                }
-                            }}
-                        >
-                            {currentSong.artist}
-                        </p>
-                        <div className={styles.metaChips}>
-                            <span className={styles.metaChip}>Time left {formatTime(timeLeft)}</span>
-                        </div>
-                        <div className={styles.metaRow}>
-                            <button
-                                className={`${styles.lyricsToggle} ${showLyrics ? styles.active : ""}`}
-                                onClick={() => setShowLyrics((prev) => !prev)}
-                                disabled={!currentSong}
-                            >
-                                {showLyrics ? "Hide Lyrics" : "Show Lyrics"}
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* Lyrics */}
-                {currentSong && showLyrics && (
-                    <div className={styles.lyricsPanel}>
-                        <div className={styles.lyricsHeader}>
-                            <span>Lyrics</span>
-                            {lyricsLoading && <span className={styles.lyricsStatus}>Loading…</span>}
-                            {lyricsError && !lyricsLoading && (
-                                <span className={styles.lyricsError}>{lyricsError}</span>
-                            )}
-                        </div>
-                        <div className={styles.lyricsBody}>
-                            {lyricsLoading && <span className={styles.lyricsStatus}>Fetching lyrics…</span>}
-                            {!lyricsLoading && lyrics && lyrics.split(/\r?\n/).map((line, idx) => (
-                                <p key={idx} className={styles.lyricsLine}>{line || "\u00a0"}</p>
-                            ))}
-                            {!lyricsLoading && !lyrics && !lyricsError && (
-                                <span className={styles.lyricsStatus}>Lyrics not available.</span>
-                            )}
-                            {!lyricsLoading && lyricsError && (
-                                <span className={styles.lyricsStatus}>{lyricsError}</span>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                <div className={styles.controlDock}>
-                    {/* Progress Bar */}
-                    <div className={styles.progressSection}>
-                        <div className={styles.progressBar} onClick={handleProgressClick}>
-                            <div className={styles.progressTrack} aria-hidden="true" />
-                            <div className={styles.progressFill} style={progressStyle} aria-hidden="true" />
-                            <div
-                                className={styles.progressThumb}
-                                style={{ left: `${progress}%` }}
-                                aria-hidden="true"
-                            />
-                        </div>
-                        <div className={styles.timeInfo}>
-                            <span>{formatTime(currentTime)}</span>
-                            <span>{formatTime(duration)}</span>
-                        </div>
-                    </div>
-
-                    {/* Controls */}
-                    <div className={styles.controlsRow}>
-                        <div className={styles.controls}>
-                            <button
-                                onClick={previousSong}
-                                className={styles.controlBtn}
-                                disabled={!currentSong}
-                                title="Previous"
-                            >
-                                <SkipBack size={24} />
-                            </button>
-
-                            <button
-                                onClick={togglePlay}
-                                className={`${styles.playBtn}`}
-                                disabled={!currentSong}
-                                title={isPlaying ? "Pause" : "Play"}
-                            >
-                                {isPlaying ? <Pause size={32} /> : <Play size={32} />}
-                            </button>
-
-                            <button
-                                onClick={nextSong}
-                                className={styles.controlBtn}
-                                disabled={!currentSong}
-                                title="Next"
-                            >
-                                <SkipForward size={24} />
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Secondary Controls */}
-                    <div className={styles.actionRow}>
-                        <div className={styles.secondaryControls}>
-                            <button
-                                onClick={toggleLike}
-                                className={`${styles.secondaryBtn} ${isLiked ? styles.active : ""}`}
-                                title={isLiked ? "Unlike" : "Like"}
-                                disabled={!currentSong}
-                            >
-                                <Heart size={22} fill={isLiked ? "currentColor" : "none"} />
-                            </button>
-
-                            <button
-                                onClick={() => setIsPlaylistModalOpen(true)}
-                                className={styles.secondaryBtn}
-                                title="Add to Playlist"
-                                disabled={!currentSong}
-                            >
-                                <ListPlus size={22} />
-                            </button>
-
-                            <button
-                                onClick={() => setIsShareModalOpen(true)}
-                                className={styles.secondaryBtn}
-                                title="Share"
-                                disabled={!currentSong}
-                            >
-                                <Share size={22} />
-                            </button>
-
-                            <a
-                                href={currentSong ? `/api/stream?id=${currentSong.videoId}` : "#"}
-                                download={currentSong ? `${currentSong.title}.mp4` : undefined}
-                                className={styles.secondaryBtn}
-                                title="Download"
-                            >
-                                <Download size={22} />
-                            </a>
-                        </div>
-                    </div>
-
-                    <div className={styles.utilityRow}>
-                        {/* Volume Control */}
-                        <div className={styles.volumeSection}>
-                            <Volume2 size={20} />
-                            <input
-                                type="range"
-                                min="0"
-                                max="1"
-                                step="0.01"
-                                value={volume}
-                                onChange={handleVolumeChange}
-                                className={styles.volumeSlider}
-                            />
-                            <span className={styles.volumeValue}>{Math.round(volume * 100)}%</span>
-                        </div>
-                    </div>
+                    )}
                 </div>
 
                 {currentSong && (
