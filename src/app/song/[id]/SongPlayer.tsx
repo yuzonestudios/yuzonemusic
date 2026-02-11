@@ -69,7 +69,7 @@ export default function SongPlayer({ song }: SongPlayerProps) {
     }, [song.artist, song.duration, song.thumbnail, song.title, song.videoId]);
 
     const togglePlay = useCallback(async () => {
-        if (!isValidVideoId || !audioRef.current || isBusy || !isAudioReady) return;
+        if (!isValidVideoId || !audioRef.current || isBusy) return;
         setIsBusy(true);
 
         try {
@@ -118,7 +118,7 @@ export default function SongPlayer({ song }: SongPlayerProps) {
                         className={styles.guestPlayButton}
                         onClick={togglePlay}
                         aria-pressed={isPlaying}
-                        disabled={!isValidVideoId || isBusy || !isAudioReady}
+                        disabled={!isValidVideoId || isBusy}
                     >
                         {isPlaying ? <Pause size={30} /> : <Play size={30} fill="currentColor" />}
                     </button>
@@ -160,7 +160,10 @@ export default function SongPlayer({ song }: SongPlayerProps) {
                 }}
                 onCanPlay={() => setIsAudioReady(true)}
                 onPause={() => setIsPlaying(false)}
-                onPlay={() => setIsPlaying(true)}
+                onPlay={() => {
+                    setIsPlaying(true);
+                    setIsAudioReady(true);
+                }}
                 onEnded={() => setIsPlaying(false)}
             />
         </div>
