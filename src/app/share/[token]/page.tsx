@@ -156,6 +156,30 @@ export default function SharePage() {
     if (content.type === "playlist") {
         const playlist = content.data;
 
+        const emitSongUrl = (videoId: string, title?: string, artist?: string) => {
+            if (typeof window === "undefined") return;
+            const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+            const songUrl = new URL(`/song/${videoId}`, baseUrl).toString();
+            (window as any).__yuzoneLastSongUrl = songUrl;
+            window.dispatchEvent(
+                new CustomEvent("yuzone-song-url", {
+                    detail: {
+                        url: songUrl,
+                        videoId,
+                        title,
+                        artist,
+                    },
+                })
+            );
+
+            fetch("/api/seo/played", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ videoId, title, artist }),
+                keepalive: true,
+            }).catch(() => undefined);
+        };
+
         const togglePlaylistSong = (videoId: string) => {
             if (playlistAudioRef.current) {
                 if (playingVideoId === videoId) {
@@ -165,6 +189,8 @@ export default function SharePage() {
                     playlistAudioRef.current.src = `/api/stream?id=${videoId}`;
                     playlistAudioRef.current.play().catch((err) => console.error("Play error:", err));
                     setPlayingVideoId(videoId);
+                    const song = playlist.songs.find((item: any) => item.videoId === videoId);
+                    emitSongUrl(videoId, song?.title, song?.artist);
                 }
             }
         };
@@ -246,12 +272,43 @@ export default function SharePage() {
     if (content.type === "song") {
         const song = content.data;
 
+        const emitSongUrl = () => {
+            if (typeof window === "undefined") return;
+            const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+            const songUrl = new URL(`/song/${song.videoId}`, baseUrl).toString();
+            (window as any).__yuzoneLastSongUrl = songUrl;
+            window.dispatchEvent(
+                new CustomEvent("yuzone-song-url", {
+                    detail: {
+                        url: songUrl,
+                        videoId: song.videoId,
+                        title: song.title,
+                        artist: song.artist,
+                    },
+                })
+            );
+
+            fetch("/api/seo/played", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    videoId: song.videoId,
+                    title: song.title,
+                    artist: song.artist,
+                    thumbnail: song.thumbnail,
+                    duration: song.duration,
+                }),
+                keepalive: true,
+            }).catch(() => undefined);
+        };
+
         const togglePlay = () => {
             if (audioRef.current) {
                 if (isPlaying) {
                     audioRef.current.pause();
                 } else {
                     audioRef.current.play().catch((err) => console.error("Play error:", err));
+                    emitSongUrl();
                 }
                 setIsPlaying(!isPlaying);
             }

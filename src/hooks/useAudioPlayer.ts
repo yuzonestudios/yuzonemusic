@@ -45,6 +45,38 @@ export function useAudioPlayer() {
 
         const handlePlay = () => {
             usePlayerStore.setState({ isPlaying: true });
+
+            if (typeof window !== "undefined") {
+                const { currentSong } = usePlayerStore.getState();
+                if (currentSong?.videoId) {
+                    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+                    const songUrl = new URL(`/song/${currentSong.videoId}`, baseUrl).toString();
+                    (window as any).__yuzoneLastSongUrl = songUrl;
+                    window.dispatchEvent(
+                        new CustomEvent("yuzone-song-url", {
+                            detail: {
+                                url: songUrl,
+                                videoId: currentSong.videoId,
+                                title: currentSong.title,
+                                artist: currentSong.artist,
+                            },
+                        })
+                    );
+
+                    fetch("/api/seo/played", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            videoId: currentSong.videoId,
+                            title: currentSong.title,
+                            artist: currentSong.artist,
+                            thumbnail: currentSong.thumbnail,
+                            duration: currentSong.duration,
+                        }),
+                        keepalive: true,
+                    }).catch(() => undefined);
+                }
+            }
         };
 
         const handlePause = () => {

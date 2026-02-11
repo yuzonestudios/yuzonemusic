@@ -60,6 +60,16 @@ export default function FullscreenPlayer() {
     const [showLyrics, setShowLyrics] = useState(false);
     const [waveIntensity, setWaveIntensity] = useState(0);
     const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+    const [isLowPowerMode, setIsLowPowerMode] = useState(false);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        const media = window.matchMedia("(max-width: 768px), (prefers-reduced-motion: reduce)");
+        const handleChange = () => setIsLowPowerMode(media.matches);
+        handleChange();
+        media.addEventListener("change", handleChange);
+        return () => media.removeEventListener("change", handleChange);
+    }, []);
 
     useEffect(() => {
         if (!isFullscreenOpen) return;
@@ -215,11 +225,11 @@ export default function FullscreenPlayer() {
         setVolume(parseFloat(e.target.value));
     };
 
-    const waveGlow = 6 + waveIntensity * 12;
+    const waveGlow = 6 + (isLowPowerMode ? 0 : waveIntensity * 12);
 
     const progressStyle: React.CSSProperties = {
         width: `${progress}%`,
-        ...(isPlaying
+                ...(!isLowPowerMode && isPlaying
             ? {
                   ["--progress-glow" as any]: `${waveGlow}px`,
               }
@@ -227,7 +237,7 @@ export default function FullscreenPlayer() {
     };
 
     useEffect(() => {
-        if (!isFullscreenOpen || !isPlaying) {
+        if (!isFullscreenOpen || !isPlaying || isLowPowerMode) {
             setWaveIntensity(0);
             return;
         }
@@ -275,7 +285,7 @@ export default function FullscreenPlayer() {
         return () => {
             cancelAnimationFrame(rafId);
         };
-    }, [isFullscreenOpen, isPlaying]);
+    }, [isFullscreenOpen, isPlaying, isLowPowerMode]);
 
     if (!isFullscreenOpen) return null;
 

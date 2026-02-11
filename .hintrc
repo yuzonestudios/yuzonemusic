@@ -23,6 +23,12 @@
           "-webkit-text-size-adjust"
         ]
       }
+    ],
+    "axe/aria": [
+      "default",
+      {
+        "aria-valid-attr-value": "off"
+      }
     ]
   },
   "browserslist": [
