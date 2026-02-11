@@ -215,11 +215,13 @@
     .container {
         grid-template-columns: 1fr;
         gap: 2rem;
+        justify-content: center;
     }
 
     .rightColumn {
         width: 100%;
-        max-width: 500px;
+        max-width: 100%;
+        height: auto;
     }
 }
 
@@ -249,6 +251,8 @@
 
     .lyricsPanel {
         max-height: 400px;
+        width: 100%;
+        max-width: 100%;
     }
 
     .lyricsBody {
