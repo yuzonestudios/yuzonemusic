@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { useEffect } from "react";
 import { usePlayerStore } from "@/store/playerStore";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import ClientErrorReporter from "@/components/ClientErrorReporter";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
     const { currentSong, isPlaying } = usePlayerStore();
@@ -20,10 +21,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     }, [currentSong?.title, currentSong?.artist, isPlaying]);
 
     return (
-        <SessionProvider>
-            <ErrorBoundary>
+        <ErrorBoundary>
+            <ClientErrorReporter />
+            <SessionProvider>
                 <ThemeProvider>{children}</ThemeProvider>
-            </ErrorBoundary>
-        </SessionProvider>
+            </SessionProvider>
+        </ErrorBoundary>
     );
 }
