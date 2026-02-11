@@ -393,6 +393,9 @@ export async function getStreamUrl(videoId: string): Promise<string | null> {
 
 export async function getSongInfo(videoId: string): Promise<YTMusicSong | null> {
     try {
+        if (!videoId || typeof videoId !== "string" || !videoId.trim()) {
+            return null;
+        }
         const yt = await getInnertube();
         const info = await yt.getBasicInfo(videoId);
 

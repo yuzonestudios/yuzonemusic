@@ -26,7 +26,15 @@ function toIsoDuration(time: string) {
 }
 
 export async function generateMetadata({ params }: SongPageProps): Promise<Metadata> {
-    const song = await getSongInfo(params.id);
+    const videoId = typeof params?.id === "string" ? params.id.trim() : "";
+    if (!videoId) {
+        return {
+            title: "Song not found | Yuzone Music",
+            robots: { index: false, follow: false },
+        };
+    }
+
+    const song = await getSongInfo(videoId);
 
     if (!song) {
         return {
@@ -60,7 +68,12 @@ export async function generateMetadata({ params }: SongPageProps): Promise<Metad
 }
 
 export default async function SongPage({ params }: SongPageProps) {
-    const song = await getSongInfo(params.id);
+    const videoId = typeof params?.id === "string" ? params.id.trim() : "";
+    if (!videoId) {
+        notFound();
+    }
+
+    const song = await getSongInfo(videoId);
 
     if (!song) {
         notFound();
