@@ -37,6 +37,51 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             <body>
+                                <script
+                                        dangerouslySetInnerHTML={{
+                                                __html: `(function(){
+    try {
+        var send=function(payload){
+            try {
+                if (navigator.sendBeacon) {
+                    var blob=new Blob([JSON.stringify(payload)],{type:'application/json'});
+                    navigator.sendBeacon('/api/error-log',blob);
+                } else {
+                    fetch('/api/error-log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),keepalive:true}).catch(function(){});
+                }
+            } catch (e) {}
+        };
+        window.addEventListener('error',function(event){
+            var err=event.error||{};
+            send({
+                type:'error',
+                message:err.message||event.message||'Unknown error',
+                name:err.name||'Error',
+                stack:err.stack||null,
+                source:event.filename||null,
+                line:event.lineno||null,
+                column:event.colno||null,
+                url:window.location.href,
+                userAgent:navigator.userAgent,
+                timestamp:new Date().toISOString()
+            });
+        });
+        window.addEventListener('unhandledrejection',function(event){
+            var reason=event.reason||{};
+            send({
+                type:'unhandledrejection',
+                message:reason.message||String(reason)||'Unhandled rejection',
+                name:reason.name||'UnhandledRejection',
+                stack:reason.stack||null,
+                url:window.location.href,
+                userAgent:navigator.userAgent,
+                timestamp:new Date().toISOString()
+            });
+        });
+    } catch (e) {}
+})();`,
+                                        }}
+                                />
                 <NextTopLoader
                     color="var(--accent-primary)"
                     initialPosition={0.08}
