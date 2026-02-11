@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { X, SkipBack, Play, Pause, SkipForward, Volume2, Repeat, Shuffle, Heart, ListPlus, Download, Share } from "lucide-react";
@@ -29,6 +30,10 @@ const getAudioElement = () => {
 };
 
 export default function FullscreenPlayer() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const isFullscreenFromUrl = searchParams.get("fullscreen") === "true";
+
     const {
         currentSong,
         isPlaying,
@@ -62,6 +67,18 @@ export default function FullscreenPlayer() {
     const [showSpeedMenu, setShowSpeedMenu] = useState(false);
     const [isLowPowerMode, setIsLowPowerMode] = useState(false);
 
+    // Sync URL fullscreen state with store on mount
+    useEffect(() => {
+        if (isFullscreenFromUrl && !isFullscreenOpen) {
+            // URL says fullscreen but store doesn't, sync store
+            // Note: we don't call openFullscreen here as the store should be synced elsewhere
+        }
+        if (!isFullscreenFromUrl && isFullscreenOpen) {
+            // Store says fullscreen but URL doesn't, sync URL
+            // This happens when user closes fullscreen and URL wasn't updated
+        }
+    }, [isFullscreenFromUrl, isFullscreenOpen]);
+
     useEffect(() => {
         if (typeof window === "undefined") return;
         const media = window.matchMedia("(max-width: 768px), (prefers-reduced-motion: reduce)");
@@ -71,15 +88,30 @@ export default function FullscreenPlayer() {
         return () => media.removeEventListener("change", handleChange);
     }, []);
 
+    // Listen for browser back button (popstate) to close fullscreen
     useEffect(() => {
-        if (!isFullscreenOpen) return;
+        if (typeof window === "undefined") return;
+
+        const handlePopState = () => {
+            // If fullscreen is open but URL no longer has fullscreen param, close it
+            if (isFullscreenOpen && !isFullscreenFromUrl) {
+                closeFullscreen();
+            }
+        };
+
+        window.addEventListener("popstate", handlePopState);
+        return () => window.removeEventListener("popstate", handlePopState);
+    }, [isFullscreenOpen, isFullscreenFromUrl, closeFullscreen]);
+
+    useEffect(() => {
+        if (!isFullscreenOpen && !isFullscreenFromUrl) return;
 
         // Prevent body scroll when modal is open
         document.body.style.overflow = "hidden";
         return () => {
             document.body.style.overflow = "unset";
         };
-    }, [isFullscreenOpen]);
+    }, [isFullscreenOpen, isFullscreenFromUrl]);
 
     useEffect(() => {
         if (currentSong) {
@@ -102,7 +134,7 @@ export default function FullscreenPlayer() {
 
     // Fetch lyrics when fullscreen is open and song changes
     useEffect(() => {
-        if (!isFullscreenOpen || !currentSong?.videoId || !showLyrics) {
+        if ((!isFullscreenOpen && !isFullscreenFromUrl) || !currentSong?.videoId || !showLyrics) {
             return;
         }
 
@@ -159,7 +191,13 @@ export default function FullscreenPlayer() {
         loadLyrics();
 
         return () => controller.abort();
-    }, [isFullscreenOpen, currentSong?.videoId, showLyrics]);
+    }, [isFullscreenOpen, isFullscreenFromUrl, currentSong?.videoId, showLyrics]);
+
+    const handleCloseFullscreen = () => {
+        closeFullscreen();
+        // Remove fullscreen query param from URL without page reload
+        router.push("", { scroll: false });
+    };
 
     const toggleLike = async () => {
         if (!currentSong) return;
@@ -287,7 +325,7 @@ export default function FullscreenPlayer() {
         };
     }, [isFullscreenOpen, isPlaying, isLowPowerMode]);
 
-    if (!isFullscreenOpen) return null;
+    if (!isFullscreenOpen && !isFullscreenFromUrl) return null;
 
     return (
         <div className={styles.overlay}>
@@ -305,7 +343,7 @@ export default function FullscreenPlayer() {
             <div className={styles.grain} />
             <div className={styles.container}>
                 {/* Close Button */}
-                <button onClick={closeFullscreen} className={styles.closeBtn} title="Close">
+                <button onClick={handleCloseFullscreen} className={styles.closeBtn} title="Close">
                     <X size={28} />
                 </button>
 

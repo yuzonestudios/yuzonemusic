@@ -73,6 +73,9 @@
 
 .player {
     margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
 }
 
 .playButton {
@@ -97,6 +100,32 @@
 
 .playButton:active {
     transform: scale(0.98);
+}
+
+.fullscreenButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: var(--radius-full);
+    background: rgba(139, 92, 246, 0.15);
+    color: var(--accent-primary);
+    font-weight: 600;
+    font-size: 1.2rem;
+    border: 1px solid var(--accent-primary, rgba(139, 92, 246, 0.3));
+    cursor: pointer;
+    transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.fullscreenButton:hover {
+    background: rgba(139, 92, 246, 0.25);
+    box-shadow: 0 8px 16px rgba(139, 92, 246, 0.3);
+}
+
+.fullscreenButton:active {
+    transform: scale(0.95);
 }
 
 .footerNote {

@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Pause, Play } from "lucide-react";
+import { usePlayerStore } from "@/store/playerStore";
 import styles from "./page.module.css";
 
 interface SongPlayerProps {
@@ -12,6 +14,18 @@ export default function SongPlayer({ videoId }: SongPlayerProps) {
     const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isBusy, setIsBusy] = useState(false);
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const { openFullscreen, closeFullscreen } = usePlayerStore();
+
+    const isFullscreenFromUrl = searchParams.get("fullscreen") === "true";
+
+    // Sync URL fullscreen state to store on mount
+    useEffect(() => {
+        if (isFullscreenFromUrl) {
+            openFullscreen();
+        }
+    }, [isFullscreenFromUrl, openFullscreen]);
 
     const emitSongUrl = useCallback(() => {
         if (typeof window === "undefined") return;
@@ -56,6 +70,12 @@ export default function SongPlayer({ videoId }: SongPlayerProps) {
         }
     }, [isBusy, isPlaying]);
 
+    const handleOpenFullscreen = useCallback(() => {
+        openFullscreen();
+        // Update URL to reflect fullscreen state without page reload
+        router.push(`?fullscreen=true`, { scroll: false });
+    }, [openFullscreen, router]);
+
     return (
         <div className={styles.player}>
             <audio
@@ -72,6 +92,15 @@ export default function SongPlayer({ videoId }: SongPlayerProps) {
             >
                 {isPlaying ? <Pause size={20} /> : <Play size={20} />}
                 <span>{isPlaying ? "Pause" : "Play"}</span>
+            </button>
+            <button
+                type="button"
+                className={styles.fullscreenButton}
+                onClick={handleOpenFullscreen}
+                title="Open fullscreen player"
+                aria-label="Open fullscreen player"
+            >
+                ⛶
             </button>
         </div>
     );
