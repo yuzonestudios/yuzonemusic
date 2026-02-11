@@ -3,13 +3,25 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 // Public paths that don't require authentication
-const publicPaths = ["/login", "/signup", "/verify", "/api/auth", "/api/stream", "/api/share", "/share"];
+const publicPaths = [
+    "/",
+    "/login",
+    "/signup",
+    "/verify",
+    "/terms",
+    "/song",
+    "/share",
+    "/api/auth",
+    "/api/stream",
+    "/api/share",
+    "/api/seo",
+];
 
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Check if the path is public
-    const isPublicPath = publicPaths.some((path) => pathname.startsWith(path)) || pathname === "/";
+    const isPublicPath = publicPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 
     // Get the session token
     const token = await getToken({
