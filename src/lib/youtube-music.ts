@@ -402,84 +402,54 @@ export async function getStreamUrl(videoId: string): Promise<string | null> {
 export async function getSongInfo(videoId: string): Promise<YTMusicSong | null> {
     try {
         if (!videoId || typeof videoId !== "string" || !videoId.trim()) {
+            console.error("[getSongInfo] Invalid videoId:", videoId);
             return null;
         }
 
+        // Try Innertube first (most reliable for metadata)
+        try {
+            const yt = await getInnertube();
+            const info = await yt.getBasicInfo(videoId.trim());
+
+            if (info.basic_info) {
+                console.log(`[getSongInfo] Got info from Innertube for ${videoId}:`, info.basic_info.title);
+                return {
+                    videoId: info.basic_info.id || videoId,
+                    title: info.basic_info.title || "Unknown Title",
+                    artist: info.basic_info.author || "Unknown Artist",
+                    thumbnail: info.basic_info.thumbnail?.[0]?.url || "/placeholder-album.png",
+                    duration: formatDuration(info.basic_info.duration),
+                };
+            }
+        } catch (innertubeError: any) {
+            const message = innertubeError?.message || String(innertubeError);
+            if (!message.includes("video_id is missing")) {
+                console.error(`[getSongInfo] Innertube failed for ${videoId}:`, message);
+            }
+        }
+
+        // Fallback to external API
+        console.log(`[getSongInfo] Trying external API for ${videoId}`);
         const external = await fetchSongInfoFromExternal(videoId);
         if (external) {
+            console.log(`[getSongInfo] Got info from external API for ${videoId}:`, external.title);
             return external;
         }
 
-        const yt = await getInnertube();
-        const info = await yt.getBasicInfo(videoId);
-
-        if (info.basic_info) {
-            return {
-                videoId: info.basic_info.id || videoId,
-                title: info.basic_info.title || "Unknown Title",
-                artist: info.basic_info.author || "Unknown Artist",
-                thumbnail: info.basic_info.thumbnail?.[0]?.url || "/placeholder-album.png",
-                duration: formatDuration(info.basic_info.duration),
-            };
-        }
-
+        console.error(`[getSongInfo] All methods failed for ${videoId}`);
         return null;
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        if (!message.includes("video_id is missing")) {
-            console.error("Error getting song info:", error);
-        }
-        const external = await fetchSongInfoFromExternal(videoId);
-        return external ?? null;
+        console.error(`[getSongInfo] Fatal error for ${videoId}:`, error);
+        return null;
     }
 }
 
 async function fetchSongInfoFromExternal(videoId: string): Promise<YTMusicSong | null> {
     try {
-        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-        const localApiUrl = `${baseUrl.replace(/\/$/, "")}/api/search?q=${encodeURIComponent(videoId)}&type=songs`;
-        const response = await fetch(localApiUrl, {
-            headers: {
-                "User-Agent": "YuzoneMusic/1.0",
-            },
-            cache: "no-store",
-        });
-
-        if (!response.ok) {
-            return await fetchSongInfoFromExternalFallback(videoId);
-        }
-
-        const payload = await response.json();
-        const data = payload?.data ?? payload;
-        const results = Array.isArray(data) ? data : data?.songs || data?.results || [];
-        const match = results.find(
-            (song: any) => song?.videoId === videoId || song?.id === videoId
-        ) || results[0];
-
-        if (!match) {
-            return await fetchSongInfoFromExternalFallback(videoId);
-        }
-
-        return {
-            videoId: match.videoId || match.id || videoId,
-            title: match.title || "Unknown Title",
-            artist: Array.isArray(match.artists)
-                ? match.artists.join(", ")
-                : match.artist || match.artists || "Unknown Artist",
-            thumbnail:
-                match.thumbnail || match.thumbnails?.[0]?.url || "/placeholder-album.png",
-            duration: match.duration || "0:00",
-            album: match.album,
-        };
-    } catch (error) {
-        console.error("Error fetching external song info:", error);
-        return null;
-    }
-}
-
-async function fetchSongInfoFromExternalFallback(videoId: string): Promise<YTMusicSong | null> {
-    try {
+        // Try external API directly (api.yuzone.me)
         const externalApiUrl = `https://api.yuzone.me/search?q=${encodeURIComponent(videoId)}`;
+        console.log(`[fetchSongInfoFromExternal] Fetching from: ${externalApiUrl}`);
+        
         const response = await fetch(externalApiUrl, {
             headers: {
                 "User-Agent": "YuzoneMusic/1.0",
@@ -488,22 +458,34 @@ async function fetchSongInfoFromExternalFallback(videoId: string): Promise<YTMus
         });
 
         if (!response.ok) {
+            console.error(`[fetchSongInfoFromExternal] API returned ${response.status}`);
             return null;
         }
 
         const payload = await response.json();
+        console.log(`[fetchSongInfoFromExternal] Response type:`, Array.isArray(payload) ? 'array' : typeof payload);
+        
         const results = Array.isArray(payload) ? payload : payload?.results || payload?.songs || [];
+        
+        if (!results || results.length === 0) {
+            console.error(`[fetchSongInfoFromExternal] No results found`);
+            return null;
+        }
+
         const match = results.find(
             (song: any) => song?.videoId === videoId || song?.id === videoId
         ) || results[0];
 
         if (!match) {
+            console.error(`[fetchSongInfoFromExternal] No match found in results`);
             return null;
         }
 
+        console.log(`[fetchSongInfoFromExternal] Found match:`, match.title || match.name);
+
         return {
             videoId: match.videoId || match.id || videoId,
-            title: match.title || "Unknown Title",
+            title: match.title || match.name || "Unknown Title",
             artist: Array.isArray(match.artists)
                 ? match.artists.join(", ")
                 : match.artist || match.artists || "Unknown Artist",
@@ -513,7 +495,9 @@ async function fetchSongInfoFromExternalFallback(videoId: string): Promise<YTMus
             album: match.album,
         };
     } catch (error) {
-        console.error("Error fetching fallback song info:", error);
+        console.error(`[fetchSongInfoFromExternal] Error:`, error);
         return null;
     }
 }
+
+
