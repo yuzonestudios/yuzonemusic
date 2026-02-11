@@ -4,7 +4,7 @@ import styles from "./page.module.css";
 import { getSongInfo } from "@/lib/youtube-music";
 
 interface SongPageProps {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -26,7 +26,8 @@ function toIsoDuration(time: string) {
 }
 
 export async function generateMetadata({ params }: SongPageProps): Promise<Metadata> {
-    const videoId = typeof params?.id === "string" ? params.id.trim() : "";
+    const resolvedParams = await params;
+    const videoId = typeof resolvedParams?.id === "string" ? resolvedParams.id.trim() : "";
     if (!videoId) {
         return {
             title: "Song not found | Yuzone Music",
@@ -70,7 +71,8 @@ export async function generateMetadata({ params }: SongPageProps): Promise<Metad
 }
 
 export default async function SongPage({ params }: SongPageProps) {
-    const videoId = typeof params?.id === "string" ? params.id.trim() : "";
+    const resolvedParams = await params;
+    const videoId = typeof resolvedParams?.id === "string" ? resolvedParams.id.trim() : "";
 
     const song = videoId ? await getSongInfo(videoId) : null;
     const resolvedSong = song ?? {
