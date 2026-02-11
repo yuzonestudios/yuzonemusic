@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { usePlayerStore } from "@/store/playerStore";
 
@@ -17,7 +16,6 @@ interface SongPageClientProps {
 }
 
 export default function SongPageClient({ song }: SongPageClientProps) {
-    const router = useRouter();
     const { data: session, status } = useSession();
     const { setCurrentSong, openFullscreen } = usePlayerStore((state) => ({
         setCurrentSong: state.setCurrentSong,
@@ -46,13 +44,8 @@ export default function SongPageClient({ song }: SongPageClientProps) {
             return () => clearTimeout(timer);
         }
 
-        // If logged in, redirect to dashboard where the normal player UI exists
-        const timer = setTimeout(() => {
-            router.push("/dashboard");
-        }, 500);
-
-        return () => clearTimeout(timer);
-    }, [song, setCurrentSong, session, status, openFullscreen, router]);
+        // If logged in, just let the song play normally (no redirect)
+    }, [song, setCurrentSong, session, status, openFullscreen]);
 
     return (
         <div style={{
@@ -105,7 +98,7 @@ export default function SongPageClient({ song }: SongPageClientProps) {
                         ? "Loading..." 
                         : !session 
                         ? "Opening player..." 
-                        : "Loading player..."}
+                        : "Now playing - Use player controls at the bottom"}
                 </p>
             </div>
         </div>
