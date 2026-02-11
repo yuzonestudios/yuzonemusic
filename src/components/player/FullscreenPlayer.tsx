@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { X, SkipBack, Play, Pause, SkipForward, Volume2, Repeat, Shuffle, Heart, ListPlus, Download, Share } from "lucide-react";
+import { X, SkipBack, Play, Pause, SkipForward, Volume2, Heart, ListPlus, Download, Share } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import { browserCache, BROWSER_CACHE_TTL } from "@/lib/browser-cache";
 import styles from "./FullscreenPlayer.module.css";
@@ -36,19 +36,13 @@ export default function FullscreenPlayer() {
         volume,
         currentTime,
         duration,
-        repeat,
-        shuffle,
         isFullscreenOpen,
-        playbackSpeed,
         togglePlay,
         nextSong,
         previousSong,
         setVolume,
         setCurrentTime,
-        toggleRepeat,
-        toggleShuffle,
         closeFullscreen,
-        setPlaybackSpeed,
     } = usePlayerStore();
 
     const [isLiked, setIsLiked] = useState(false);
@@ -60,7 +54,6 @@ export default function FullscreenPlayer() {
     const [lyricsError, setLyricsError] = useState<string | null>(null);
     const [showLyrics, setShowLyrics] = useState(false);
     const [waveIntensity, setWaveIntensity] = useState(0);
-    const [showSpeedMenu, setShowSpeedMenu] = useState(false);
     const [isLowPowerMode, setIsLowPowerMode] = useState(false);
     const originalUrlRef = useRef<string | null>(null);
 
@@ -409,9 +402,6 @@ export default function FullscreenPlayer() {
                         </p>
                         <div className={styles.metaChips}>
                             <span className={styles.metaChip}>Time left {formatTime(timeLeft)}</span>
-                            <span className={styles.metaChip}>Speed {playbackSpeed}x</span>
-                            <span className={styles.metaChip}>{shuffle ? "Shuffle on" : "Shuffle off"}</span>
-                            <span className={styles.metaChip}>Repeat {repeat}</span>
                         </div>
                         <div className={styles.metaRow}>
                             <button
@@ -472,15 +462,6 @@ export default function FullscreenPlayer() {
                     <div className={styles.controlsRow}>
                         <div className={styles.controls}>
                             <button
-                                onClick={toggleShuffle}
-                                className={`${styles.controlBtn} ${shuffle ? styles.active : ""}`}
-                                title={shuffle ? "Shuffle: On" : "Shuffle: Off"}
-                                disabled={!currentSong}
-                            >
-                                <Shuffle size={22} />
-                            </button>
-
-                            <button
                                 onClick={previousSong}
                                 className={styles.controlBtn}
                                 disabled={!currentSong}
@@ -505,22 +486,6 @@ export default function FullscreenPlayer() {
                                 title="Next"
                             >
                                 <SkipForward size={24} />
-                            </button>
-
-                            <button
-                                onClick={toggleRepeat}
-                                className={`${styles.controlBtn} ${repeat !== "off" ? styles.active : ""}`}
-                                title={`Repeat: ${repeat}`}
-                                disabled={!currentSong}
-                            >
-                                {repeat === "one" ? (
-                                    <span className={styles.repeatOne}>
-                                        <Repeat size={22} />
-                                        <span className={styles.repeatText}>1</span>
-                                    </span>
-                                ) : (
-                                    <Repeat size={22} />
-                                )}
                             </button>
                         </div>
                     </div>
@@ -580,33 +545,6 @@ export default function FullscreenPlayer() {
                                 className={styles.volumeSlider}
                             />
                             <span className={styles.volumeValue}>{Math.round(volume * 100)}%</span>
-                        </div>
-
-                        {/* Playback Speed Control */}
-                        <div className={styles.speedSection}>
-                            <button 
-                                className={styles.speedBtn}
-                                onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-                                title="Playback Speed"
-                            >
-                                {playbackSpeed}x
-                            </button>
-                            {showSpeedMenu && (
-                                <div className={styles.speedMenu}>
-                                    {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
-                                        <button
-                                            key={speed}
-                                            className={`${styles.speedOption} ${playbackSpeed === speed ? styles.active : ''}`}
-                                            onClick={() => {
-                                                setPlaybackSpeed(speed);
-                                                setShowSpeedMenu(false);
-                                            }}
-                                        >
-                                            {speed}x
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
