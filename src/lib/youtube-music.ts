@@ -411,7 +411,10 @@ export async function getSongInfo(videoId: string): Promise<YTMusicSong | null> 
 
         return null;
     } catch (error) {
-        console.error("Error getting song info:", error);
+        const message = error instanceof Error ? error.message : String(error);
+        if (!message.includes("video_id is missing")) {
+            console.error("Error getting song info:", error);
+        }
         return null;
     }
 }

@@ -38,7 +38,9 @@ export async function generateMetadata({ params }: SongPageProps): Promise<Metad
 
     if (!song) {
         return {
-            title: "Song not found | Yuzone Music",
+            title: "Song | Yuzone Music",
+            description: "Listen on Yuzone Music.",
+            alternates: { canonical: new URL(`/song/${videoId}`, siteUrl).toString() },
             robots: { index: false, follow: false },
         };
     }
@@ -74,27 +76,30 @@ export default async function SongPage({ params }: SongPageProps) {
     }
 
     const song = await getSongInfo(videoId);
+    const resolvedSong = song ?? {
+        videoId,
+        title: "Unknown Title",
+        artist: "Unknown Artist",
+        thumbnail: "/placeholder-album.png",
+        duration: "0:00",
+    };
 
-    if (!song) {
-        notFound();
-    }
-
-    const songUrl = new URL(`/song/${song.videoId}`, siteUrl).toString();
+    const songUrl = new URL(`/song/${resolvedSong.videoId}`, siteUrl).toString();
     const jsonLd = {
         "@context": "https://schema.org",
         "@type": "MusicRecording",
-        name: song.title,
+        name: resolvedSong.title,
         byArtist: {
             "@type": "MusicGroup",
-            name: song.artist,
+            name: resolvedSong.artist,
         },
-        duration: toIsoDuration(song.duration),
+        duration: toIsoDuration(resolvedSong.duration),
         url: songUrl,
-        image: [song.thumbnail],
-        inAlbum: song.album
+        image: [resolvedSong.thumbnail],
+        inAlbum: resolvedSong.album
             ? {
                   "@type": "MusicAlbum",
-                  name: song.album,
+                  name: resolvedSong.album,
               }
             : undefined,
     };
@@ -103,16 +108,16 @@ export default async function SongPage({ params }: SongPageProps) {
         <div className={styles.container}>
             <div className={styles.card}>
                 <div className={styles.artwork}>
-                    <img src={song.thumbnail} alt={`${song.title} cover`} />
+                    <img src={resolvedSong.thumbnail} alt={`${resolvedSong.title} cover`} />
                 </div>
                 <div className={styles.content}>
-                    <h1 className={styles.title}>{song.title}</h1>
-                    <p className={styles.artist}>{song.artist}</p>
+                    <h1 className={styles.title}>{resolvedSong.title}</h1>
+                    <p className={styles.artist}>{resolvedSong.artist}</p>
                     <div className={styles.meta}>
-                        <span className={styles.metaBadge}>Duration: {song.duration}</span>
+                        <span className={styles.metaBadge}>Duration: {resolvedSong.duration}</span>
                         <span className={styles.metaBadge}>Source: YouTube Music</span>
                     </div>
-                    <SongPlayer videoId={song.videoId} />
+                    <SongPlayer videoId={resolvedSong.videoId} />
                     <p className={styles.footerNote}>
                         Tip: Add "Yuzone Music" to your search to find this track faster.
                     </p>
