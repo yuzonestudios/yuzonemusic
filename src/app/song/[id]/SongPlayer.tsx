@@ -61,9 +61,18 @@ export default function SongPlayer({ videoId }: SongPlayerProps) {
     }, [isBusy, isPlaying]);
 
     const handleOpenFullscreen = useCallback(() => {
-        openFullscreen();
-        // Update URL to reflect fullscreen state without page reload
-        router.push(`/song/${videoId}?fullscreen=true`, { scroll: false });
+        try {
+            console.log("[SongPlayer] Opening fullscreen for videoId:", videoId);
+            openFullscreen();
+            // Update URL to reflect fullscreen state without page reload
+            const fullUrl = `/song/${videoId}?fullscreen=true`;
+            console.log("[SongPlayer] Pushing URL:", fullUrl);
+            if (router) {
+                router.push(fullUrl, { scroll: false });
+            }
+        } catch (error) {
+            console.error("[SongPlayer] Error opening fullscreen:", error);
+        }
     }, [openFullscreen, router, videoId]);
 
     return (

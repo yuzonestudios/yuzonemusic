@@ -181,18 +181,27 @@ export default function FullscreenPlayer() {
 
     const handleCloseFullscreen = () => {
         closeFullscreen();
-        // Get song ID from currentSong or extract from URL
-        const songId = currentSong?.videoId || getSongIdFromUrl();
-        if (songId) {
-            router.push(`/song/${songId}`, { scroll: false });
+        try {
+            // Get song ID from currentSong or extract from URL
+            const songId = currentSong?.videoId || getSongIdFromUrl();
+            if (songId) {
+                router.push(`/song/${songId}`, { scroll: false });
+            }
+        } catch (error) {
+            console.error("[FullscreenPlayer] Error closing fullscreen:", error);
         }
     };
 
     const getSongIdFromUrl = (): string | null => {
-        if (typeof window === "undefined") return null;
-        // Extract video ID from URL like /song/dQw4w9WgXcQ?fullscreen=true
-        const match = window.location.pathname.match(/\/song\/([^/]+)/);
-        return match ? match[1] : null;
+        try {
+            if (typeof window === "undefined") return null;
+            // Extract video ID from URL like /song/dQw4w9WgXcQ?fullscreen=true
+            const match = window.location.pathname.match(/\/song\/([^/]+)/);
+            return match ? match[1] : null;
+        } catch (error) {
+            console.error("[FullscreenPlayer] Error extracting song ID from URL:", error);
+            return null;
+        }
     };
 
     const toggleLike = async () => {
