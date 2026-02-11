@@ -428,11 +428,55 @@ export async function getSongInfo(videoId: string): Promise<YTMusicSong | null> 
 
 async function fetchSongInfoFromExternal(videoId: string): Promise<YTMusicSong | null> {
     try {
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+        const localApiUrl = `${baseUrl.replace(/\/$/, "")}/api/search?q=${encodeURIComponent(videoId)}&type=songs`;
+        const response = await fetch(localApiUrl, {
+            headers: {
+                "User-Agent": "YuzoneMusic/1.0",
+            },
+            cache: "no-store",
+        });
+
+        if (!response.ok) {
+            return await fetchSongInfoFromExternalFallback(videoId);
+        }
+
+        const payload = await response.json();
+        const data = payload?.data ?? payload;
+        const results = Array.isArray(data) ? data : data?.songs || data?.results || [];
+        const match = results.find(
+            (song: any) => song?.videoId === videoId || song?.id === videoId
+        ) || results[0];
+
+        if (!match) {
+            return await fetchSongInfoFromExternalFallback(videoId);
+        }
+
+        return {
+            videoId: match.videoId || match.id || videoId,
+            title: match.title || "Unknown Title",
+            artist: Array.isArray(match.artists)
+                ? match.artists.join(", ")
+                : match.artist || match.artists || "Unknown Artist",
+            thumbnail:
+                match.thumbnail || match.thumbnails?.[0]?.url || "/placeholder-album.png",
+            duration: match.duration || "0:00",
+            album: match.album,
+        };
+    } catch (error) {
+        console.error("Error fetching external song info:", error);
+        return null;
+    }
+}
+
+async function fetchSongInfoFromExternalFallback(videoId: string): Promise<YTMusicSong | null> {
+    try {
         const externalApiUrl = `https://api.yuzone.me/search?q=${encodeURIComponent(videoId)}`;
         const response = await fetch(externalApiUrl, {
             headers: {
                 "User-Agent": "YuzoneMusic/1.0",
             },
+            cache: "no-store",
         });
 
         if (!response.ok) {
@@ -440,7 +484,7 @@ async function fetchSongInfoFromExternal(videoId: string): Promise<YTMusicSong |
         }
 
         const payload = await response.json();
-        const results = Array.isArray(payload) ? payload : payload?.results || [];
+        const results = Array.isArray(payload) ? payload : payload?.results || payload?.songs || [];
         const match = results.find(
             (song: any) => song?.videoId === videoId || song?.id === videoId
         ) || results[0];
@@ -461,7 +505,7 @@ async function fetchSongInfoFromExternal(videoId: string): Promise<YTMusicSong |
             album: match.album,
         };
     } catch (error) {
-        console.error("Error fetching external song info:", error);
+        console.error("Error fetching fallback song info:", error);
         return null;
     }
 }

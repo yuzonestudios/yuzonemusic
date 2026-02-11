@@ -80,8 +80,9 @@ export default async function SongPage({ params }: SongPageProps) {
         thumbnail: "/placeholder-album.png",
         duration: "0:00",
     };
+    const playbackVideoId = videoId || resolvedSong.videoId;
 
-    const songUrl = new URL(`/song/${resolvedSong.videoId}`, siteUrl).toString();
+    const songUrl = new URL(`/song/${playbackVideoId}`, siteUrl).toString();
     const jsonLd = {
         "@context": "https://schema.org",
         "@type": "MusicRecording",
@@ -114,7 +115,7 @@ export default async function SongPage({ params }: SongPageProps) {
                         <span className={styles.metaBadge}>Duration: {resolvedSong.duration}</span>
                         <span className={styles.metaBadge}>Source: YouTube Music</span>
                     </div>
-                    <SongPlayer videoId={resolvedSong.videoId} />
+                    <SongPlayer videoId={playbackVideoId} />
                     <p className={styles.footerNote}>
                         Tip: Add "Yuzone Music" to your search to find this track faster.
                     </p>
