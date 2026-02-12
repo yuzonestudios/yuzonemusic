@@ -218,6 +218,45 @@ export default function MusicPlayer() {
         document.cookie = `${cookieKey}=${encodeURIComponent(minutes)}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
     };
 
+    // Sync server listening time with local on mount
+    useEffect(() => {
+        const syncListeningTime = async () => {
+            try {
+                const res = await fetch(`/api/history/summary?ts=${Date.now()}`, {
+                    cache: "no-store",
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && typeof data.totalListenSeconds === 'number') {
+                        const serverSeconds = data.totalListenSeconds;
+                        
+                        // Always use server as source of truth for total listening time
+                        // This ensures it syncs across devices
+                        writeLocalListenSeconds(serverSeconds);
+                        
+                        const minutes = Math.round(serverSeconds / 60);
+                        writeListeningMinutesCookie(minutes);
+                        
+                        window.dispatchEvent(
+                            new CustomEvent("listenMinutesLocal", {
+                                detail: { minutes, seconds: serverSeconds },
+                            })
+                        );
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to sync listening time:", error);
+            }
+        };
+
+        // Sync on mount
+        syncListeningTime();
+        
+        // Sync periodically to keep devices in sync (every 2 minutes)
+        const intervalId = setInterval(syncListeningTime, 120000);
+        return () => clearInterval(intervalId);
+    }, []);
+
     // Track song play in history & Check Like Status
     useEffect(() => {
         if (currentSong) {
@@ -269,6 +308,7 @@ export default function MusicPlayer() {
             const current = lastListenRef.current;
             const delta = Math.max(0, current - lastProgressRef.current);
             if (delta > 0) {
+                // Update local storage for immediate UI feedback
                 const totalSeconds = readLocalListenSeconds() + Math.floor(delta);
                 writeLocalListenSeconds(totalSeconds);
                 const minutes = Math.round(totalSeconds / 60);

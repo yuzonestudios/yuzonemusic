@@ -327,11 +327,11 @@ export default function SettingsPage() {
                         Highlights from the most recent release:
                     </p>
                     <div className={styles.updateList}>
-                        <div className={styles.updateItem}>🎨 Redesigned fullscreen player with split layout (player + lyrics).</div>
-                        <div className={styles.updateItem}>✨ Dynamic ambient background colors extracted from song thumbnails.</div>
-                        <div className={styles.updateItem}>🎭 Glowing purple & cyan borders for premium fullscreen experience.</div>
-                        <div className={styles.updateItem}>📱 Responsive split view - centered player on no-lyrics mode.</div>
-                        <div className={styles.updateItem}>⚡ Cleaned up UI - removed speed, repeat, and shuffle controls from fullscreen.</div>
+                        <div className={styles.updateItem}>🔄 Fixed listening time sync - now syncs across all devices with your account.</div>
+                        <div className={styles.updateItem}>🎵 Song title now stays in browser tab even when paused.</div>
+                        <div className={styles.updateItem}>🖼️ Media controls now show song thumbnail instead of Yuzone logo (PWA/home screen).</div>
+                        <div className={styles.updateItem}>⏱️ Server-side listening time is now the source of truth for accurate tracking.</div>
+                        <div className={styles.updateItem}>📱 Improved MediaSession API integration for better mobile experience.</div>
                     </div>
                 </div>
 

@@ -12,7 +12,7 @@ export const revalidate = 3600;
 export const dynamic = "force-dynamic";
 
 function toIsoDuration(time: string) {
-    const parts = time.split(":").map((part) => Number.parseInt(part, 10));
+    const parts = time.split(":").map((part) => Number.parseInt(part, 10)); 
     if (parts.length === 2) {
         const [mins, secs] = parts;
         return `PT${mins}M${secs}S`;

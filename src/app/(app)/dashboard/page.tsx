@@ -18,7 +18,8 @@ export default function DashboardPage() {
     const [greeting, setGreeting] = useState("Hello");
 
     useEffect(() => {
-        const cachedMinutes = readLocalMinutes() ?? readListeningMinutesCookie();
+        // Show cached value temporarily while fetching server data
+        const cachedMinutes = readListeningMinutesCookie();
         if (cachedMinutes !== null) {
             setMonthlyMinutes(cachedMinutes);
         }
@@ -33,11 +34,10 @@ export default function DashboardPage() {
                 if (summaryRes.ok) {
                     const summaryData = await summaryRes.json();
                     if (summaryData.success) {
+                        // Always use server data as the source of truth
                         const serverMinutes = summaryData.totalListenMinutes ?? 0;
-                        const localMinutes = readLocalMinutes() ?? 0;
-                        const minutes = Math.max(serverMinutes, localMinutes);
-                        setMonthlyMinutes(minutes);
-                        writeListeningMinutesCookie(minutes);
+                        setMonthlyMinutes(serverMinutes);
+                        writeListeningMinutesCookie(serverMinutes);
                     }
                 }
             } catch (error) {
@@ -99,8 +99,8 @@ export default function DashboardPage() {
             const detail = (event as CustomEvent).detail as { minutes?: number } | undefined;
             if (!detail || !Number.isFinite(detail.minutes)) return;
             const minutes = detail.minutes as number;
+            // Update UI optimistically, but server is still source of truth
             setMonthlyMinutes(minutes);
-            writeListeningMinutesCookie(minutes);
         };
 
         window.addEventListener("listenMinutesLocal", handleLocalListen);
@@ -288,21 +288,7 @@ function getTimeGreeting(): string {
 }
 
 const LISTEN_MINUTES_COOKIE_PREFIX = "yuzone_listen_minutes";
-const LISTEN_LOCAL_SECONDS_PREFIX = "yuzone_listen_local_seconds";
 const LISTEN_COOKIE_DAYS = 40;
-
-function readLocalMinutes(): number | null {
-    if (typeof window === "undefined") return null;
-    try {
-        const key = getLocalListenSecondsKey();
-        const value = window.localStorage.getItem(key);
-        const parsed = Number.parseInt(value || "0", 10);
-        if (!Number.isFinite(parsed)) return null;
-        return Math.round(parsed / 60);
-    } catch (e) {
-        return null;
-    }
-}
 
 function readListeningMinutesCookie(): number | null {
     if (typeof document === "undefined") return null;
@@ -330,10 +316,4 @@ function getListeningCookieKey(): string {
     const now = new Date();
     const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     return `${LISTEN_MINUTES_COOKIE_PREFIX}_${month}`;
-}
-
-function getLocalListenSecondsKey(): string {
-    const now = new Date();
-    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    return `${LISTEN_LOCAL_SECONDS_PREFIX}_${month}`;
 }
