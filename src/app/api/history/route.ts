@@ -130,7 +130,11 @@ export async function POST(request: NextRequest) {
         }
 
         // Also add/update playback history for analytics
+        let previousListenDuration = 0;
         if (sessionId) {
+            const existingHistory = await PlaybackHistory.findOne({ userId, sessionId }).lean();
+            previousListenDuration = existingHistory?.listenDuration || 0;
+            
             await PlaybackHistory.findOneAndUpdate(
                 { userId, sessionId },
                 {
@@ -156,6 +160,15 @@ export async function POST(request: NextRequest) {
                 duration: duration || "0:00",
                 listenDuration: listenDuration || 0,
             });
+        }
+
+        // Update user's total listening time (only add the delta)
+        const listenDelta = Math.max(0, (listenDuration || 0) - previousListenDuration);
+        if (listenDelta > 0) {
+            await User.updateOne(
+                { _id: userId },
+                { $inc: { totalListeningTime: listenDelta } }
+            );
         }
 
         // Keep history long enough to compute monthly listening time

@@ -54,6 +54,12 @@ export async function GET(request: NextRequest) {
         const hours = totalListenSeconds / 3600;
         const minutes = totalListenSeconds / 60;
 
+        // Get user's total all-time listening time
+        const user = await User.findById(userId).select("totalListeningTime").lean();
+        const totalAllTimeSeconds = user?.totalListeningTime || 0;
+        const allTimeHours = totalAllTimeSeconds / 3600;
+        const allTimeMinutes = totalAllTimeSeconds / 60;
+
         return NextResponse.json({
             success: true,
             monthStart: monthStart.toISOString(),
@@ -61,6 +67,10 @@ export async function GET(request: NextRequest) {
             totalListenHours: Math.round(hours * 100) / 100,
             totalListenMinutes: Math.round(minutes),
             plays: summary?.plays || 0,
+            // All-time stats
+            totalAllTimeSeconds,
+            totalAllTimeHours: Math.round(allTimeHours * 100) / 100,
+            totalAllTimeMinutes: Math.round(allTimeMinutes),
         });
     } catch (error) {
         console.error("Error fetching history summary:", error);
