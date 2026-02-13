@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { X, SkipBack, Play, Pause, SkipForward, Volume2, Heart, ListPlus, Download, Share, Music } from "lucide-react";
+import { X, SkipBack, Play, Pause, SkipForward, Volume2, Heart, ListPlus, Download, Share, Music, Shuffle, Repeat, Repeat1 } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import { browserCache, BROWSER_CACHE_TTL } from "@/lib/browser-cache";
 import styles from "./FullscreenPlayer.module.css";
@@ -47,6 +47,10 @@ export default function FullscreenPlayer() {
         queueIndex,
         setCurrentSong,
         removeFromQueue,
+        shuffle,
+        repeat,
+        toggleShuffle,
+        toggleRepeat,
     } = usePlayerStore();
 
     const [isLiked, setIsLiked] = useState(false);
@@ -626,6 +630,29 @@ export default function FullscreenPlayer() {
                         </div>
 
                         <div className={styles.utilityRow}>
+                            {/* Shuffle & Repeat */}
+                            <div className={styles.playbackModes}>
+                                <button
+                                    onClick={toggleShuffle}
+                                    className={`${styles.modeBtn} ${shuffle ? styles.active : ""}`}
+                                    title={shuffle ? "Shuffle on" : "Shuffle off"}
+                                    disabled={!currentSong}
+                                >
+                                    <Shuffle size={20} />
+                                </button>
+                                <button
+                                    onClick={toggleRepeat}
+                                    className={`${styles.modeBtn} ${repeat !== "off" ? styles.active : ""}`}
+                                    title={
+                                        repeat === "off" ? "Repeat off" :
+                                        repeat === "all" ? "Repeat all" : "Repeat one"
+                                    }
+                                    disabled={!currentSong}
+                                >
+                                    {repeat === "one" ? <Repeat1 size={20} /> : <Repeat size={20} />}
+                                </button>
+                            </div>
+
                             {/* Volume Control */}
                             <div className={styles.volumeSection}>
                                 <Volume2 size={20} />
