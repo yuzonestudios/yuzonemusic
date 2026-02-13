@@ -29,7 +29,7 @@ interface PlayerState {
     seekTo: (time: number) => void;
     nextSong: () => void;
     previousSong: () => void;
-    setQueue: (songs: Song[], startIndex?: number) => void;
+    setQueue: (songs: Song[], startIndex?: number, preserveTime?: boolean) => void;
     setQueueSource: (source: { type: "playlist" | "album" | "search" | "library" | "smart" | "other"; id?: string | null; name?: string | null }) => void;
     addToQueue: (song: Song) => void;
     moveInQueue: (fromIndex: number, toIndex: number) => void;
@@ -178,14 +178,14 @@ export const usePlayerStore = create<PlayerState>()(
                 });
             },
 
-            setQueue: (songs: Song[], startIndex = 0) => {
+            setQueue: (songs: Song[], startIndex = 0, preserveTime = false) => {
                 const safeIndex = Math.min(Math.max(0, startIndex), Math.max(0, songs.length - 1));
                 set({
                     queue: songs,
                     queueIndex: safeIndex,
                     currentSong: songs[safeIndex] || null,
                     isPlaying: songs.length > 0,
-                    currentTime: 0,
+                    currentTime: preserveTime ? get().currentTime : 0,
                 });
             },
 

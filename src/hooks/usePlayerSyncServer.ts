@@ -102,18 +102,19 @@ export function usePlayerSyncServer() {
                     }
 
                     // Load on initial login only when local state is empty
-                    // Set currentTime FIRST before loading song to prevent reset
+                    // Set currentTime FIRST before loading anything
                     if (serverState.currentTime) {
                         store.setCurrentTime(serverState.currentTime);
                     }
-                    
-                    if (serverState.currentSong) {
-                        // Pass preserveTime=true to prevent currentTime from being reset to 0
+
+                    // Load queue BEFORE song to avoid order issues, with preserveTime=true
+                    if (serverState.queue && serverState.queue.length > 0) {
+                        store.setQueue(serverState.queue, serverState.queueIndex, true);
+                    } else if (serverState.currentSong) {
+                        // No queue, just set the song with preserveTime
                         store.setCurrentSong(serverState.currentSong, true);
                     }
-                    if (serverState.queue && serverState.queue.length > 0) {
-                        store.setQueue(serverState.queue, serverState.queueIndex);
-                    }
+                    
                     if (serverState.queueSource) {
                         store.setQueueSource(serverState.queueSource);
                     }
