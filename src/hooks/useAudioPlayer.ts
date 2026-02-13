@@ -147,24 +147,12 @@ export function useAudioPlayer() {
 
         const loadAndPlay = async () => {
             try {
-                // Store currentTime before loading if we want to preserve it
-                const preservedTime = currentTime;
-                const shouldPreserveTime = preservedTime > 0;
-                
+                // Reset to 0 on song change - server sync will restore the correct time
                 audio.src = streamUrl;
                 audio.load();
 
-                // Restore currentTime after metadata is loaded (for server sync)
-                if (shouldPreserveTime) {
-                    const restoreTime = () => {
-                        if (audio.readyState >= 2) {
-                            audio.currentTime = preservedTime;
-                            console.log(`⏱️ Restored time to ${preservedTime}s after load`);
-                        }
-                    };
-                    audio.addEventListener('loadedmetadata', restoreTime, { once: true });
-                    audio.addEventListener('canplay', restoreTime, { once: true });
-                }
+                // Server sync (usePlayerSyncServer) will handle time restoration
+                // Don't preserve time here to avoid race conditions
 
                 if (isPlaying) {
                     await audio.play();

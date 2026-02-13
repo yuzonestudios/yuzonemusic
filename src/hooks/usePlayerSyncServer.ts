@@ -35,19 +35,49 @@ export function usePlayerSyncServer() {
                     
                     // Only apply if this song is still current
                     if (store.currentSong?.videoId === videoId) {
-                        store.setCurrentTime(data.currentTime);
+                        // Wait a bit for audio element to be set up
+                        await new Promise(resolve => setTimeout(resolve, 100));
                         
-                        // Also seek audio element
+                        // Verify song is still current after delay
+                        const currentState = usePlayerStore.getState();
+                        if (currentState.currentSong?.videoId !== videoId) {
+                            return; // Song changed, abort
+                        }
+                        
+                        // Update store
+                        currentState.setCurrentTime(data.currentTime);
+                        
+                        // Seek audio element when ready
                         const audio = (window as any).__yuzoneAudio as HTMLAudioElement | undefined;
-                        if (audio && audio.readyState >= 2) {
-                            audio.currentTime = data.currentTime;
-                        } else if (audio) {
-                            const seekWhenReady = () => {
+                        if (!audio) return;
+                        
+                        const seekWhenReady = () => {
+                            // Final check before seeking
+                            const finalState = usePlayerStore.getState();
+                            if (finalState.currentSong?.videoId === videoId && audio.readyState >= 2) {
                                 audio.currentTime = data.currentTime;
                                 console.log(`⏱️ Restored ${videoId} to ${data.currentTime}s`);
+                            }
+                        };
+                        
+                        if (audio.readyState >= 2) {
+                            seekWhenReady();
+                        } else {
+                            // Wait for audio to be ready
+                            const onReady = () => {
+                                seekWhenReady();
+                                audio.removeEventListener('loadedmetadata', onReady);
+                                audio.removeEventListener('canplay', onReady);
                             };
-                            audio.addEventListener('loadedmetadata', seekWhenReady, { once: true });
-                            audio.addEventListener('canplay', seekWhenReady, { once: true });
+                            audio.addEventListener('loadedmetadata', onReady);
+                            audio.addEventListener('canplay', onReady);
+                            
+                            // Timeout fallback
+                            setTimeout(() => {
+                                audio.removeEventListener('loadedmetadata', onReady);
+                                audio.removeEventListener('canplay', onReady);
+                                if (audio.readyState >= 2) seekWhenReady();
+                            }, 2000);
                         }
                     }
                 }
