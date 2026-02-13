@@ -61,23 +61,36 @@ export function usePlayerSyncServer() {
                             if (audio.readyState >= 2 && audio.duration > 0 && isFinite(audio.duration)) {
                                 const targetTime = Math.min(data.currentTime, audio.duration);
                                 
-                                // Block timeupdate events for 2 seconds to prevent overwrite
+                                // Signal restoration in progress
+                                const setRestoring = (window as any).__yuzoneSetRestoring;
+                                if (setRestoring) {
+                                    setRestoring(true);
+                                }
+                                
+                                // Block timeupdate events for 3 seconds to prevent overwrite
                                 const blockTimeUpdate = (window as any).__yuzoneBlockTimeUpdate;
                                 if (blockTimeUpdate) {
-                                    blockTimeUpdate(2000);
+                                    blockTimeUpdate(3000);
                                 }
                                 
                                 // Seek audio first
                                 audio.currentTime = targetTime;
                                 
-                                // Then update store after a small delay
+                                // Then update store
                                 setTimeout(() => {
                                     const verifyState = usePlayerStore.getState();
                                     if (verifyState.currentSong?.videoId === videoId) {
                                         verifyState.setCurrentTime(targetTime);
                                         console.log(`⏱️ Restored ${videoId} to ${targetTime}s`);
+                                        
+                                        // Unblock restoration after ensuring store is updated
+                                        setTimeout(() => {
+                                            if (setRestoring) {
+                                                setRestoring(false);
+                                            }
+                                        }, 500);
                                     }
-                                }, 200);
+                                }, 100);
                             }
                         };
                         

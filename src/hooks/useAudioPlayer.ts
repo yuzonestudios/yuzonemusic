@@ -9,6 +9,7 @@ let globalAudioRef: HTMLAudioElement | null = null;
 export function useAudioPlayer() {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const timeUpdateBlockedUntilRef = useRef<number>(0);
+    const isRestoringRef = useRef<boolean>(false);
     const {
         currentSong,
         isPlaying,
@@ -36,6 +37,10 @@ export function useAudioPlayer() {
             (window as any).__yuzoneBlockTimeUpdate = (duration: number) => {
                 timeUpdateBlockedUntilRef.current = Date.now() + duration;
             };
+            // Allow sync hook to signal restoration in progress
+            (window as any).__yuzoneSetRestoring = (value: boolean) => {
+                isRestoringRef.current = value;
+            };
         }
 
         const audio = audioRef.current;
@@ -43,6 +48,16 @@ export function useAudioPlayer() {
         const handleTimeUpdate = () => {
             // Skip update if blocked by restore operation
             if (Date.now() < timeUpdateBlockedUntilRef.current) {
+                return;
+            }
+            // Skip if restoring in progress
+            if (isRestoringRef.current) {
+                return;
+            }
+            // Skip 0 updates shortly after song load (first 3 seconds)
+            // This prevents overwriting restored time
+            const state = usePlayerStore.getState();
+            if (audio.currentTime === 0 && state.currentTime > 0 && state.currentTime < 3) {
                 return;
             }
             setCurrentTime(audio.currentTime);
@@ -156,6 +171,10 @@ export function useAudioPlayer() {
 
         const loadAndPlay = async () => {
             try {
+                // Signal that we're loading (block timeupdate temporarily)
+                isRestoringRef.current = true;
+                timeUpdateBlockedUntilRef.current = Date.now() + 3000; // Block for 3 seconds
+                
                 // Reset to 0 on song change - server sync will restore the correct time
                 audio.src = streamUrl;
                 audio.load();
@@ -166,11 +185,17 @@ export function useAudioPlayer() {
                 if (isPlaying) {
                     await audio.play();
                 }
+                
+                // Unblock after 1 second (server sync should complete by then)
+                setTimeout(() => {
+                    isRestoringRef.current = false;
+                }, 1000);
             } catch (error: any) {
                 // Ignore AbortError which happens when song is skipped quickly
                 if (error.name !== 'AbortError') {
                     console.error("Audio playback error:", error);
                 }
+                isRestoringRef.current = false;
             }
         };
 
