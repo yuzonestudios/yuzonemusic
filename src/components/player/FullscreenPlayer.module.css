@@ -616,6 +616,24 @@
     letter-spacing: 0.01em;
 }
 
+.lyricsTitle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.lyricsBadge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #e0f2fe;
+    background: rgba(56, 189, 248, 0.2);
+    border: 1px solid rgba(56, 189, 248, 0.5);
+}
+
 .lyricsBody {
     max-height: 500px;
     overflow-y: auto;
@@ -645,6 +663,16 @@
 .lyricsLine {
     margin: 0;
     white-space: pre-wrap;
+}
+
+.lyricsLineActive {
+    color: var(--text-primary);
+    font-weight: 600;
+    background: linear-gradient(90deg, rgba(56, 189, 248, 0.15), transparent 70%);
+    border-radius: 8px;
+    padding: 0.2rem 0.4rem;
+    margin-left: -0.4rem;
+    margin-right: -0.2rem;
 }
 
 .lyricsStatus {

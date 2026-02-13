@@ -5,7 +5,13 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { videoId, title, artist } = body;
+        const { videoId, title, artist, trackName, artistName } = body;
+        const resolvedTrackName = typeof trackName === "string" && trackName.trim()
+            ? trackName.trim()
+            : (typeof title === "string" ? title.trim() : "");
+        const resolvedArtistName = typeof artistName === "string" && artistName.trim()
+            ? artistName.trim()
+            : (typeof artist === "string" ? artist.trim() : "");
 
         if (!videoId) {
             return Response.json(
@@ -31,8 +37,12 @@ export async function POST(request: Request) {
             headers: {
                 "Content-Type": "application/json",
             },
-            // Pass optional title/artist to improve hit rate
-            body: JSON.stringify({ videoId, title, artist }),
+            // Pass optional names to improve hit rate
+            body: JSON.stringify({
+                videoId,
+                trackName: resolvedTrackName || undefined,
+                artistName: resolvedArtistName || undefined,
+            }),
         });
 
         if (!response.ok) {
@@ -46,11 +56,30 @@ export async function POST(request: Request) {
         }
 
         const data = await response.json();
-        
+        const apiError = typeof data?.detail === "string" && data.detail.trim()
+            ? data.detail.trim()
+            : null;
+        const resolvedLyrics = typeof data?.syncedLyrics === "string" && data.syncedLyrics.trim()
+            ? data.syncedLyrics
+            : (typeof data?.lyrics === "string" ? data.lyrics : "");
+        const normalized = {
+            lyrics: resolvedLyrics,
+            source: data?.source ?? null,
+            returner: data?.returner ?? null,
+            error: apiError || undefined,
+        };
+
+        if (apiError) {
+            return Response.json(
+                { lyrics: "", error: apiError, source: normalized.source, returner: normalized.returner },
+                { status: 200, headers: { 'X-Error-Status': '200' } }
+            );
+        }
+
         // Cache the lyrics
-        cache.set(cacheKey, data, CACHE_TTL.LYRICS);
-        
-        return Response.json(data, {
+        cache.set(cacheKey, normalized, CACHE_TTL.LYRICS);
+
+        return Response.json(normalized, {
             headers: {
                 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=172800',
                 'X-Cache': 'MISS'

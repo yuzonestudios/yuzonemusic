@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { X, SkipBack, Play, Pause, SkipForward, Volume2, Heart, ListPlus, Download, Share } from "lucide-react";
@@ -57,6 +57,62 @@ export default function FullscreenPlayer() {
     const [isLowPowerMode, setIsLowPowerMode] = useState(false);
     const [ambientColor, setAmbientColor] = useState<string | null>(null);
     const originalUrlRef = useRef<string | null>(null);
+    const lyricsBodyRef = useRef<HTMLDivElement | null>(null);
+
+    const parsedLyrics = useMemo(() => {
+        if (!lyrics) {
+            return { isSynced: false, entries: [], plainLines: [] as string[] };
+        }
+
+        const timeRegex = /\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]/g;
+        const lines = lyrics.split(/\r?\n/);
+        const entries: Array<{ time: number; text: string }> = [];
+
+        for (const line of lines) {
+            const matches = [...line.matchAll(timeRegex)];
+            if (!matches.length) continue;
+
+            const text = line.replace(timeRegex, "").trim();
+            for (const match of matches) {
+                const mins = Number.parseInt(match[1], 10);
+                const secs = Number.parseInt(match[2], 10);
+                const fraction = match[3] ? Number.parseInt(match[3], 10) : 0;
+                const divisor = match[3] && match[3].length === 3 ? 1000 : 100;
+                const time = mins * 60 + secs + (fraction / divisor);
+                if (!Number.isNaN(time)) {
+                    entries.push({ time, text });
+                }
+            }
+        }
+
+        entries.sort((a, b) => a.time - b.time);
+        const isSynced = entries.length > 0;
+        return { isSynced, entries, plainLines: isSynced ? [] : lines };
+    }, [lyrics]);
+
+    const activeLyricIndex = useMemo(() => {
+        if (!parsedLyrics.isSynced) return -1;
+        let idx = -1;
+        const current = Math.max(0, currentTime);
+        for (let i = 0; i < parsedLyrics.entries.length; i += 1) {
+            if (parsedLyrics.entries[i].time <= current + 0.1) {
+                idx = i;
+            } else {
+                break;
+            }
+        }
+        return idx;
+    }, [currentTime, parsedLyrics]);
+
+    useEffect(() => {
+        if (!parsedLyrics.isSynced || activeLyricIndex < 0) return;
+        const container = lyricsBodyRef.current;
+        if (!container) return;
+        const target = container.querySelector(`[data-lyrics-index="${activeLyricIndex}"]`);
+        if (target instanceof HTMLElement) {
+            target.scrollIntoView({ block: "center", behavior: "smooth" });
+        }
+    }, [activeLyricIndex, parsedLyrics.isSynced]);
 
     // Extract dominant color from thumbnail
     const extractColorFromImage = async (imageUrl: string) => {
@@ -190,7 +246,11 @@ export default function FullscreenPlayer() {
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ videoId: currentSong.videoId }),
+                    body: JSON.stringify({
+                        videoId: currentSong.videoId,
+                        trackName: currentSong.title,
+                        artistName: currentSong.artist,
+                    }),
                     signal: controller.signal,
                 });
 
@@ -199,7 +259,12 @@ export default function FullscreenPlayer() {
                 }
 
                 const data = await res.json();
-                const text = (data && data.lyrics) ? String(data.lyrics) : "";
+                if (data?.error) {
+                    throw new Error(String(data.error));
+                }
+                const text = data?.syncedLyrics
+                    ? String(data.syncedLyrics)
+                    : (data && data.lyrics) ? String(data.lyrics) : "";
                 const lyricsText = text.trim() || null;
                 
                 setLyrics(lyricsText);
@@ -572,15 +637,29 @@ export default function FullscreenPlayer() {
                     {currentSong && showLyrics && (
                         <div className={styles.lyricsPanel}>
                             <div className={styles.lyricsHeader}>
-                                <span>Lyrics</span>
+                                <span className={styles.lyricsTitle}>
+                                    Lyrics
+                                    {parsedLyrics.isSynced && (
+                                        <span className={styles.lyricsBadge}>Synced</span>
+                                    )}
+                                </span>
                                 {lyricsLoading && <span className={styles.lyricsStatus}>Loading…</span>}
                                 {lyricsError && !lyricsLoading && (
                                     <span className={styles.lyricsError}>{lyricsError}</span>
                                 )}
                             </div>
-                            <div className={styles.lyricsBody}>
+                            <div className={styles.lyricsBody} ref={lyricsBodyRef}>
                                 {lyricsLoading && <span className={styles.lyricsStatus}>Fetching lyrics…</span>}
-                                {!lyricsLoading && lyrics && lyrics.split(/\r?\n/).map((line, idx) => (
+                                {!lyricsLoading && parsedLyrics.isSynced && parsedLyrics.entries.map((line, idx) => (
+                                    <p
+                                        key={`${line.time}-${idx}`}
+                                        data-lyrics-index={idx}
+                                        className={`${styles.lyricsLine} ${idx === activeLyricIndex ? styles.lyricsLineActive : ""}`}
+                                    >
+                                        {line.text || "\u00a0"}
+                                    </p>
+                                ))}
+                                {!lyricsLoading && !parsedLyrics.isSynced && parsedLyrics.plainLines.map((line, idx) => (
                                     <p key={idx} className={styles.lyricsLine}>{line || "\u00a0"}</p>
                                 ))}
                                 {!lyricsLoading && !lyrics && !lyricsError && (
