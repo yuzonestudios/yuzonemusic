@@ -102,8 +102,14 @@ export function usePlayerSyncServer() {
                     }
 
                     // Load on initial login only when local state is empty
+                    // Set currentTime FIRST before loading song to prevent reset
+                    if (serverState.currentTime) {
+                        store.setCurrentTime(serverState.currentTime);
+                    }
+                    
                     if (serverState.currentSong) {
-                        store.setCurrentSong(serverState.currentSong);
+                        // Pass preserveTime=true to prevent currentTime from being reset to 0
+                        store.setCurrentSong(serverState.currentSong, true);
                     }
                     if (serverState.queue && serverState.queue.length > 0) {
                         store.setQueue(serverState.queue, serverState.queueIndex);
@@ -127,11 +133,6 @@ export function usePlayerSyncServer() {
                     }
                     if (serverState.playbackSpeed) {
                         store.setPlaybackSpeed(serverState.playbackSpeed);
-                    }
-
-                    // Set currentTime in store immediately so UI shows correct time
-                    if (serverState.currentTime) {
-                        store.setCurrentTime(serverState.currentTime);
                     }
 
                     // Apply currentTime to audio element after song loads

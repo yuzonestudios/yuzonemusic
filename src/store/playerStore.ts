@@ -19,7 +19,7 @@ interface PlayerState {
     playbackSpeed: number;
 
     // Actions
-    setCurrentSong: (song: Song) => void;
+    setCurrentSong: (song: Song, preserveTime?: boolean) => void;
     play: () => void;
     pause: () => void;
     togglePlay: () => void;
@@ -62,7 +62,7 @@ export const usePlayerStore = create<PlayerState>()(
             loadingMessage: "Loading...",
             playbackSpeed: 1,
 
-            setCurrentSong: (song: Song) => {
+            setCurrentSong: (song: Song, preserveTime = false) => {
                 const { queue } = get();
                 const index = queue.findIndex((s) => s.videoId === song.videoId);
 
@@ -73,7 +73,7 @@ export const usePlayerStore = create<PlayerState>()(
                         currentSong: song,
                         queue: [song],
                         queueIndex: 0,
-                        currentTime: 0,
+                        currentTime: preserveTime ? get().currentTime : 0,
                         isPlaying: true,
                         // Clear playlist context when playing a standalone song without a source
                         queueSource: { type: "other", id: null, name: null },
@@ -83,7 +83,7 @@ export const usePlayerStore = create<PlayerState>()(
                     set({
                         currentSong: song,
                         queueIndex: index,
-                        currentTime: 0,
+                        currentTime: preserveTime ? get().currentTime : 0,
                         isPlaying: true,
                     });
                 }
