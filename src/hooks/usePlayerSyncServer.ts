@@ -135,44 +135,7 @@ export function usePlayerSyncServer() {
                         store.setPlaybackSpeed(serverState.playbackSpeed);
                     }
 
-                    // Apply currentTime to audio element after song loads
-                    if (serverState.currentTime && serverState.currentSong) {
-                        const targetTime = serverState.currentTime;
-                        const audio = (window as any).__yuzoneAudio as HTMLAudioElement | undefined;
-                        
-                        if (audio) {
-                            // Seek audio element when ready (store already updated above)
-                            const seekWhenReady = () => {
-                                if (audio.readyState >= 2) { // HAVE_CURRENT_DATA or better
-                                    audio.currentTime = targetTime;
-                                    console.log(`✅ Seeked audio to ${targetTime}s from server sync`);
-                                } else {
-                                    // Wait for loadedmetadata
-                                    const onReady = () => {
-                                        audio.currentTime = targetTime;
-                                        console.log(`✅ Seeked audio to ${targetTime}s from server sync (after load)`);
-                                        audio.removeEventListener("loadedmetadata", onReady);
-                                        audio.removeEventListener("canplay", onReady);
-                                    };
-                                    audio.addEventListener("loadedmetadata", onReady, { once: true });
-                                    audio.addEventListener("canplay", onReady, { once: true });
-                                    
-                                    // Timeout fallback
-                                    setTimeout(() => {
-                                        audio.removeEventListener("loadedmetadata", onReady);
-                                        audio.removeEventListener("canplay", onReady);
-                                        if (audio.readyState >= 2) {
-                                            audio.currentTime = targetTime;
-                                        }
-                                    }, 3000);
-                                }
-                            };
-                            
-                            // Small delay to ensure song change completes
-                            setTimeout(seekWhenReady, 500);
-                        }
-                    }
-
+                    // Don't need manual audio seeking anymore - useAudioPlayer handles it
                     console.log("✅ Loaded player state from server on login");
                     localStorage.setItem("yuzone-last-played", serverStateDate.toString());
                 }

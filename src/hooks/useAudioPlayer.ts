@@ -140,7 +140,6 @@ export function useAudioPlayer() {
         const audio = audioRef.current;
         const streamUrl = `/api/stream?id=${currentSong.videoId}`;
 
-        // Reset state for new song
         // Don't reload if it's the same URL
         if (audio.src === streamUrl) {
             return;
@@ -148,8 +147,24 @@ export function useAudioPlayer() {
 
         const loadAndPlay = async () => {
             try {
+                // Store currentTime before loading if we want to preserve it
+                const preservedTime = currentTime;
+                const shouldPreserveTime = preservedTime > 0;
+                
                 audio.src = streamUrl;
                 audio.load();
+
+                // Restore currentTime after metadata is loaded (for server sync)
+                if (shouldPreserveTime) {
+                    const restoreTime = () => {
+                        if (audio.readyState >= 2) {
+                            audio.currentTime = preservedTime;
+                            console.log(`⏱️ Restored time to ${preservedTime}s after load`);
+                        }
+                    };
+                    audio.addEventListener('loadedmetadata', restoreTime, { once: true });
+                    audio.addEventListener('canplay', restoreTime, { once: true });
+                }
 
                 if (isPlaying) {
                     await audio.play();
