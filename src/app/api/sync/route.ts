@@ -3,37 +3,19 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
-import PlayerState from "@/models/PlayerState";
 
 /**
- * Cross-Device Player Sync API
+ * Simplified Listening Time Sync API
  * 
- * Enables seamless playback synchronization across multiple devices for a single user account.
+ * Stores currentTime for each song (by videoId) directly in user document
+ * Automatically cleans up entries older than 30 days
  * 
  * Features:
- * - GET: Fetch the latest synced player state from the server
- * - POST: Save/sync current player state to the server
- * - DELETE: Clear synced player data for the current device
- * 
- * Synced Data:
- * - Current song and queue
- * - Playback position (currentTime)
- * - Volume and playback speed
- * - Repeat and shuffle settings
- * - Queue source information
+ * - GET: Fetch listening time for current song
+ * - POST: Save/update listening time for a song
  */
 
-// Generate or get device ID from client
-function getDeviceId(req: NextRequest): string {
-    const deviceIdHeader = req.headers.get("x-device-id");
-    if (deviceIdHeader) return deviceIdHeader;
-    
-    // Fallback: use user agent + a timestamp hash
-    const userAgent = req.headers.get("user-agent") || "unknown";
-    return Buffer.from(userAgent).toString("base64").substring(0, 32);
-}
-
-// GET: Fetch the latest synced player state
+// GET: Fetch listening time for a specific song
 export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
@@ -44,71 +26,12 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        await connectDB();
-        const user = await User.findOne({ email: session.user.email });
-        if (!user) {
+        const { searchParams } = new URL(req.url);
+        const videoId = searchParams.get("videoId");
+
+        if (!videoId) {
             return NextResponse.json(
-                { success: false, error: "User not found" },
-                { status: 404 }
-            );
-        }
-
-        // Get the most recent player state for this user
-        const playerState = await PlayerState.findOne({ userId: user._id })
-            .sort({ lastSyncedAt: -1 })
-            .lean();
-
-        if (!playerState) {
-            return NextResponse.json({
-                success: true,
-                playerState: null,
-                message: "No synced state found",
-            });
-        }
-
-        return NextResponse.json({
-            success: true,
-            playerState: {
-                currentSong: playerState.currentSong,
-                queue: playerState.queue,
-                queueIndex: playerState.queueIndex,
-                queueSource: playerState.queueSource,
-                currentTime: playerState.currentTime,
-                volume: playerState.volume,
-                repeat: playerState.repeat,
-                shuffle: playerState.shuffle,
-                playbackSpeed: playerState.playbackSpeed,
-                lastSyncedAt: playerState.lastSyncedAt,
-                deviceId: playerState.deviceId,
-            },
-        });
-    } catch (error) {
-        console.error("Error fetching player state:", error);
-        return NextResponse.json(
-            { success: false, error: "Failed to fetch player state" },
-            { status: 500 }
-        );
-    }
-}
-
-// POST: Save/sync player state to server
-export async function POST(req: NextRequest) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return NextResponse.json(
-                { success: false, error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
-
-        const deviceId = getDeviceId(req);
-        const body = await req.json();
-
-        // Validate required fields
-        if (!body.currentSong && !body.queue) {
-            return NextResponse.json(
-                { success: false, error: "Invalid player state data" },
+                { success: false, error: "videoId is required" },
                 { status: 400 }
             );
         }
@@ -122,42 +45,42 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Update or create player state
-        const playerState = await PlayerState.findOneAndUpdate(
-            { userId: user._id, deviceId },
-            {
-                userId: user._id,
-                deviceId,
-                currentSong: body.currentSong || null,
-                queue: body.queue || [],
-                queueIndex: body.queueIndex || 0,
-                queueSource: body.queueSource || { type: null, id: null, name: null },
-                currentTime: body.currentTime || 0,
-                volume: body.volume ?? 0.7,
-                repeat: body.repeat || "off",
-                shuffle: body.shuffle || false,
-                playbackSpeed: body.playbackSpeed || 1,
-                lastSyncedAt: new Date(),
-            },
-            { upsert: true, new: true }
-        );
+        const listenData = user.monthlyListenTimes?.get(videoId);
+        
+        if (!listenData) {
+            return NextResponse.json({
+                success: true,
+                currentTime: 0,
+                message: "No saved time for this song",
+            });
+        }
+
+        // Check if data is stale (older than 30 days)
+        const daysSinceUpdate = (Date.now() - new Date(listenData.lastUpdated).getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSinceUpdate > 30) {
+            return NextResponse.json({
+                success: true,
+                currentTime: 0,
+                message: "Saved time expired",
+            });
+        }
 
         return NextResponse.json({
             success: true,
-            message: "Player state synced successfully",
-            lastSyncedAt: playerState.lastSyncedAt,
+            currentTime: listenData.currentTime,
+            lastUpdated: listenData.lastUpdated,
         });
     } catch (error) {
-        console.error("Error syncing player state:", error);
+        console.error("Error fetching listening time:", error);
         return NextResponse.json(
-            { success: false, error: "Failed to sync player state" },
+            { success: false, error: "Failed to fetch listening time" },
             { status: 500 }
         );
     }
 }
 
-// DELETE: Clear synced player state
-export async function DELETE(req: NextRequest) {
+// POST: Save/update listening time for a song
+export async function POST(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user?.email) {
@@ -165,6 +88,25 @@ export async function DELETE(req: NextRequest) {
                 { success: false, error: "Unauthorized" },
                 { status: 401 }
             );
+        }
+
+        const body = await req.json();
+        const { videoId, currentTime } = body;
+
+        // Validate required fields
+        if (!videoId || typeof currentTime !== "number") {
+            return NextResponse.json(
+                { success: false, error: "videoId and currentTime are required" },
+                { status: 400 }
+            );
+        }
+
+        // Don't save if time is 0 or negative
+        if (currentTime <= 0) {
+            return NextResponse.json({
+                success: true,
+                message: "Time is 0, not saved",
+            });
         }
 
         await connectDB();
@@ -176,17 +118,37 @@ export async function DELETE(req: NextRequest) {
             );
         }
 
-        const deviceId = getDeviceId(req);
-        await PlayerState.deleteMany({ userId: user._id, deviceId });
+        // Initialize monthlyListenTimes if it doesn't exist
+        if (!user.monthlyListenTimes) {
+            user.monthlyListenTimes = new Map();
+        }
+
+        // Clean up old entries (older than 30 days) before saving
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        for (const [key, value] of user.monthlyListenTimes.entries()) {
+            if (new Date(value.lastUpdated) < thirtyDaysAgo) {
+                user.monthlyListenTimes.delete(key);
+            }
+        }
+
+        // Update or set the listening time for this song
+        user.monthlyListenTimes.set(videoId, {
+            currentTime,
+            lastUpdated: new Date(),
+        });
+
+        // Mark the Map field as modified for Mongoose
+        user.markModified('monthlyListenTimes');
+        await user.save();
 
         return NextResponse.json({
             success: true,
-            message: "Player state cleared successfully",
+            message: "Listening time saved successfully",
         });
     } catch (error) {
-        console.error("Error clearing player state:", error);
+        console.error("Error saving listening time:", error);
         return NextResponse.json(
-            { success: false, error: "Failed to clear player state" },
+            { success: false, error: "Failed to save listening time" },
             { status: 500 }
         );
     }
