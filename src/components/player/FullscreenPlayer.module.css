@@ -148,7 +148,7 @@
 
 .container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: auto auto;
     align-items: center;
     justify-items: center;
     justify-content: center;
@@ -262,41 +262,65 @@
 
 @media (max-width: 768px) {
     .container {
-        padding: 1rem;
-        gap: 1.5rem;
+        padding: 0.75rem;
+        gap: 1rem;
+        min-height: 100vh;
+        align-content: start;
     }
 
     .leftColumn {
         max-width: 100%;
-        padding: 1.5rem;
+        padding: 1rem;
+        gap: 1rem;
     }
 
     .albumArt {
-        width: 280px;
-        height: 280px;
-        max-height: 280px;
+        width: 240px;
+        height: 240px;
+        max-height: 240px;
     }
 
     .title {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
     }
 
     .artist {
-        font-size: 1rem;
+        font-size: 0.95rem;
     }
 
     .lyricsPanel {
-        max-height: 400px;
+        max-height: 280px;
         width: 100%;
         max-width: 100%;
+        padding: 1rem;
     }
 
     .lyricsBody {
-        max-height: 350px;
+        max-height: 220px;
+        gap: 0.25rem;
+        padding-right: 0.35rem;
+    }
+
+    .lyricsHeader {
+        margin-bottom: 0.5rem;
+    }
+
+    .lyricsLine {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.9rem;
+    }
+
+    .lyricsLineActive {
+        font-size: 0.92em;
     }
 
     .controlDock {
         border: 1px solid rgba(139, 92, 246, 0.35);
+        order: -1;
+    }
+
+    .rightColumn {
+        order: 1;
     }
 }
 
