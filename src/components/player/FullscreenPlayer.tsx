@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { X, SkipBack, Play, Pause, SkipForward, Volume2, Heart, ListPlus, Download, Share } from "lucide-react";
+import { X, SkipBack, Play, Pause, SkipForward, Volume2, Heart, ListPlus, Download, Share, Music } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import { browserCache, BROWSER_CACHE_TTL } from "@/lib/browser-cache";
 import styles from "./FullscreenPlayer.module.css";
@@ -43,6 +43,10 @@ export default function FullscreenPlayer() {
         setVolume,
         setCurrentTime,
         closeFullscreen,
+        queue,
+        queueIndex,
+        setCurrentSong,
+        removeFromQueue,
     } = usePlayerStore();
 
     const [isLiked, setIsLiked] = useState(false);
@@ -53,6 +57,7 @@ export default function FullscreenPlayer() {
     const [lyricsLoading, setLyricsLoading] = useState(false);
     const [lyricsError, setLyricsError] = useState<string | null>(null);
     const [showLyrics, setShowLyrics] = useState(false);
+    const [showQueue, setShowQueue] = useState(false);
     const [waveIntensity, setWaveIntensity] = useState(0);
     const [isLowPowerMode, setIsLowPowerMode] = useState(false);
     const [ambientColor, setAmbientColor] = useState<string | null>(null);
@@ -517,6 +522,14 @@ export default function FullscreenPlayer() {
                                 >
                                     {showLyrics ? "Hide Lyrics" : "Show Lyrics"}
                                 </button>
+                                <button
+                                    className={`${styles.queueToggle} ${showQueue ? styles.active : ""}`}
+                                    onClick={() => setShowQueue((prev) => !prev)}
+                                    disabled={!currentSong}
+                                    title={queue.length === 0 ? "Queue is empty" : `${Math.max(0, queue.length - queueIndex - 1)} songs in queue`}
+                                >
+                                    {showQueue ? "Hide Queue" : `Show Queue (${Math.max(0, queue.length - queueIndex - 1)})`}
+                                </button>
                             </div>
                         </div>
                     )}
@@ -631,10 +644,10 @@ export default function FullscreenPlayer() {
                     </div>
                 </div>
 
-                {/* Right Column - Lyrics */}
+                {/* Right Column - Lyrics/Queue */}
                 <div className={styles.rightColumn}>
                     {/* Lyrics */}
-                    {currentSong && showLyrics && (
+                    {currentSong && showLyrics && !showQueue && (
                         <div className={styles.lyricsPanel}>
                             <div className={styles.lyricsHeader}>
                                 <span className={styles.lyricsTitle}>
@@ -667,6 +680,63 @@ export default function FullscreenPlayer() {
                                 )}
                                 {!lyricsLoading && lyricsError && (
                                     <span className={styles.lyricsStatus}>{lyricsError}</span>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Queue */}
+                    {currentSong && showQueue && (
+                        <div className={styles.queuePanel}>
+                            <div className={styles.queueHeader}>
+                                <span className={styles.queueTitle}>
+                                    Queue
+                                    <span className={styles.queueCountBadge}>{Math.max(0, queue.length - queueIndex - 1)}</span>
+                                </span>
+                            </div>
+                            <div className={styles.queueBody}>
+                                {queue.length === 0 && (
+                                    <span className={styles.queueEmpty}>Queue is empty</span>
+                                )}
+                                {queue.length > 0 && (
+                                    <>
+                                        {queueIndex < queue.length - 1 ? (
+                                            queue.slice(queueIndex + 1).map((song, idx) => (
+                                                <div
+                                                    key={`${song.videoId}-${queueIndex + idx + 1}`}
+                                                    className={styles.queueItem}
+                                                    onClick={() => setCurrentSong(song)}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' || e.key === ' ') {
+                                                            setCurrentSong(song);
+                                                        }
+                                                    }}
+                                                >
+                                                    <div className={styles.queueItemContent}>
+                                                        <span className={styles.queueItemNumber}>{idx + 1}</span>
+                                                        <div className={styles.queueItemInfo}>
+                                                            <p className={styles.queueItemTitle}>{song.title}</p>
+                                                            <p className={styles.queueItemArtist}>{song.artist}</p>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            removeFromQueue(queueIndex + idx + 1);
+                                                        }}
+                                                        className={styles.queueRemoveBtn}
+                                                        title="Remove from queue"
+                                                    >
+                                                        <X size={16} />
+                                                    </button>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <span className={styles.queueEmpty}>No more songs in queue</span>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
