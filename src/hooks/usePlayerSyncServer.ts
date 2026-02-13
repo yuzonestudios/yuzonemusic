@@ -111,9 +111,6 @@ export function usePlayerSyncServer() {
                     if (serverState.queueSource) {
                         store.setQueueSource(serverState.queueSource);
                     }
-                    if (serverState.currentTime) {
-                        store.setCurrentTime(serverState.currentTime);
-                    }
                     if (serverState.volume !== undefined) {
                         store.setVolume(serverState.volume);
                     }
@@ -130,6 +127,47 @@ export function usePlayerSyncServer() {
                     }
                     if (serverState.playbackSpeed) {
                         store.setPlaybackSpeed(serverState.playbackSpeed);
+                    }
+
+                    // Apply currentTime to audio element after song loads
+                    if (serverState.currentTime && serverState.currentSong) {
+                        const targetTime = serverState.currentTime;
+                        const audio = (window as any).__yuzoneAudio as HTMLAudioElement | undefined;
+                        
+                        if (audio) {
+                            // Wait for audio to be ready, then seek
+                            const seekWhenReady = () => {
+                                if (audio.readyState >= 2) { // HAVE_CURRENT_DATA or better
+                                    audio.currentTime = targetTime;
+                                    store.setCurrentTime(targetTime);
+                                    console.log(`✅ Seeked to ${targetTime}s from server sync`);
+                                } else {
+                                    // Wait for loadedmetadata
+                                    const onReady = () => {
+                                        audio.currentTime = targetTime;
+                                        store.setCurrentTime(targetTime);
+                                        console.log(`✅ Seeked to ${targetTime}s from server sync (after load)`);
+                                        audio.removeEventListener("loadedmetadata", onReady);
+                                        audio.removeEventListener("canplay", onReady);
+                                    };
+                                    audio.addEventListener("loadedmetadata", onReady, { once: true });
+                                    audio.addEventListener("canplay", onReady, { once: true });
+                                    
+                                    // Timeout fallback
+                                    setTimeout(() => {
+                                        audio.removeEventListener("loadedmetadata", onReady);
+                                        audio.removeEventListener("canplay", onReady);
+                                        if (audio.readyState >= 2) {
+                                            audio.currentTime = targetTime;
+                                            store.setCurrentTime(targetTime);
+                                        }
+                                    }, 3000);
+                                }
+                            };
+                            
+                            // Small delay to ensure song change completes
+                            setTimeout(seekWhenReady, 500);
+                        }
                     }
 
                     console.log("✅ Loaded player state from server on login");

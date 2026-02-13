@@ -96,7 +96,16 @@ export const usePlayerStore = create<PlayerState>()(
             setVolume: (volume: number) => set({ volume }),
             setCurrentTime: (time: number) => set({ currentTime: time }),
             setDuration: (duration: number) => set({ duration }),
-            seekTo: (time: number) => set({ currentTime: time }),
+            seekTo: (time: number) => {
+                set({ currentTime: time });
+                // Also seek the audio element
+                if (typeof window !== "undefined") {
+                    const audio = (window as any).__yuzoneAudio as HTMLAudioElement | undefined;
+                    if (audio && audio.readyState >= 2) {
+                        audio.currentTime = time;
+                    }
+                }
+            },
 
             nextSong: () => {
                 const { queue, queueIndex, repeat, shuffle, currentSong } = get();
