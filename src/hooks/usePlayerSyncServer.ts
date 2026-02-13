@@ -21,6 +21,8 @@ export function usePlayerSyncServer() {
     const lastSyncRef = useRef<number>(0);
     const hasLoadedInitialStateRef = useRef(false);
     const lastServerTimestampRef = useRef<number>(0);
+    const syncFailureCountRef = useRef<number>(0);
+    const maxSyncFailures = 3;
 
     // Get current player state from store
     const getPlayerState = () => {
@@ -43,6 +45,11 @@ export function usePlayerSyncServer() {
     const syncToServer = async () => {
         if (status !== "authenticated" || !session?.user) return;
 
+        // Stop trying if too many failures
+        if (syncFailureCountRef.current >= maxSyncFailures) {
+            return;
+        }
+
         const now = Date.now();
         if (now - lastSyncRef.current < 5000) {
             // Don't sync more than once every 5 seconds
@@ -63,11 +70,19 @@ export function usePlayerSyncServer() {
 
             if (response.ok) {
                 lastSyncRef.current = now;
+                syncFailureCountRef.current = 0; // Reset failure count on success
                 localStorage.setItem("yuzone-last-sync", now.toString());
                 console.log("✅ Player state synced to server");
+            } else {
+                syncFailureCountRef.current++;
+                console.warn(`⚠️ Sync failed (${syncFailureCountRef.current}/${maxSyncFailures})`);
             }
         } catch (error) {
-            console.error("❌ Failed to sync player state:", error);
+            syncFailureCountRef.current++;
+            // Only log first few failures to avoid console spam
+            if (syncFailureCountRef.current <= 2) {
+                console.warn(`⚠️ Sync failed (${syncFailureCountRef.current}/${maxSyncFailures}):`, error);
+            }
         }
     };
 
@@ -142,7 +157,7 @@ export function usePlayerSyncServer() {
                 }
             }
         } catch (error) {
-            console.error("❌ Failed to load player state from server:", error);
+            console.warn("⚠️ Failed to load player state from server:", error);
         } finally {
             hasLoadedInitialStateRef.current = true;
         }
@@ -151,6 +166,7 @@ export function usePlayerSyncServer() {
     // Load state on mount/login
     useEffect(() => {
         if (status === "authenticated" && !hasLoadedInitialStateRef.current) {
+            syncFailureCountRef.current = 0; // Reset on new login
             loadFromServer();
         }
     }, [status]);
@@ -195,17 +211,21 @@ export function usePlayerSyncServer() {
         if (status !== "authenticated") return;
 
         const handleBeforeUnload = () => {
-            // Use sendBeacon for reliable sync on page close
-            const deviceId = getDeviceId();
-            const playerState = getPlayerState();
-            const blob = new Blob([JSON.stringify(playerState)], {
-                type: "application/json",
-            });
-            
-            navigator.sendBeacon(
-                `/api/sync?deviceId=${deviceId}`,
-                blob
-            );
+            try {
+                // Use sendBeacon for reliable sync on page close
+                const deviceId = getDeviceId();
+                const playerState = getPlayerState();
+                const blob = new Blob([JSON.stringify(playerState)], {
+                    type: "application/json",
+                });
+                
+                navigator.sendBeacon(
+                    `/api/sync?deviceId=${deviceId}`,
+                    blob
+                );
+            } catch (error) {
+                // Silently fail on unload
+            }
         };
 
         window.addEventListener("beforeunload", handleBeforeUnload);
