@@ -44,8 +44,8 @@ export function usePlayerSyncServer() {
         if (status !== "authenticated" || !session?.user) return;
 
         const now = Date.now();
-        if (now - lastSyncRef.current < 10000) {
-            // Don't sync more than once every 10 seconds
+        if (now - lastSyncRef.current < 5000) {
+            // Don't sync more than once every 5 seconds
             return;
         }
 
@@ -166,6 +166,23 @@ export function usePlayerSyncServer() {
         return () => {
             window.removeEventListener("yuzone-song-ended", handleSongEnded);
         };
+    }, [status]);
+
+    // Periodic sync for currentTime (every 30 seconds while playing)
+    useEffect(() => {
+        if (status !== "authenticated") return;
+
+        const interval = setInterval(() => {
+            const { usePlayerStore } = require("@/store/playerStore");
+            const state = usePlayerStore.getState();
+            
+            // Only sync if a song is playing
+            if (state.currentSong && state.isPlaying) {
+                syncToServer();
+            }
+        }, 30000); // Sync every 30 seconds
+
+        return () => clearInterval(interval);
     }, [status]);
 
     // Sync on page unload

@@ -1251,9 +1251,22 @@
 }
 
 .utilityRow {
-    justify-content: space-between;
-    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
     flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .utilityRow {
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .utilityRow {
+        gap: 1rem;
+    }
 }
 
 .controls {
