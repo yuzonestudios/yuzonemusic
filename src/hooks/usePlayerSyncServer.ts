@@ -18,6 +18,7 @@ export function usePlayerSyncServer() {
     const syncFailureCountRef = useRef<number>(0);
     const maxSyncFailures = 3;
     const hasLoadedTimeRef = useRef<Set<string>>(new Set());
+    const lastLoadedTimeRef = useRef<Map<string, number>>(new Map()); // Track when we loaded time to avoid overwriting
 
     // Load saved time for a specific song
     const loadTimeForSong = async (videoId: string) => {
@@ -35,17 +36,17 @@ export function usePlayerSyncServer() {
                     
                     // Only apply if this song is still current
                     if (store.currentSong?.videoId === videoId) {
-                        // Wait a bit for audio element to be set up
-                        await new Promise(resolve => setTimeout(resolve, 100));
+                        // Mark that we're loading this time to prevent immediate save
+                        lastLoadedTimeRef.current.set(videoId, Date.now());
+                        
+                        // Wait for audio element to be set up
+                        await new Promise(resolve => setTimeout(resolve, 200));
                         
                         // Verify song is still current after delay
                         const currentState = usePlayerStore.getState();
                         if (currentState.currentSong?.videoId !== videoId) {
                             return; // Song changed, abort
                         }
-                        
-                        // Update store
-                        currentState.setCurrentTime(data.currentTime);
                         
                         // Seek audio element when ready
                         const audio = (window as any).__yuzoneAudio as HTMLAudioElement | undefined;
@@ -54,30 +55,51 @@ export function usePlayerSyncServer() {
                         const seekWhenReady = () => {
                             // Final check before seeking
                             const finalState = usePlayerStore.getState();
-                            if (finalState.currentSong?.videoId === videoId && audio.readyState >= 2) {
-                                audio.currentTime = data.currentTime;
-                                console.log(`⏱️ Restored ${videoId} to ${data.currentTime}s`);
+                            if (finalState.currentSong?.videoId !== videoId) return;
+                            
+                            // Check if audio is truly ready
+                            if (audio.readyState >= 2 && audio.duration > 0 && isFinite(audio.duration)) {
+                                const targetTime = Math.min(data.currentTime, audio.duration);
+                                
+                                // Block timeupdate events for 2 seconds to prevent overwrite
+                                const blockTimeUpdate = (window as any).__yuzoneBlockTimeUpdate;
+                                if (blockTimeUpdate) {
+                                    blockTimeUpdate(2000);
+                                }
+                                
+                                // Seek audio first
+                                audio.currentTime = targetTime;
+                                
+                                // Then update store after a small delay
+                                setTimeout(() => {
+                                    const verifyState = usePlayerStore.getState();
+                                    if (verifyState.currentSong?.videoId === videoId) {
+                                        verifyState.setCurrentTime(targetTime);
+                                        console.log(`⏱️ Restored ${videoId} to ${targetTime}s`);
+                                    }
+                                }, 200);
                             }
                         };
                         
-                        if (audio.readyState >= 2) {
+                        if (audio.readyState >= 2 && audio.duration > 0) {
                             seekWhenReady();
                         } else {
                             // Wait for audio to be ready
-                            const onReady = () => {
-                                seekWhenReady();
-                                audio.removeEventListener('loadedmetadata', onReady);
-                                audio.removeEventListener('canplay', onReady);
-                            };
-                            audio.addEventListener('loadedmetadata', onReady);
-                            audio.addEventListener('canplay', onReady);
+                            let attempts = 0;
+                            const maxAttempts = 20; // 2 seconds max
                             
-                            // Timeout fallback
-                            setTimeout(() => {
-                                audio.removeEventListener('loadedmetadata', onReady);
-                                audio.removeEventListener('canplay', onReady);
-                                if (audio.readyState >= 2) seekWhenReady();
-                            }, 2000);
+                            const checkReady = () => {
+                                attempts++;
+                                if (audio.readyState >= 2 && audio.duration > 0 && isFinite(audio.duration)) {
+                                    seekWhenReady();
+                                } else if (attempts < maxAttempts) {
+                                    setTimeout(checkReady, 100);
+                                } else {
+                                    console.warn(`⚠️ Audio not ready after 2s, skipping restore for ${videoId}`);
+                                }
+                            };
+                            
+                            setTimeout(checkReady, 100);
                         }
                     }
                 }
@@ -110,6 +132,13 @@ export function usePlayerSyncServer() {
             
             // Only sync if a song is playing
             if (!state.currentSong?.videoId || !state.isPlaying || state.currentTime <= 0) {
+                return;
+            }
+
+            // Don't save immediately after loading (give it 15 seconds to settle)
+            const loadTime = lastLoadedTimeRef.current.get(state.currentSong.videoId);
+            if (loadTime && (now - loadTime) < 15000) {
+                console.log(`⏸️ Skipping save for ${state.currentSong.videoId} (just loaded)`);
                 return;
             }
 
@@ -150,8 +179,17 @@ export function usePlayerSyncServer() {
             
             if (videoId && videoId !== currentVideoIdRef.current) {
                 currentVideoIdRef.current = videoId;
-                // Load saved time for this song
-                loadTimeForSong(videoId);
+                
+                // Clear the "already loaded" flag for the previous song
+                // but keep the current song's flag if it exists
+                const currentLoaded = hasLoadedTimeRef.current.has(videoId);
+                hasLoadedTimeRef.current.clear();
+                if (currentLoaded) {
+                    hasLoadedTimeRef.current.add(videoId);
+                } else {
+                    // Load saved time for this song
+                    loadTimeForSong(videoId);
+                }
             }
         });
 

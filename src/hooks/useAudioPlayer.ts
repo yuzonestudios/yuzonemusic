@@ -8,6 +8,7 @@ let globalAudioRef: HTMLAudioElement | null = null;
 
 export function useAudioPlayer() {
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const timeUpdateBlockedUntilRef = useRef<number>(0);
     const {
         currentSong,
         isPlaying,
@@ -31,11 +32,19 @@ export function useAudioPlayer() {
         // Expose globally for components (e.g., fullscreen) to access
         if (typeof window !== "undefined") {
             (window as any).__yuzoneAudio = globalAudioRef;
+            // Allow sync hook to block timeupdate temporarily
+            (window as any).__yuzoneBlockTimeUpdate = (duration: number) => {
+                timeUpdateBlockedUntilRef.current = Date.now() + duration;
+            };
         }
 
         const audio = audioRef.current;
 
         const handleTimeUpdate = () => {
+            // Skip update if blocked by restore operation
+            if (Date.now() < timeUpdateBlockedUntilRef.current) {
+                return;
+            }
             setCurrentTime(audio.currentTime);
         };
 
@@ -140,8 +149,8 @@ export function useAudioPlayer() {
         const audio = audioRef.current;
         const streamUrl = `/api/stream?id=${currentSong.videoId}`;
 
-        // Don't reload if it's the same URL
-        if (audio.src === streamUrl) {
+        // Don't reload if it's the same URL (compare full URL)
+        if (audio.src && audio.src.includes(`/api/stream?id=${currentSong.videoId}`)) {
             return;
         }
 
