@@ -148,17 +148,24 @@
 
 .container {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: 1fr 1fr;
     align-items: center;
     justify-items: center;
     justify-content: center;
     width: 100%;
     height: 100%;
-    padding: 2rem;
-    gap: 3rem;
+    padding: 2.5rem;
+    gap: 3.5rem;
     overflow-y: auto;
     position: relative;
     z-index: 1;
+}
+
+@media (min-width: 1600px) {
+    .container {
+        gap: 5rem;
+        padding: 3rem;
+    }
 }
 
 .closeBtn {
@@ -197,12 +204,20 @@
     align-items: center;
     gap: 1.5rem;
     width: 100%;
-    max-width: 500px;
+    max-width: 520px;
     padding: 2rem;
     border-radius: 20px;
     border: 1.5px solid rgba(139, 92, 246, 0.25);
     background: rgba(15, 15, 25, 0.3);
     backdrop-filter: blur(8px);
+}
+
+@media (min-width: 1600px) {
+    .leftColumn {
+        max-width: 580px;
+        padding: 2.5rem;
+        gap: 1.75rem;
+    }
 }
 
 /* Right Column - Lyrics */
@@ -216,17 +231,32 @@
     overflow-y: auto;
 }
 
+@media (min-width: 1200px) {
+    .rightColumn {
+        min-width: 450px;
+        max-width: 540px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .rightColumn {
+        min-width: 520px;
+        max-width: 620px;
+    }
+}
+
 @media (max-width: 1024px) {
     .container {
         grid-template-columns: 1fr;
         gap: 2rem;
-        justify-content: center;
+        padding: 2rem;
     }
 
     .rightColumn {
         width: 100%;
         max-width: 100%;
         height: auto;
+        min-width: auto;
     }
 }
 
@@ -291,6 +321,22 @@
     z-index: 10;
     border: 2px solid rgba(139, 92, 246, 0.4);
     background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(56, 189, 248, 0.08));
+}
+
+@media (min-width: 1200px) {
+    .albumArt {
+        width: 340px;
+        height: 340px;
+        max-height: 340px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .albumArt {
+        width: 380px;
+        height: 380px;
+        max-height: 380px;
+    }
 }
 
 .playingArt {
@@ -537,6 +583,20 @@
     text-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
 }
 
+@media (min-width: 1200px) {
+    .title {
+        font-size: 1.9rem;
+        margin-bottom: 0.6rem;
+    }
+}
+
+@media (min-width: 1600px) {
+    .title {
+        font-size: 2.1rem;
+        margin-bottom: 0.7rem;
+    }
+}
+
 @media (max-width: 480px) {
     .title {
         font-size: 1.5rem;
@@ -549,6 +609,18 @@
     cursor: pointer;
     transition: color var(--transition-fast);
     display: inline-block;
+}
+
+@media (min-width: 1200px) {
+    .artist {
+        font-size: 1.15rem;
+    }
+}
+
+@media (min-width: 1600px) {
+    .artist {
+        font-size: 1.25rem;
+    }
 }
 
 .artist:hover {
@@ -571,6 +643,21 @@
     font-weight: 600;
     cursor: pointer;
     transition: all var(--transition-fast);
+    font-size: 0.9rem;
+}
+
+@media (min-width: 1200px) {
+    .lyricsToggle {
+        padding: 0.6rem 1.25rem;
+        font-size: 0.95rem;
+    }
+}
+
+@media (min-width: 1600px) {
+    .lyricsToggle {
+        padding: 0.65rem 1.4rem;
+        font-size: 1rem;
+    }
 }
 
 .lyricsToggle:hover {
@@ -604,6 +691,20 @@
     backdrop-filter: blur(12px);
     display: flex;
     flex-direction: column;
+}
+
+@media (min-width: 1200px) {
+    .lyricsPanel {
+        max-height: 700px;
+        padding: 1.75rem;
+    }
+}
+
+@media (min-width: 1600px) {
+    .lyricsPanel {
+        max-height: 800px;
+        padding: 2rem;
+    }
 }
 
 .lyricsHeader {
@@ -646,6 +747,22 @@
     flex: 1;
 }
 
+@media (min-width: 1200px) {
+    .lyricsBody {
+        max-height: 580px;
+        gap: 0.4rem;
+        line-height: 1.7;
+    }
+}
+
+@media (min-width: 1600px) {
+    .lyricsBody {
+        max-height: 680px;
+        gap: 0.45rem;
+        line-height: 1.8;
+    }
+}
+
 .lyricsBody::-webkit-scrollbar {
     width: 6px;
 }
@@ -663,16 +780,64 @@
 .lyricsLine {
     margin: 0;
     white-space: pre-wrap;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0.35rem 0.6rem;
+    border-radius: 8px;
+    border-left: 3px solid transparent;
+    position: relative;
 }
 
 .lyricsLineActive {
     color: var(--text-primary);
-    font-weight: 600;
-    background: linear-gradient(90deg, rgba(56, 189, 248, 0.15), transparent 70%);
-    border-radius: 8px;
-    padding: 0.2rem 0.4rem;
-    margin-left: -0.4rem;
-    margin-right: -0.2rem;
+    font-weight: 700;
+    font-size: 1.02em;
+    background: linear-gradient(90deg,
+            rgba(56, 189, 248, 0.25) 0%,
+            rgba(139, 92, 246, 0.15) 50%,
+            rgba(56, 189, 248, 0.05) 100%);
+    border-left-color: var(--accent-primary);
+    box-shadow:
+        inset 0 0 0 1px rgba(56, 189, 248, 0.3),
+        0 4px 16px rgba(56, 189, 248, 0.15);
+    letter-spacing: 0.3px;
+}
+
+.lyricsLineActive::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--accent-primary), transparent);
+    border-radius: 2px;
+    opacity: 0.8;
+}
+
+@media (min-width: 1200px) {
+    .lyricsLine {
+        padding: 0.4rem 0.7rem;
+    }
+
+    .lyricsLineActive {
+        font-size: 1.04em;
+        box-shadow:
+            inset 0 0 0 1.5px rgba(56, 189, 248, 0.4),
+            0 6px 20px rgba(56, 189, 248, 0.2);
+    }
+}
+
+@media (min-width: 1600px) {
+    .lyricsLine {
+        padding: 0.45rem 0.8rem;
+    }
+
+    .lyricsLineActive {
+        font-size: 1.06em;
+        box-shadow:
+            inset 0 0 0 2px rgba(56, 189, 248, 0.5),
+            0 8px 24px rgba(56, 189, 248, 0.25);
+    }
 }
 
 .lyricsStatus {
@@ -712,6 +877,22 @@
     border-radius: 999px;
 }
 
+@media (min-width: 1200px) {
+
+    .progressTrack,
+    .progressFill {
+        height: 7px;
+    }
+}
+
+@media (min-width: 1600px) {
+
+    .progressTrack,
+    .progressFill {
+        height: 8px;
+    }
+}
+
 .progressTrack {
     width: 100%;
     background: rgba(255, 255, 255, 0.16);
@@ -735,6 +916,20 @@
     background: #fff;
     box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.4), 0 6px 16px rgba(0, 0, 0, 0.45);
     transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+@media (min-width: 1200px) {
+    .progressThumb {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .progressThumb {
+        width: 18px;
+        height: 18px;
+    }
 }
 
 .progressBar:hover .progressThumb {
@@ -818,6 +1013,20 @@
     border: 1px solid transparent;
 }
 
+@media (min-width: 1200px) {
+    .controlBtn {
+        width: 52px;
+        height: 52px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .controlBtn {
+        width: 56px;
+        height: 56px;
+    }
+}
+
 .controlBtn:hover:not(:disabled) {
     color: var(--text-primary);
     background: rgba(139, 92, 246, 0.16);
@@ -861,6 +1070,20 @@
     box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
     transition: all var(--transition-fast);
     position: relative;
+}
+
+@media (min-width: 1200px) {
+    .playBtn {
+        width: 72px;
+        height: 72px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .playBtn {
+        width: 80px;
+        height: 80px;
+    }
 }
 
 .playBtn::after {
@@ -928,6 +1151,20 @@
     padding: 0.2rem 0.25rem;
 }
 
+@media (min-width: 1200px) {
+    .volumeSection {
+        max-width: 330px;
+        gap: 1.1rem;
+    }
+}
+
+@media (min-width: 1600px) {
+    .volumeSection {
+        max-width: 360px;
+        gap: 1.2rem;
+    }
+}
+
 @media (max-width: 480px) {
     .volumeSection {
         max-width: 250px;
@@ -945,6 +1182,18 @@
     outline: none;
 }
 
+@media (min-width: 1200px) {
+    .volumeSlider {
+        height: 5px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .volumeSlider {
+        height: 6px;
+    }
+}
+
 .volumeSlider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -954,6 +1203,20 @@
     border-radius: 50%;
     cursor: pointer;
     transition: all var(--transition-fast);
+}
+
+@media (min-width: 1200px) {
+    .volumeSlider::-webkit-slider-thumb {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .volumeSlider::-webkit-slider-thumb {
+        width: 18px;
+        height: 18px;
+    }
 }
 
 .volumeSlider::-webkit-slider-thumb:hover {
@@ -969,6 +1232,20 @@
     cursor: pointer;
     border: none;
     transition: all var(--transition-fast);
+}
+
+@media (min-width: 1200px) {
+    .volumeSlider::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .volumeSlider::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+    }
 }
 
 .volumeSlider::-moz-range-thumb:hover {
