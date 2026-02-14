@@ -80,8 +80,8 @@ export default function PodcastEpisodeCard({ episode, episodes = [episode], inde
                     <span className={styles.duration}>{episode.duration}</span>
                 </div>
             </div>
-            <button type="button" className={styles.queueBtn} onClick={handlePlay} title="Play">
-                <ListMusic size={18} />
+            <button type="button" className={styles.queueBtn} onClick={handlePlay} title={isCurrent && isPlaying ? "Pause" : "Play"}>
+                {isCurrent && isPlaying ? <Pause size={18} /> : <Play size={18} />}
             </button>
         </div>
     );
