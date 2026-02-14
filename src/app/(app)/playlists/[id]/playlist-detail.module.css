@@ -126,7 +126,7 @@
     border-color: var(--accent-primary);
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
     .actions {
         flex-wrap: wrap;
         gap: 0.75rem;
