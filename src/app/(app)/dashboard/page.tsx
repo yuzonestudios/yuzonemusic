@@ -34,8 +34,13 @@ export default function DashboardPage() {
                 if (summaryRes.ok) {
                     const summaryData = await summaryRes.json();
                     if (summaryData.success) {
+                        const serverSeconds = typeof summaryData.totalListenSeconds === "number"
+                            ? summaryData.totalListenSeconds
+                            : null;
                         // Always use server data as the source of truth
-                        const serverMinutes = summaryData.totalListenMinutes ?? 0;
+                        const serverMinutes = serverSeconds !== null
+                            ? Math.floor(serverSeconds / 60)
+                            : (summaryData.totalListenMinutes ?? 0);
                         setMonthlyMinutes(serverMinutes);
                         writeListeningMinutesCookie(serverMinutes);
                     }

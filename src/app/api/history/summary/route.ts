@@ -5,6 +5,9 @@ import connectDB from "@/lib/mongodb";
 import PlaybackHistory from "@/models/PlaybackHistory";
 import User from "@/models/User";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
@@ -40,7 +43,7 @@ export async function GET(request: NextRequest) {
                     userId,
                     playedAt: { $gte: monthStart },
                 },
-            },
+            },  
             {
                 $group: {
                     _id: null,
@@ -71,12 +74,21 @@ export async function GET(request: NextRequest) {
             totalAllTimeSeconds,
             totalAllTimeHours: Math.round(allTimeHours * 100) / 100,
             totalAllTimeMinutes: Math.round(allTimeMinutes),
+        }, {
+            headers: {
+                "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+            },
         });
     } catch (error) {
         console.error("Error fetching history summary:", error);
         return NextResponse.json(
             { success: false, error: "Failed to fetch history summary" },
-            { status: 500 }
+            {
+                status: 500,
+                headers: {
+                    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+                },
+            }
         );
     }
 }

@@ -227,14 +227,15 @@ export default function MusicPlayer() {
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.success && typeof data.totalListenSeconds === 'number') {
+                    if (data.success && typeof data.totalListenSeconds === "number") {
                         const serverSeconds = data.totalListenSeconds;
                         
                         // Always use server as source of truth for total listening time
                         // This ensures it syncs across devices
                         writeLocalListenSeconds(serverSeconds);
                         
-                        const minutes = Math.round(serverSeconds / 60);
+                        const minutes = Math.floor(serverSeconds / 60);
+                        console.log("[listen-sync] serverSeconds:", serverSeconds, "minutes:", minutes);
                         writeListeningMinutesCookie(minutes);
                         
                         window.dispatchEvent(
@@ -252,8 +253,8 @@ export default function MusicPlayer() {
         // Sync on mount
         syncListeningTime();
         
-        // Sync periodically to keep devices in sync (every 2 minutes)
-        const intervalId = setInterval(syncListeningTime, 120000);
+        // Sync periodically to keep devices in sync (every minute)
+        const intervalId = setInterval(syncListeningTime, 60000);
         return () => clearInterval(intervalId);
     }, []);
 
@@ -311,7 +312,7 @@ export default function MusicPlayer() {
                 // Update local storage for immediate UI feedback
                 const totalSeconds = readLocalListenSeconds() + Math.floor(delta);
                 writeLocalListenSeconds(totalSeconds);
-                const minutes = Math.round(totalSeconds / 60);
+                const minutes = Math.floor(totalSeconds / 60);
                 writeListeningMinutesCookie(minutes);
                 window.dispatchEvent(
                     new CustomEvent("listenMinutesLocal", {
