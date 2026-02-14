@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { ArrowLeft, Calendar } from "lucide-react";
 import PodcastEpisodeCard from "@/components/cards/PodcastEpisodeCard";
 import type { PodcastEpisode, PodcastShow } from "@/types";
@@ -21,8 +22,10 @@ function formatDate(isoDate?: string) {
     }
 }
 
-export default function PodcastEpisodesPage({ params }: { params: { feedId: string } }) {
-    const feedId = Number.parseInt(params.feedId, 10);
+export default function PodcastEpisodesPage() {
+    const params = useParams();
+    const feedParam = Array.isArray(params?.feedId) ? params?.feedId[0] : params?.feedId;
+    const feedId = typeof feedParam === "string" ? Number.parseInt(feedParam, 10) : Number.NaN;
     const [show, setShow] = useState<PodcastShow | null>(null);
     const [episodes, setEpisodes] = useState<PodcastEpisode[]>([]);
     const [loading, setLoading] = useState(true);
@@ -33,6 +36,9 @@ export default function PodcastEpisodesPage({ params }: { params: { feedId: stri
     const canLoadMore = useMemo(() => nextBefore !== null, [nextBefore]);
 
     useEffect(() => {
+        if (!feedParam) {
+            return;
+        }
         if (!Number.isFinite(feedId)) {
             setError("Invalid podcast feed ID.");
             setLoading(false);
@@ -74,7 +80,7 @@ export default function PodcastEpisodesPage({ params }: { params: { feedId: stri
         };
 
         loadInitial();
-    }, [feedId]);
+    }, [feedId, feedParam]);
 
     const loadMore = async () => {
         if (!canLoadMore || loadingMore) return;
