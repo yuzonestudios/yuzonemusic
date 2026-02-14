@@ -801,6 +801,23 @@
     gap: 0.5rem;
 }
 
+.queueClearBtn {
+    border: 1px solid rgba(236, 72, 153, 0.35);
+    background: rgba(236, 72, 153, 0.12);
+    color: #fbcfe8;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.queueClearBtn:hover {
+    background: rgba(236, 72, 153, 0.2);
+    border-color: rgba(236, 72, 153, 0.6);
+}
+
 .queueCountBadge {
     font-size: 0.7rem;
     font-weight: 600;

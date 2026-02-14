@@ -48,6 +48,7 @@ export default function FullscreenPlayer() {
         queueIndex,
         setCurrentSong,
         removeFromQueue,
+        clearQueue,
         shuffle,
         repeat,
         toggleShuffle,
@@ -734,6 +735,16 @@ export default function FullscreenPlayer() {
                                     Queue
                                     <span className={styles.queueCountBadge}>{Math.max(0, queue.length - queueIndex - 1)}</span>
                                 </span>
+                                {queue.length > 0 && (
+                                    <button
+                                        type="button"
+                                        className={styles.queueClearBtn}
+                                        onClick={() => clearQueue()}
+                                        title="Clear queue"
+                                    >
+                                        Clear
+                                    </button>
+                                )}
                             </div>
                             <div className={styles.queueBody}>
                                 {queue.length === 0 && (
