@@ -203,10 +203,13 @@ export default function FullscreenPlayer() {
                 originalUrlRef.current = window.location.pathname + window.location.search;
             }
             
-            // Push cosmetic URL showing song page
-            const songUrl = `/song/${currentSong.videoId}`;
-            if (window.location.pathname !== songUrl) {
-                window.history.pushState({}, "", songUrl);
+            // Push cosmetic URL - use /podcast/ for podcast episodes, /song/ for music
+            const isPodcast = currentSong.videoId.startsWith("podcast-");
+            const contentUrl = isPodcast 
+                ? `/podcast/${currentSong.videoId.replace(/^podcast-/, "")}` 
+                : `/song/${currentSong.videoId}`;
+            if (window.location.pathname !== contentUrl) {
+                window.history.pushState({}, "", contentUrl);
             }
         } else if (!isFullscreenOpen && originalUrlRef.current) {
             // Restore original URL when fullscreen closes

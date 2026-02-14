@@ -281,10 +281,11 @@ export default function SettingsPage() {
                         Highlights from the most recent release:
                     </p>
                     <div className={styles.updateList}>
-                        <div className={styles.updateItem}>🧭 Lifetime listening time is now the source of truth for stats.</div>
+                        <div className={styles.updateItem}>⏱️ Lifetime listening time is now the source of truth for stats (monthly tracking removed).</div>
+                        <div className={styles.updateItem}>🎙️ New podcast episodes page with pagination (20 episodes per page).</div>
+                        <div className={styles.updateItem}>🗑️ Clear queue button added to fullscreen player queue panel.</div>
                         <div className={styles.updateItem}>🎵 Song title now stays in browser tab even when paused.</div>
                         <div className={styles.updateItem}>🖼️ Media controls now show song thumbnail instead of Yuzone logo (PWA/home screen).</div>
-                        <div className={styles.updateItem}>⏱️ Listening time is tracked as a lifetime total.</div>
                         <div className={styles.updateItem}>📱 Improved MediaSession API integration for better mobile experience.</div>
                     </div>
                 </div>
