@@ -417,3 +417,17 @@
         transform: rotate(360deg);
     }
 }
+
+@media (max-width: 1200px) {
+    .playlistActions {
+        flex-wrap: wrap;
+    }
+
+    .actionBtn {
+        flex: 1 1 calc(50% - 0.25rem);
+    }
+
+    .playBtn {
+        flex-basis: 100%;
+    }
+}
