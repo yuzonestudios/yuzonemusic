@@ -5,7 +5,6 @@ import MobileNav from "@/components/layout/MobileNav";
 import AmbientBackground from "@/components/ui/AmbientBackground";
 import LoadingOverlay from "@/components/ui/LoadingOverlay";
 import PersistentPlayer from "@/components/layout/PersistentPlayer";
-import { usePlayerSyncServer } from "@/hooks/usePlayerSyncServer";
 import styles from "./layout.module.css";
 
 interface AppLayoutClientProps {
@@ -19,9 +18,6 @@ interface AppLayoutClientProps {
  * allowing music playback to continue uninterrupted.
  */
 export default function AppLayoutClient({ children }: AppLayoutClientProps) {
-    // Enable cross-device sync
-    usePlayerSyncServer();
-
     return (
         <div className={styles.appLayout}>
             <AmbientBackground />

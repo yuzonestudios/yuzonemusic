@@ -54,8 +54,8 @@ export function parseQuality(quality?: string | null): 1 | 2 | 3 {
 /**
  * Validate and parse search type parameter
  */
-export function parseSearchType(type?: string | null): "all" | "songs" | "artists" | "albums" {
-  const validTypes = ["songs", "artists", "albums", "all"];
+export function parseSearchType(type?: string | null): "all" | "songs" | "artists" | "albums" | "podcasts" {
+  const validTypes = ["songs", "artists", "albums", "podcasts", "all"];
   if (validTypes.includes(type || "")) {
     return (type as any) || "all";
   }

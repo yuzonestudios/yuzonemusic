@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import { usePlayerStore } from "@/store/playerStore";
+import { getPlaybackUrl } from "@/lib/playback";
 
 // Global audio element to ensure only one instance
 let globalAudioRef: HTMLAudioElement | null = null;
@@ -72,7 +73,7 @@ export function useAudioPlayer() {
 
             if (typeof window !== "undefined") {
                 const { currentSong } = usePlayerStore.getState();
-                if (currentSong?.videoId) {
+                if (currentSong?.videoId && currentSong.contentType !== "podcast") {
                     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
                     const songUrl = new URL(`/song/${currentSong.videoId}`, baseUrl).toString();
                     (window as any).__yuzoneLastSongUrl = songUrl;
@@ -133,7 +134,7 @@ export function useAudioPlayer() {
             });
 
             // Prevent infinite error loops
-            if (error?.code === 4 && target.src.includes("/api/stream")) {
+            if (error?.code === 4 && (target.src.includes("/api/stream") || target.src.includes("/api/podcasts/stream"))) {
                 console.warn("Stream source not supported or failed to load.");
             }
 
@@ -162,10 +163,15 @@ export function useAudioPlayer() {
         if (!audioRef.current || !currentSong) return;
 
         const audio = audioRef.current;
-        const streamUrl = `/api/stream?id=${currentSong.videoId}`;
+        const streamUrl = getPlaybackUrl(currentSong);
+        if (!streamUrl) return;
+
+        const resolvedUrl = typeof window !== "undefined"
+            ? new URL(streamUrl, window.location.origin).toString()
+            : streamUrl;
 
         // Don't reload if it's the same URL (compare full URL)
-        if (audio.src && audio.src.includes(`/api/stream?id=${currentSong.videoId}`)) {
+        if (audio.src && audio.src === resolvedUrl) {
             return;
         }
 
@@ -176,10 +182,9 @@ export function useAudioPlayer() {
                 timeUpdateBlockedUntilRef.current = Date.now() + 3000; // Block for 3 seconds
                 
                 // Reset to 0 on song change - server sync will restore the correct time
-                audio.src = streamUrl;
+                audio.src = resolvedUrl;
                 audio.load();
 
-                // Server sync (usePlayerSyncServer) will handle time restoration
                 // Don't preserve time here to avoid race conditions
 
                 if (isPlaying) {

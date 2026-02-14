@@ -11,6 +11,7 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { usePlayerSync } from "@/hooks/usePlayerSync";
 import AddToPlaylistModal from "@/components/ui/AddToPlaylistModal";
+import { getDownloadName, getPlaybackUrl } from "@/lib/playback";
 import styles from "./MusicPlayer.module.css";
 
 function formatTime(seconds: number): string {
@@ -67,6 +68,9 @@ export default function MusicPlayer() {
     const { seek } = useAudioPlayer();
     useKeyboardShortcuts();
     usePlayerSync();
+    const isPodcast = currentSong?.contentType === "podcast";
+    const playbackUrl = getPlaybackUrl(currentSong);
+    const downloadName = getDownloadName(currentSong);
     const [isLiked, setIsLiked] = useState(false);
     const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
     const [isQueueOpen, setIsQueueOpen] = useState(false);
@@ -144,7 +148,7 @@ export default function MusicPlayer() {
     };
 
     const postHistory = useCallback(async (song: typeof currentSong | null, listenDuration: number) => {
-        if (!song) return;
+        if (!song || song.contentType === "podcast") return;
         if (listenDuration < 20) return;
         if (!sessionIdRef.current && historyPostedRef.current === song.videoId) return;
         if (!sessionIdRef.current) {
@@ -171,28 +175,13 @@ export default function MusicPlayer() {
         }
     }, []);
 
-    const LOCAL_LISTEN_SECONDS_KEY_PREFIX = "yuzone_listen_local_seconds";
-    const LISTEN_MINUTES_COOKIE_PREFIX = "yuzone_listen_minutes";
-
-    const getListenMonthKey = () => {
-        const now = new Date();
-        const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-        return month;
-    };
-
-    const getLocalListenSecondsKey = () => {
-        return `${LOCAL_LISTEN_SECONDS_KEY_PREFIX}_${getListenMonthKey()}`;
-    };
-
-    const getListeningCookieKey = () => {
-        return `${LISTEN_MINUTES_COOKIE_PREFIX}_${getListenMonthKey()}`;
-    };
+    const LOCAL_LISTEN_SECONDS_KEY = "yuzone_listen_local_seconds_lifetime";
+    const LISTEN_MINUTES_COOKIE_KEY = "yuzone_listen_minutes_lifetime";
 
     const readLocalListenSeconds = () => {
         if (typeof window === "undefined") return 0;
         try {
-            const key = getLocalListenSecondsKey();
-            const value = window.localStorage.getItem(key);
+            const value = window.localStorage.getItem(LOCAL_LISTEN_SECONDS_KEY);
             const parsed = Number.parseInt(value || "0", 10);
             return Number.isFinite(parsed) ? parsed : 0;
         } catch (e) {
@@ -203,8 +192,7 @@ export default function MusicPlayer() {
     const writeLocalListenSeconds = (seconds: number) => {
         if (typeof window === "undefined") return;
         try {
-            const key = getLocalListenSecondsKey();
-            window.localStorage.setItem(key, String(Math.max(0, Math.floor(seconds))));
+            window.localStorage.setItem(LOCAL_LISTEN_SECONDS_KEY, String(Math.max(0, Math.floor(seconds))));
         } catch (e) {
             // Ignore storage errors
         }
@@ -212,10 +200,9 @@ export default function MusicPlayer() {
 
     const writeListeningMinutesCookie = (minutes: number) => {
         if (typeof document === "undefined") return;
-        const cookieKey = getListeningCookieKey();
         const expires = new Date();
         expires.setDate(expires.getDate() + 40);
-        document.cookie = `${cookieKey}=${encodeURIComponent(minutes)}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+        document.cookie = `${LISTEN_MINUTES_COOKIE_KEY}=${encodeURIComponent(minutes)}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
     };
 
     // Sync server listening time with local on mount
@@ -227,8 +214,8 @@ export default function MusicPlayer() {
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.success && typeof data.totalListenSeconds === "number") {
-                        const serverSeconds = data.totalListenSeconds;
+                    if (data.success && typeof data.totalAllTimeSeconds === "number") {
+                        const serverSeconds = data.totalAllTimeSeconds;
                         
                         // Always use server as source of truth for total listening time
                         // This ensures it syncs across devices
@@ -261,6 +248,10 @@ export default function MusicPlayer() {
     // Track song play in history & Check Like Status
     useEffect(() => {
         if (currentSong) {
+            if (currentSong.contentType === "podcast") {
+                setIsLiked(false);
+                return;
+            }
             console.log("Tracking song:", currentSong);
             historyPostedRef.current = null;
             lastSongRef.current = currentSong;
@@ -346,7 +337,7 @@ export default function MusicPlayer() {
     }, [postHistory]);
 
     const toggleLike = async () => {
-        if (!currentSong) return;
+        if (!currentSong || currentSong.contentType === "podcast") return;
 
         const newLiked = !isLiked;
         setIsLiked(newLiked);
@@ -525,13 +516,15 @@ export default function MusicPlayer() {
                                     <span className={styles.songTitle}>{currentSong.title}</span>
                                     <span className={styles.songArtist}>{currentSong.artist}</span>
                                 </div>
-                                <button
-                                    onClick={toggleLike}
-                                    className={`${styles.likeBtn} ${isLiked ? styles.active : ""}`}
-                                    title={isLiked ? "Unlike" : "Like"}
-                                >
-                                    <Heart size={20} fill={isLiked ? "var(--accent-primary)" : "none"} stroke={isLiked ? "var(--accent-primary)" : "currentColor"} />
-                                </button>
+                                {!isPodcast && (
+                                    <button
+                                        onClick={toggleLike}
+                                        className={`${styles.likeBtn} ${isLiked ? styles.active : ""}`}
+                                        title={isLiked ? "Unlike" : "Like"}
+                                    >
+                                        <Heart size={20} fill={isLiked ? "var(--accent-primary)" : "none"} stroke={isLiked ? "var(--accent-primary)" : "currentColor"} />
+                                    </button>
+                                )}
                             </>
                         ) : (
                             <div className={styles.noSong}>
@@ -628,21 +621,23 @@ export default function MusicPlayer() {
                         </button>
 
                         <a
-                            href={currentSong ? `/api/stream?id=${currentSong.videoId}` : "#"}
-                            download={currentSong ? `${currentSong.title}.mp4` : undefined}
+                            href={playbackUrl || "#"}
+                            download={downloadName}
                             className={`${styles.controlBtn} ${styles.secondary}`}
                             title="Download"
                         >
                             <Download size={18} />
                         </a>
-                        <button
-                            onClick={() => setIsPlaylistModalOpen(true)}
-                            className={`${styles.controlBtn} ${styles.secondary}`}
-                            disabled={!currentSong}
-                            title="Add to Playlist"
-                        >
-                            <ListPlus size={18} />
-                        </button>
+                        {!isPodcast && (
+                            <button
+                                onClick={() => setIsPlaylistModalOpen(true)}
+                                className={`${styles.controlBtn} ${styles.secondary}`}
+                                disabled={!currentSong}
+                                title="Add to Playlist"
+                            >
+                                <ListPlus size={18} />
+                            </button>
+                        )}
 
                         <button
                             onClick={openFullscreen}
@@ -718,7 +713,7 @@ export default function MusicPlayer() {
             </div>
             </footer>
 
-            {currentSong && (
+            {currentSong && !isPodcast && (
                 <>
                     <AddToPlaylistModal
                         isOpen={isPlaylistModalOpen}

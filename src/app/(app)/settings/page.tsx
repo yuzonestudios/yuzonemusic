@@ -30,10 +30,6 @@ export default function SettingsPage() {
     const [isSavingQuality, setIsSavingQuality] = useState(false);
     const [qualityMessage, setQualityMessage] = useState("");
     const [defaultSort, setDefaultSort] = useState<"alphabetical" | "dateAdded">("alphabetical");
-    const [syncEnabled, setSyncEnabled] = useState(true);
-    const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
-    const [deviceId, setDeviceId] = useState<string>("");
-    const [clearingSyncData, setClearingSyncData] = useState(false);
 
     const handleSaveQuality = async (quality: 1 | 2 | 3) => {
         setIsSavingQuality(true);
@@ -113,19 +109,6 @@ export default function SettingsPage() {
     useEffect(() => {
         if (session) {
             fetchProfile();
-            
-            // Get device ID from localStorage
-            const storedDeviceId = localStorage.getItem("yuzone-device-id");
-            if (storedDeviceId) {
-                setDeviceId(storedDeviceId);
-            }
-            
-            // Check last sync time
-            const lastSync = localStorage.getItem("yuzone-last-sync");
-            if (lastSync) {
-                const date = new Date(parseInt(lastSync));
-                setLastSyncTime(date.toLocaleString());
-            }
         }
     }, [session, fetchProfile]);
 
@@ -279,35 +262,6 @@ export default function SettingsPage() {
         await signOut({ redirect: true, callbackUrl: "/login" });
     };
 
-    const handleClearSyncData = async () => {
-        if (!confirm("Are you sure you want to clear your synced player data? This will remove your queue and playback position from the server.")) {
-            return;
-        }
-
-        setClearingSyncData(true);
-        try {
-            const response = await fetch("/api/sync", {
-                method: "DELETE",
-                headers: {
-                    "X-Device-Id": deviceId,
-                },
-            });
-
-            if (response.ok) {
-                setLastSyncTime(null);
-                localStorage.removeItem("yuzone-last-sync");
-                alert("Sync data cleared successfully");
-            } else {
-                alert("Failed to clear sync data");
-            }
-        } catch (error) {
-            console.error("Error clearing sync data:", error);
-            alert("An error occurred while clearing sync data");
-        } finally {
-            setClearingSyncData(false);
-        }
-    };
-
     if (status === "loading") {
         return <div className="flex justify-center p-12"><LoadingSpinner size="large" /></div>;
     }
@@ -327,10 +281,10 @@ export default function SettingsPage() {
                         Highlights from the most recent release:
                     </p>
                     <div className={styles.updateList}>
-                        <div className={styles.updateItem}>🔄 Fixed listening time sync - now syncs across all devices with your account.</div>
+                        <div className={styles.updateItem}>🧭 Lifetime listening time is now the source of truth for stats.</div>
                         <div className={styles.updateItem}>🎵 Song title now stays in browser tab even when paused.</div>
                         <div className={styles.updateItem}>🖼️ Media controls now show song thumbnail instead of Yuzone logo (PWA/home screen).</div>
-                        <div className={styles.updateItem}>⏱️ Server-side listening time is now the source of truth for accurate tracking.</div>
+                        <div className={styles.updateItem}>⏱️ Listening time is tracked as a lifetime total.</div>
                         <div className={styles.updateItem}>📱 Improved MediaSession API integration for better mobile experience.</div>
                     </div>
                 </div>
@@ -621,105 +575,6 @@ export default function SettingsPage() {
                                     ))}
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className={`glass-panel ${styles.section}`}>
-                    <h2 className={styles.sectionHeader}>Cross-Device Sync</h2>
-                    <p className={styles.helperText}>
-                        Your queue, playback position, and preferences sync across all your devices automatically.
-                    </p>
-                    
-                    <div className={styles.syncInfo} style={{ marginTop: "1.5rem" }}>
-                        <div style={{ 
-                            display: "flex", 
-                            flexDirection: "column", 
-                            gap: "1rem",
-                            padding: "1.25rem",
-                            background: "rgba(139, 92, 246, 0.08)",
-                            borderRadius: "0.75rem",
-                            border: "1px solid rgba(139, 92, 246, 0.2)"
-                        }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                                <div style={{
-                                    width: "10px",
-                                    height: "10px",
-                                    borderRadius: "50%",
-                                    background: syncEnabled ? "#10b981" : "#6b7280",
-                                    boxShadow: syncEnabled ? "0 0 10px rgba(16, 185, 129, 0.5)" : "none"
-                                }} />
-                                <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>
-                                    {syncEnabled ? "Sync Active" : "Sync Disabled"}
-                                </span>
-                            </div>
-                            
-                            {lastSyncTime && (
-                                <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
-                                    <strong>Last synced:</strong> {lastSyncTime}
-                                </div>
-                            )}
-                            
-                            {deviceId && (
-                                <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
-                                    <strong>Device ID:</strong> {deviceId.substring(0, 16)}...
-                                </div>
-                            )}
-                            
-                            <div style={{ 
-                                marginTop: "0.5rem",
-                                paddingTop: "1rem",
-                                borderTop: "1px solid rgba(139, 92, 246, 0.2)"
-                            }}>
-                                <h4 style={{ 
-                                    fontSize: "0.9rem", 
-                                    fontWeight: 600, 
-                                    color: "var(--text-primary)",
-                                    marginBottom: "0.5rem"
-                                }}>
-                                    What syncs?
-                                </h4>
-                                <ul style={{ 
-                                    fontSize: "0.875rem", 
-                                    color: "var(--text-secondary)",
-                                    lineHeight: "1.8",
-                                    paddingLeft: "1.25rem",
-                                    listStyle: "disc"
-                                }}>
-                                    <li>Current song and queue</li>
-                                    <li>Playback position</li>
-                                    <li>Volume and playback speed</li>
-                                    <li>Repeat and shuffle settings</li>
-                                </ul>
-                            </div>
-                            
-                            <button
-                                onClick={handleClearSyncData}
-                                disabled={clearingSyncData}
-                                className={styles.clearSyncBtn}
-                                style={{
-                                    marginTop: "0.5rem",
-                                    padding: "0.75rem 1rem",
-                                    background: "rgba(239, 68, 68, 0.1)",
-                                    color: "#ef4444",
-                                    border: "1px solid rgba(239, 68, 68, 0.3)",
-                                    borderRadius: "0.5rem",
-                                    fontSize: "0.875rem",
-                                    fontWeight: 600,
-                                    cursor: "pointer",
-                                    transition: "all 0.2s ease"
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = "rgba(239, 68, 68, 0.15)";
-                                    e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.5)";
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)";
-                                    e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.3)";
-                                }}
-                            >
-                                {clearingSyncData ? "Clearing..." : "Clear Synced Data"}
-                            </button>
                         </div>
                     </div>
                 </div>

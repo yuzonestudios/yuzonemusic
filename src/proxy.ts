@@ -13,6 +13,7 @@ const publicPaths = [
     "/share",
     "/api/auth",
     "/api/stream",
+    "/api/podcasts/stream",
     "/api/share",
     "/api/seo",
 ];

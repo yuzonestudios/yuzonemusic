@@ -16,6 +16,10 @@ export interface Song {
     thumbnail: string;
     duration: string;
     album?: string;
+    streamUrl?: string;
+    contentType?: "music" | "podcast";
+    podcastTitle?: string;
+    episodeId?: string;
 }
 
 // Artist type
@@ -38,11 +42,41 @@ export interface Album {
     trackCount?: number;
 }
 
+export interface PodcastShow {
+    feedId: number;
+    title: string;
+    description?: string;
+    author?: string;
+    image?: string;
+    thumbnail?: string;
+    language?: string;
+    categories?: string[];
+    episodeCount?: number;
+    website?: string;
+}
+
+export interface PodcastEpisode {
+    episodeId: number;
+    feedId: number;
+    title: string;
+    description?: string;
+    image?: string;
+    audioUrl?: string;
+    duration: string;
+    publishedAt?: string;
+    podcastTitle?: string;
+    podcastAuthor?: string;
+}
+
 // Search results type
 export interface SearchResults {
     songs: Song[];
     artists: Artist[];
     albums: Album[];
+    podcasts?: {
+        shows: PodcastShow[];
+        episodes: PodcastEpisode[];
+    };
 }
 
 // Player state type

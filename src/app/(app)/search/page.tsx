@@ -5,13 +5,14 @@ import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ErrorState from "@/components/ui/ErrorState";
 import ArtistModal from "@/components/ui/ArtistModal";
-import { Music, X, Clock, Trash2 } from "lucide-react";
+import { Music, X, Clock, Trash2, Mic2 } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
-import type { Song, Artist, Album } from "@/types";
+import type { Song, Artist, Album, PodcastShow, PodcastEpisode } from "@/types";
 import { getSearchHistory, addToSearchHistory, removeFromSearchHistory, clearSearchHistory } from "@/lib/search-history";
+import PodcastEpisodeCard from "@/components/cards/PodcastEpisodeCard";
 import styles from "./search.module.css";
 
-type SearchType = "all" | "songs" | "artists" | "albums";
+type SearchType = "all" | "songs" | "artists" | "albums" | "podcasts";
 
 export default function SearchPage() {
     const { setLoading: setGlobalLoading } = usePlayerStore();
@@ -20,6 +21,8 @@ export default function SearchPage() {
     const [songs, setSongs] = useState<Song[]>([]);
     const [artists, setArtists] = useState<Artist[]>([]);
     const [albums, setAlbums] = useState<Album[]>([]);
+    const [podcastShows, setPodcastShows] = useState<PodcastShow[]>([]);
+    const [podcastEpisodes, setPodcastEpisodes] = useState<PodcastEpisode[]>([]);
     const [albumSongs, setAlbumSongs] = useState<Array<{ videoId: string; title: string; artists: Array<{ name: string }>; duration: string; thumbnail: string }>>([]);
     const [selectedAlbumTitle, setSelectedAlbumTitle] = useState<string | null>(null);
     const [selectedAlbumThumbnail, setSelectedAlbumThumbnail] = useState<string | null>(null);
@@ -83,6 +86,8 @@ export default function SearchPage() {
             setSongs(cached.songs || []);
             setArtists(cached.artists || []);
             setAlbums(cached.albums || []);
+            setPodcastShows(cached.podcasts?.shows || []);
+            setPodcastEpisodes(cached.podcasts?.episodes || []);
             setError(null);
             setHasSearched(true);
             return;
@@ -114,12 +119,15 @@ export default function SearchPage() {
                     setSongs(normalizedSongs);
                     setArtists(data.data.artists || []);
                     setAlbums(data.data.albums || []);
+                    setPodcastShows(data.data.podcasts?.shows || []);
+                    setPodcastEpisodes(data.data.podcasts?.episodes || []);
 
                     // Cache the results
                     setCachedSearchResults(query, searchType, {
                         songs: normalizedSongs,
                         artists: data.data.artists || [],
-                        albums: data.data.albums || []
+                        albums: data.data.albums || [],
+                        podcasts: data.data.podcasts || { shows: [], episodes: [] },
                     });
                 } else {
                     setError(data.error || "Search failed");
@@ -220,6 +228,8 @@ export default function SearchPage() {
         setSongs([]);
         setArtists([]);
         setAlbums([]);
+        setPodcastShows([]);
+        setPodcastEpisodes([]);
         setAlbumSongs([]);
         setSelectedAlbumTitle(null);
         setSelectedAlbumThumbnail(null);
@@ -367,7 +377,7 @@ export default function SearchPage() {
                         </svg>
                         <input
                             type="text"
-                            placeholder="Search for songs, artists, or albums..."
+                            placeholder="Search for songs, artists, albums, or podcasts..."
                             value={query}
                             onChange={(e) => {
                                 const nextQuery = e.target.value;
@@ -444,7 +454,7 @@ export default function SearchPage() {
 
                 {/* Search Type Tabs */}
                 <div className={styles.tabs}>
-                    {(["all", "songs", "artists", "albums"] as SearchType[]).map((type) => (
+                    {(["all", "songs", "artists", "albums", "podcasts"] as SearchType[]).map((type) => (
                         <button
                             key={type}
                             onClick={() => setSearchType(type)}
@@ -510,16 +520,16 @@ export default function SearchPage() {
                             ) : (
                                 <>
                                     <div className={styles.placeholderIcon}><Music size={48} /></div>
-                                    <h3>Search for music</h3>
-                                    <p>Find your favorite songs, artists, and albums</p>
+                                    <h3>Search for music and podcasts</h3>
+                                    <p>Find your favorite songs, artists, albums, and episodes</p>
                                 </>
                             )}
                         </div>
                     ) : !hasSearched && selectedAlbumTitle === null ? (
                         <div className={styles.placeholder}>
                             <div className={styles.placeholderIcon}><Music size={48} /></div>
-                            <h3>Search for music</h3>
-                            <p>Find your favorite songs, artists, and albums</p>
+                            <h3>Search for music and podcasts</h3>
+                            <p>Find your favorite songs, artists, albums, and episodes</p>
                         </div>
                     ) : selectedAlbumTitle && albumSongs.length > 0 ? (
                         <div>
@@ -549,7 +559,7 @@ export default function SearchPage() {
                                 })}
                             </div>
                         </div>
-                    ) : songs.length === 0 && artists.length === 0 && albums.length === 0 ? (
+                    ) : songs.length === 0 && artists.length === 0 && albums.length === 0 && podcastShows.length === 0 && podcastEpisodes.length === 0 ? (
                         <div className={styles.noResults}>
                             <p>No results found for &quot;{query}&quot;</p>
                             <span>Try searching with different keywords</span>
@@ -639,6 +649,43 @@ export default function SearchPage() {
                                             </div>
                                         ))}
                                     </div>
+                                </section>
+                            )}
+
+                            {(podcastShows.length > 0 || podcastEpisodes.length > 0) && (searchType === "all" || searchType === "podcasts") && (
+                                <section className={styles.section}>
+                                    <h3 className={styles.sectionTitle}>
+                                        <Mic2 size={18} /> Podcasts
+                                    </h3>
+                                    {podcastShows.length > 0 && (
+                                        <div className={styles.podcastGrid}>
+                                            {podcastShows.map((show) => (
+                                                <div key={show.feedId} className={styles.podcastCard}>
+                                                    <img
+                                                        src={show.thumbnail || show.image || "/placeholder-album.png"}
+                                                        alt={show.title}
+                                                        className={styles.podcastImage}
+                                                    />
+                                                    <div className={styles.podcastInfo}>
+                                                        <div className={styles.podcastTitle}>{show.title}</div>
+                                                        <div className={styles.podcastMeta}>{show.author || "Podcast"}</div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {podcastEpisodes.length > 0 && (
+                                        <div className={styles.podcastEpisodes}>
+                                            {podcastEpisodes.map((episode, index) => (
+                                                <PodcastEpisodeCard
+                                                    key={`${episode.feedId}-${episode.episodeId}`}
+                                                    episode={episode}
+                                                    episodes={podcastEpisodes}
+                                                    index={index}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
                                 </section>
                             )}
                         </>

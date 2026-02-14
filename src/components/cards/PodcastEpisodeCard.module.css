@@ -1,0 +1,127 @@
+.card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(139, 92, 246, 0.12);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.card:hover {
+    border-color: rgba(139, 92, 246, 0.35);
+    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.15);
+    transform: translateY(-2px);
+}
+
+.playing {
+    border-color: var(--accent-primary);
+    box-shadow: 0 10px 24px rgba(139, 92, 246, 0.2);
+}
+
+.thumb {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: none;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.thumbImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    color: white;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.thumb:hover .overlay {
+    opacity: 1;
+}
+
+.info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.show {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.duration {
+    padding: 0.1rem 0.45rem;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+}
+
+.queueBtn {
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--text-primary);
+    border-radius: var(--radius-full);
+    padding: 0.45rem 0.6rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.queueBtn:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.5);
+}
+
+@media (max-width: 768px) {
+    .card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .thumb {
+        width: 100%;
+        height: 160px;
+    }
+
+    .queueBtn {
+        align-self: flex-end;
+    }
+}

@@ -16,7 +16,6 @@ export interface IUser extends Document {
     animationTheme?: string;
     customThemeImage?: string | null;
     audioQuality?: 1 | 2 | 3;
-    monthlyListenTimes?: Map<string, { currentTime: number; lastUpdated: Date }>;
     totalListeningTime?: number; // Total seconds listened across all time
     createdAt: Date;
     updatedAt: Date;
@@ -79,14 +78,6 @@ const UserSchema = new Schema<IUser>(
             type: Number,
             enum: [1, 2, 3],
             default: 2,
-        },
-        monthlyListenTimes: {
-            type: Map,
-            of: {
-                currentTime: Number,
-                lastUpdated: Date,
-            },
-            default: new Map(),
         },
         totalListeningTime: {
             type: Number,

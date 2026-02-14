@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Keep history long enough to compute monthly listening time
+        // Keep history long enough for analytics
         const retentionDays = 60;
         const cutoffDate = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
         await PlaybackHistory.deleteMany({

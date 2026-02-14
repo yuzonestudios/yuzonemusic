@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { X, SkipBack, Play, Pause, SkipForward, Volume2, Heart, ListPlus, Download, Share, Music, Shuffle, Repeat, Repeat1 } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
+import { getDownloadName, getPlaybackUrl } from "@/lib/playback";
 import { browserCache, BROWSER_CACHE_TTL } from "@/lib/browser-cache";
 import styles from "./FullscreenPlayer.module.css";
 
@@ -67,6 +68,9 @@ export default function FullscreenPlayer() {
     const [ambientColor, setAmbientColor] = useState<string | null>(null);
     const originalUrlRef = useRef<string | null>(null);
     const lyricsBodyRef = useRef<HTMLDivElement | null>(null);
+    const isPodcast = currentSong?.contentType === "podcast";
+    const playbackUrl = getPlaybackUrl(currentSong);
+    const downloadName = getDownloadName(currentSong);
 
     const parsedLyrics = useMemo(() => {
         if (!lyrics) {
@@ -212,6 +216,10 @@ export default function FullscreenPlayer() {
 
     useEffect(() => {
         if (currentSong) {
+            if (currentSong.contentType === "podcast") {
+                setIsLiked(false);
+                return;
+            }
             const checkLike = async () => {
                 try {
                     const res = await fetch(`/api/liked?check=${currentSong.videoId}`);
@@ -231,7 +239,7 @@ export default function FullscreenPlayer() {
 
     // Fetch lyrics when fullscreen is open and song changes
     useEffect(() => {
-        if (!isFullscreenOpen || !currentSong?.videoId || !showLyrics) {
+        if (!isFullscreenOpen || !currentSong?.videoId || !showLyrics || currentSong.contentType === "podcast") {
             return;
         }
 
@@ -306,7 +314,7 @@ export default function FullscreenPlayer() {
     };
 
     const toggleLike = async () => {
-        if (!currentSong) return;
+        if (!currentSong || currentSong.contentType === "podcast") return;
 
         const newLiked = !isLiked;
         setIsLiked(newLiked);
@@ -522,7 +530,7 @@ export default function FullscreenPlayer() {
                                 <button
                                     className={`${styles.lyricsToggle} ${showLyrics ? styles.active : ""}`}
                                     onClick={() => setShowLyrics((prev) => !prev)}
-                                    disabled={!currentSong}
+                                    disabled={!currentSong || isPodcast}
                                 >
                                     {showLyrics ? "Hide Lyrics" : "Show Lyrics"}
                                 </button>
@@ -591,36 +599,42 @@ export default function FullscreenPlayer() {
                         {/* Secondary Controls */}
                         <div className={styles.actionRow}>
                             <div className={styles.secondaryControls}>
-                                <button
-                                    onClick={toggleLike}
-                                    className={`${styles.secondaryBtn} ${isLiked ? styles.active : ""}`}
-                                    title={isLiked ? "Unlike" : "Like"}
-                                    disabled={!currentSong}
-                                >
-                                    <Heart size={22} fill={isLiked ? "currentColor" : "none"} />
-                                </button>
+                                {!isPodcast && (
+                                    <button
+                                        onClick={toggleLike}
+                                        className={`${styles.secondaryBtn} ${isLiked ? styles.active : ""}`}
+                                        title={isLiked ? "Unlike" : "Like"}
+                                        disabled={!currentSong}
+                                    >
+                                        <Heart size={22} fill={isLiked ? "currentColor" : "none"} />
+                                    </button>
+                                )}
 
-                                <button
-                                    onClick={() => setIsPlaylistModalOpen(true)}
-                                    className={styles.secondaryBtn}
-                                    title="Add to Playlist"
-                                    disabled={!currentSong}
-                                >
-                                    <ListPlus size={22} />
-                                </button>
+                                {!isPodcast && (
+                                    <button
+                                        onClick={() => setIsPlaylistModalOpen(true)}
+                                        className={styles.secondaryBtn}
+                                        title="Add to Playlist"
+                                        disabled={!currentSong}
+                                    >
+                                        <ListPlus size={22} />
+                                    </button>
+                                )}
 
-                                <button
-                                    onClick={() => setIsShareModalOpen(true)}
-                                    className={styles.secondaryBtn}
-                                    title="Share"
-                                    disabled={!currentSong}
-                                >
-                                    <Share size={22} />
-                                </button>
+                                {!isPodcast && (
+                                    <button
+                                        onClick={() => setIsShareModalOpen(true)}
+                                        className={styles.secondaryBtn}
+                                        title="Share"
+                                        disabled={!currentSong}
+                                    >
+                                        <Share size={22} />
+                                    </button>
+                                )}
 
                                 <a
-                                    href={currentSong ? `/api/stream?id=${currentSong.videoId}` : "#"}
-                                    download={currentSong ? `${currentSong.title}.mp4` : undefined}
+                                    href={playbackUrl || "#"}
+                                    download={downloadName}
                                     className={styles.secondaryBtn}
                                     title="Download"
                                 >
@@ -674,7 +688,7 @@ export default function FullscreenPlayer() {
                 {/* Right Column - Lyrics/Queue */}
                 <div className={styles.rightColumn}>
                     {/* Lyrics */}
-                    {currentSong && showLyrics && !showQueue && (
+                    {currentSong && showLyrics && !showQueue && !isPodcast && (
                         <div className={styles.lyricsPanel}>
                             <div className={styles.lyricsHeader}>
                                 <span className={styles.lyricsTitle}>
@@ -770,7 +784,7 @@ export default function FullscreenPlayer() {
                     )}
                 </div>
 
-                {currentSong && (
+                {currentSong && !isPodcast && (
                     <>
                         <AddToPlaylistModal
                             isOpen={isPlaylistModalOpen}

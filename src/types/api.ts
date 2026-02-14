@@ -28,10 +28,42 @@ export interface SearchAlbumResult {
   browseId: string;
 }
 
+export interface SearchPodcastShowResult {
+  type: "podcast-show";
+  feedId: number;
+  title: string;
+  description?: string;
+  author?: string;
+  image?: string;
+  thumbnail?: string;
+  language?: string;
+  categories?: string[];
+  episodeCount?: number;
+  website?: string;
+}
+
+export interface SearchPodcastEpisodeResult {
+  type: "podcast-episode";
+  episodeId: number;
+  feedId: number;
+  title: string;
+  description?: string;
+  image?: string;
+  audioUrl?: string;
+  duration: string;
+  publishedAt?: string;
+  podcastTitle?: string;
+  podcastAuthor?: string;
+}
+
 export interface SearchResponse {
   songs?: SearchSongResult[];
   artists?: SearchArtistResult[];
   albums?: SearchAlbumResult[];
+  podcasts?: {
+    shows: SearchPodcastShowResult[];
+    episodes: SearchPodcastEpisodeResult[];
+  };
 }
 
 // Artist Details Types

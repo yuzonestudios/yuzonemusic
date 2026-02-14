@@ -34,8 +34,8 @@ export default function DashboardPage() {
                 if (summaryRes.ok) {
                     const summaryData = await summaryRes.json();
                     if (summaryData.success) {
-                        const serverSeconds = typeof summaryData.totalListenSeconds === "number"
-                            ? summaryData.totalListenSeconds
+                        const serverSeconds = typeof summaryData.totalAllTimeSeconds === "number"
+                            ? summaryData.totalAllTimeSeconds
                             : null;
                         // Always use server data as the source of truth
                         const serverMinutes = serverSeconds !== null
@@ -185,7 +185,7 @@ export default function DashboardPage() {
                                 <Clock size={20} />
                             </div>
                             <div>
-                                <div className={styles.statLabel}>Listening this month (sync across devices)</div>
+                                <div className={styles.statLabel}>Lifetime listening time</div>
                                 <div className={styles.statValue}>
                                     {monthlyMinutes === null ? "—" : `${monthlyMinutes} min`}
                                 </div>
@@ -292,16 +292,15 @@ function getTimeGreeting(): string {
     return "Evening";
 }
 
-const LISTEN_MINUTES_COOKIE_PREFIX = "yuzone_listen_minutes";
+const LISTEN_MINUTES_COOKIE_KEY = "yuzone_listen_minutes_lifetime";
 const LISTEN_COOKIE_DAYS = 40;
 
 function readListeningMinutesCookie(): number | null {
     if (typeof document === "undefined") return null;
-    const cookieKey = getListeningCookieKey();
     const match = document.cookie
         .split(";")
         .map((part) => part.trim())
-        .find((part) => part.startsWith(`${cookieKey}=`));
+        .find((part) => part.startsWith(`${LISTEN_MINUTES_COOKIE_KEY}=`));
 
     if (!match) return null;
     const value = match.split("=")[1];
@@ -311,14 +310,7 @@ function readListeningMinutesCookie(): number | null {
 
 function writeListeningMinutesCookie(minutes: number) {
     if (typeof document === "undefined") return;
-    const cookieKey = getListeningCookieKey();
     const expires = new Date();
     expires.setDate(expires.getDate() + LISTEN_COOKIE_DAYS);
-    document.cookie = `${cookieKey}=${encodeURIComponent(minutes)}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
-}
-
-function getListeningCookieKey(): string {
-    const now = new Date();
-    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    return `${LISTEN_MINUTES_COOKIE_PREFIX}_${month}`;
+    document.cookie = `${LISTEN_MINUTES_COOKIE_KEY}=${encodeURIComponent(minutes)}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
 }
