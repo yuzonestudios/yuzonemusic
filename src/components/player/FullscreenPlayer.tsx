@@ -531,13 +531,15 @@ export default function FullscreenPlayer() {
                                 <span className={styles.metaChip}>Time left {formatTime(timeLeft)}</span>
                             </div>
                             <div className={styles.metaRow}>
-                                <button
-                                    className={`${styles.lyricsToggle} ${showLyrics ? styles.active : ""}`}
-                                    onClick={() => setShowLyrics((prev) => !prev)}
-                                    disabled={!currentSong || isPodcast}
-                                >
-                                    {showLyrics ? "Hide Lyrics" : "Show Lyrics"}
-                                </button>
+                                {!isPodcast && (
+                                    <button
+                                        className={`${styles.lyricsToggle} ${showLyrics ? styles.active : ""}`}
+                                        onClick={() => setShowLyrics((prev) => !prev)}
+                                        disabled={!currentSong}
+                                    >
+                                        {showLyrics ? "Hide Lyrics" : "Show Lyrics"}
+                                    </button>
+                                )}
                                 <button
                                     className={`${styles.queueToggle} ${showQueue ? styles.active : ""}`}
                                     onClick={() => setShowQueue((prev) => !prev)}

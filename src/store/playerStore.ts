@@ -277,12 +277,24 @@ export const usePlayerStore = create<PlayerState>()(
             },
 
             clearQueue: () => {
-                set({
-                    queue: [],
-                    queueIndex: 0,
-                    currentSong: null,
-                    isPlaying: false,
-                    currentTime: 0,
+                set((state) => {
+                    // Keep only the current song in the queue
+                    const currentSong = state.currentSong;
+                    if (!currentSong) {
+                        // If no current song, clear everything
+                        return {
+                            queue: [],
+                            queueIndex: 0,
+                            currentSong: null,
+                            isPlaying: false,
+                            currentTime: 0,
+                        };
+                    }
+                    // Keep the current song as the only item in queue
+                    return {
+                        queue: [currentSong],
+                        queueIndex: 0,
+                    };
                 });
             },
 

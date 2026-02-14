@@ -16,7 +16,7 @@ function toPlayableEpisode(episode: PodcastEpisode): Song {
     return {
         videoId: `podcast-${episode.feedId}-${episode.episodeId}`,
         title: episode.title,
-        artist: episode.podcastTitle || episode.podcastAuthor || "Podcast",
+        artist: episode.podcastAuthor || episode.podcastTitle || "Podcast",
         thumbnail: episode.image || "/placeholder-album.png",
         duration: episode.duration,
         streamUrl: episode.audioUrl,
@@ -76,7 +76,7 @@ export default function PodcastEpisodeCard({ episode, episodes = [episode], inde
             <div className={styles.info}>
                 <div className={styles.title}>{episode.title}</div>
                 <div className={styles.meta}>
-                    <span className={styles.show}>{episode.podcastTitle || episode.podcastAuthor || "Podcast"}</span>
+                    <span className={styles.show}>{episode.podcastAuthor || episode.podcastTitle || "Podcast"}</span>
                     <span className={styles.duration}>{episode.duration}</span>
                 </div>
             </div>
