@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import Link from "next/link";
 import SongCard from "@/components/cards/SongCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ErrorState from "@/components/ui/ErrorState";
@@ -23,8 +24,6 @@ export default function SearchPage() {
     const [albums, setAlbums] = useState<Album[]>([]);
     const [podcastShows, setPodcastShows] = useState<PodcastShow[]>([]);
     const [podcastEpisodes, setPodcastEpisodes] = useState<PodcastEpisode[]>([]);
-    const [selectedPodcastFeedId, setSelectedPodcastFeedId] = useState<number | null>(null);
-    const [selectedPodcastTitle, setSelectedPodcastTitle] = useState<string | null>(null);
     const [albumSongs, setAlbumSongs] = useState<Array<{ videoId: string; title: string; artists: Array<{ name: string }>; duration: string; thumbnail: string }>>([]);
     const [selectedAlbumTitle, setSelectedAlbumTitle] = useState<string | null>(null);
     const [selectedAlbumThumbnail, setSelectedAlbumThumbnail] = useState<string | null>(null);
@@ -90,8 +89,6 @@ export default function SearchPage() {
             setAlbums(cached.albums || []);
             setPodcastShows(cached.podcasts?.shows || []);
             setPodcastEpisodes(cached.podcasts?.episodes || []);
-            setSelectedPodcastFeedId(null);
-            setSelectedPodcastTitle(null);
             setError(null);
             setHasSearched(true);
             return;
@@ -125,8 +122,6 @@ export default function SearchPage() {
                     setAlbums(data.data.albums || []);
                     setPodcastShows(data.data.podcasts?.shows || []);
                     setPodcastEpisodes(data.data.podcasts?.episodes || []);
-                    setSelectedPodcastFeedId(null);
-                    setSelectedPodcastTitle(null);
 
                     // Cache the results
                     setCachedSearchResults(query, searchType, {
@@ -236,8 +231,6 @@ export default function SearchPage() {
         setAlbums([]);
         setPodcastShows([]);
         setPodcastEpisodes([]);
-        setSelectedPodcastFeedId(null);
-        setSelectedPodcastTitle(null);
         setAlbumSongs([]);
         setSelectedAlbumTitle(null);
         setSelectedAlbumThumbnail(null);
@@ -351,14 +344,7 @@ export default function SearchPage() {
         }
     };
 
-    const handlePodcastShowSelect = (show: PodcastShow) => {
-        setSelectedPodcastFeedId(show.feedId);
-        setSelectedPodcastTitle(show.title);
-    };
-
-    const visiblePodcastEpisodes = selectedPodcastFeedId
-        ? podcastEpisodes.filter((episode) => episode.feedId === selectedPodcastFeedId)
-        : podcastEpisodes;
+    const visiblePodcastEpisodes = podcastEpisodes;
 
     const normalizedQuery = query.trim().toLowerCase();
     const recentMatches = showSuggestions
@@ -677,11 +663,10 @@ export default function SearchPage() {
                                     {podcastShows.length > 0 && (
                                         <div className={styles.podcastGrid}>
                                             {podcastShows.map((show) => (
-                                                <button
+                                                <Link
                                                     key={show.feedId}
-                                                    type="button"
-                                                    className={`${styles.podcastCard} ${selectedPodcastFeedId === show.feedId ? styles.podcastCardActive : ""}`}
-                                                    onClick={() => handlePodcastShowSelect(show)}
+                                                    href={`/podcasts/${show.feedId}`}
+                                                    className={styles.podcastCard}
                                                 >
                                                     <img
                                                         src={show.thumbnail || show.image || "/placeholder-album.png"}
@@ -692,7 +677,7 @@ export default function SearchPage() {
                                                         <div className={styles.podcastTitle}>{show.title}</div>
                                                         <div className={styles.podcastMeta}>{show.author || "Podcast"}</div>
                                                     </div>
-                                                </button>
+                                                </Link>
                                             ))}
                                         </div>
                                     )}
@@ -700,25 +685,9 @@ export default function SearchPage() {
                                         <div className={styles.podcastEpisodes}>
                                             <div className={styles.podcastEpisodesHeader}>
                                                 <div>
-                                                    <div className={styles.podcastEpisodesTitle}>
-                                                        {selectedPodcastTitle || "All Episodes"}
-                                                    </div>
-                                                    {selectedPodcastTitle && (
-                                                        <div className={styles.podcastEpisodesSubtitle}>Episode list</div>
-                                                    )}
+                                                    <div className={styles.podcastEpisodesTitle}>Latest Episodes</div>
+                                                    <div className={styles.podcastEpisodesSubtitle}>Tap a show to see all episodes</div>
                                                 </div>
-                                                {selectedPodcastFeedId !== null && (
-                                                    <button
-                                                        type="button"
-                                                        className={styles.podcastEpisodesReset}
-                                                        onClick={() => {
-                                                            setSelectedPodcastFeedId(null);
-                                                            setSelectedPodcastTitle(null);
-                                                        }}
-                                                    >
-                                                        Show all
-                                                    </button>
-                                                )}
                                             </div>
                                             {visiblePodcastEpisodes.map((episode, index) => (
                                                 <PodcastEpisodeCard

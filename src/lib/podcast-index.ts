@@ -77,6 +77,22 @@ async function podcastIndexFetch<T>(path: string, params: Record<string, string 
     return response.json() as Promise<T>;
 }
 
+export async function getPodcastByFeedId(feedId: number) {
+    const response = await podcastIndexFetch<{ feed?: PodcastIndexFeed }>("/podcasts/byfeedid", {
+        id: feedId,
+    });
+    return response.feed || null;
+}
+
+export async function getPodcastEpisodesByFeedId(feedId: number, max = 200) {
+    const response = await podcastIndexFetch<{ items?: PodcastIndexEpisode[] }>("/episodes/byfeedid", {
+        id: feedId,
+        max,
+        fulltext: false,
+    });
+    return response.items || [];
+}
+
 export async function searchPodcastIndex(term: string, maxShows = 6, episodesPerShow = 3) {
     const searchResponse = await podcastIndexFetch<{ feeds?: PodcastIndexFeed[] }>("/search/byterm", {
         q: term,
