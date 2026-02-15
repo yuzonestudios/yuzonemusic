@@ -615,7 +615,7 @@ export default function SettingsPage() {
                             color: "var(--text-secondary)",
                             marginBottom: "0.75rem"
                         }}>
-                            <strong>Special thanks to:</strong> Chiranth, Monami Mukherjee for their valuable feedback and support.
+                            <strong>Special thanks to:</strong> Chiranth, Anand Shukla, Monami Mukherjee for their valuable feedback and support.
                         </p>
                     </div>
                 </div>
