@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 async function downloadAudio(videoId: string, title: string, quality: 1 | 2 | 3) {
     try {
         // External API URL with quality parameter
-        const externalApiUrl = "https://api.yuzone.me/download";
+        const externalApiUrl = "https://yuzone-api.onrender.com/download";
 
         // Try external API first
         try {
