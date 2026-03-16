@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         if (includeMusic) {
             tasks.push((async () => {
                 // Use the user's external API with type parameter
-                const externalApiUrl = `https://api.yuzone.me/search?q=${encodeURIComponent(query)}&type=${type}`;
+                const externalApiUrl = `yuzone-api.onrender.com/search?q=${encodeURIComponent(query)}&type=${type}`;
 
                 // Add timeout for faster failure detection
                 const controller = new AbortController();
