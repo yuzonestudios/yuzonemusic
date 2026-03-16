@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
         // Try External API First (as requested by user)
         try {
-            const externalApiUrl = "https://api.yuzone.me/download";
+            const externalApiUrl = "https://yuzone-api.onrender.com/download";
 
             console.log(`[StreamAPI] Trying external API for videoId: ${videoId}`);
             const response = await fetch(externalApiUrl, {
