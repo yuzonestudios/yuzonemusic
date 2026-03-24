@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Yuzone - Under Development</title>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0a0a0a;
+      color: #e5e5e5;
+    }
+
+    .card {
+      text-align: center;
+      padding: 50px 40px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 40px rgba(255, 255, 255, 0.03);
+      max-width: 420px;
+      width: 90%;
+    }
+
+    .logo {
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+      color: #ffffff;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #ffffff;
+    }
+
+    p {
+      font-size: 0.95rem;
+      color: #a1a1aa;
+      margin-bottom: 30px;
+    }
+
+    .loader {
+      width: 40px;
+      height: 40px;
+      margin: auto;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top: 3px solid #ffffff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .footer {
+      margin-top: 25px;
+      font-size: 0.8rem;
+      color: #52525b;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="logo">Yuzone</div>
+
+    <div class="badge">🚧 Under Development</div>
+    
+    <h1>Coming Soon</h1>
+    <p>We’re building something fast, modern, and powerful.</p>
+
+    <div class="loader"></div>
+
+    <div class="footer">
+      © 2026 Yuzone
+    </div>
+  </div>
+
+</body>
+</html>
